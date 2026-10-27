@@ -1,0 +1,2053 @@
+---
+title: "Computing Exercises: Homework 1-3"
+author: "Group 1"
+output: pdf_document
+---
+
+# Homework 1
+
+## Exercise 1 – Remainder
+
+Calculate the remainder after dividing 31 079 into 170 166 719.
+
+```{r}
+170166719 %% 31079  # %% is the modulo operator
+```
+
+## Exercise 2 – Geometric Sum
+
+Calculate the sum $s_n = \sum_{i=1}^{n} r^i$ for $r = 1.08$ and compare it to $\frac{r^{n+1} - 1}{r - 1} - 1$ for $n = 10, 20, 30, 40$. Use the quick formula to compute the sum for all values of $n$ between 1 and 100, and store the results in a vector.
+
+```{r}
+# sum of (1.08, 1.08^2, ..., 1.08^n)
+s10 <- sum(1.08 ^ (1:10))
+s20 <- sum(1.08 ^ (1:20))
+s30 <- sum(1.08 ^ (1:30))
+s40 <- sum(1.08 ^ (1:40))
+
+# quick formula: (r^(n+1) - 1)/(r - 1) - 1
+n <- (1:100)
+
+Formular <- (((1.08 ^ (n+1)) -1)) / (1.08-1) -1
+
+# all.equal(x,y) tolerates small rounding errors, while == is strict
+Formular[10] == s10 # 10th element of the formula vector: n = 10
+Formular[20] == s20
+Formular[30] == s30
+Formular[40] == s40
+```
+
+## Exercise 3 – Sum of the First n Integers
+
+Calculate the sum $s_n = \sum_{i=1}^{n} i$ and compare with $\frac{n(n+1)}{2}$ for $n = 100, 200, 400, 800$. Use the quick formula to compute the sum for all values of $n$ between 1 and 100, and store the results in a vector.
+
+```{r}
+s100 <- sum(1:100)
+s200 <- sum(1:200)
+s400 <- sum(1:400)
+s800 <- sum(1:800)
+
+f100 <- (100*(100+1))/2
+f200 <- (200*(200+1))/2
+f400 <- (400*(400+1))/2
+f800 <- (800*(800+1))/2
+
+# all.equal(x,y) tolerates small rounding errors, while == is strict
+f100 == s100
+f200 == s200
+f400 == s400
+f800 == s800
+
+n <- (1:100)
+sum1100 <- (n * (n + 1 )) / 2   # vector of the sums for n = 1 to n = 100
+sum1100
+```
+
+## Exercise 4 – Sum of Squares
+
+Calculate the sum $s_n = \sum_{i=1}^{n} i^2$ and compare with $\frac{n(n+1)(2n+1)}{6}$ for $n = 200, 400, 600, 800$. Use the quick formula to compute the sum for all values of $n$ between 1 and 100, and store the results in a vector.
+
+```{r}
+s2200 <- sum((1:200)^2)
+s2400 <- sum((1:400)^2)
+s2600 <- sum((1:600)^2)
+s2800 <- sum((1:800)^2)
+
+f2200 <- (200*(200+1)*(2*200+1))/6
+f2400 <- (400*(400+1)*(2*400+1))/6
+f2600 <- (600*(600+1)*(2*600+1))/6
+f2800 <- (800*(800+1)*(2*800+1))/6
+
+f2200 == s2200
+f2400 == s2400
+f2600 == s2600
+f2800 == s2800
+
+n <- (1:100)
+sum11002 <- (n * (n + 1) * (2 * n + 1)) / 6
+sum11002
+```
+
+## Exercise 5 – Harmonic Sum
+
+Calculate the sum $s_n = \sum_{i=1}^{n} \frac{1}{i}$, and compare with $\log(n)$ for $n = 500, 1000, 2000, 4000, 8000$. Do you know the limit of $s_n - \log(n)$ for $n \to \infty$?
+
+```{r}
+s3500  <- sum(1 / (1:500))
+s31000 <- sum(1 / (1:1000))
+s32000 <- sum(1 / (1:2000))
+s34000 <- sum(1 / (1:4000))
+s38000 <- sum(1 / (1:8000))
+
+s3500  == log(500)
+s31000 == log(1000)
+s32000 == log(2000)
+s34000 == log(4000)
+s38000 == log(8000)
+
+# try with bigger numbers
+s380000 <- sum(1/(1:80000))
+all.equal(s380000,log(80000))
+
+s38000000 <- sum(1/(1:8000000))
+s38000000 - log(8000000)
+
+s99 <- sum(1/(1:(10^7)))
+s99 - log(10^7)
+```
+
+The difference $s_n - \log(n)$ converges to the Euler–Mascheroni constant
+$$\gamma = \lim_{n \to \infty} \left( \sum_{i=1}^{n} \frac{1}{i} - \log(n) \right) \approx 0.5772.$$
+
+## Exercise 6 – seq() and rep()
+
+Using `seq()` and `rep()` as needed, create the vectors
+
+`0 0 0 0 0 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4`
+
+and
+
+`1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5 1 2 3 4 5`
+
+```{r}
+rep(seq(0,4),each= 5)
+rep(seq(1,5),times= 5)
+```
+
+## Exercise 7 – Combining Sequences
+
+Using `seq()` and `rep()` as needed, create the vector
+
+`1 2 3 4 5 2 3 4 5 6 3 4 5 6 7 4 5 6 7 8 5 6 7 8 9`
+
+```{r}
+rep(0:4, each = 5) + rep(1:5, times = 5)
+```
+
+## Exercise 8 – Repeated Sequence
+
+Write a function which, for a given natural number $n$, returns a sequence where each $i \le n$ is repeated $i$ times, in ascending order. E.g., for $n = 4$ the function should return `c(1, 2, 2, 3, 3, 3, 4, 4, 4, 4)`.
+
+```{r}
+vector_func <- function(n) {
+  # '||' ensures that you get a single truth value
+  if(n%%1 != 0 || n < 1) stop('Input "n" should be a natural number')
+
+  result <- rep(1:n, times = 1:n)
+  return(result)
+}
+
+vector_func(4)
+vector_func(pi) |> try()
+vector_func(0)  |> try()
+```
+
+## Exercise 9 – dump() and source()
+
+Create a vector called `numbers` which contains
+
+`3 5 8 10 12`
+
+Dump `numbers` to a file called `numbers.R` and delete `numbers` using `rm()`. Using `ls()`, confirm that `numbers` has been deleted. Now, use `source()` to retrieve the vector `numbers`.
+
+```{r}
+numbers <- c(3, 5, 8, 10, 12)
+numbers
+getwd()
+
+dump("numbers", file = "numbers.R")
+rm(numbers)
+"numbers" %in% ls()
+
+source("numbers.R")
+numbers
+```
+
+## Exercise 10 – Saving the Alphabet
+
+Write a function which saves the 26 upper-case letters of the Roman alphabet to a given file.
+
+```{r}
+# Alternatively, we can use the constant LETTERS
+
+alphabet <- function(file_name) {
+
+  letters<- "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+  # saves the object under the file name input
+  dump("letters", file = file_name)
+}
+
+# call of the corresponding function
+alphabet("alpha.R")
+```
+
+## Exercise 11 – Plotting a Piecewise Function
+
+Plot the graph of the function
+$$f(x) =
+\begin{cases}
+3x + 2, & x \le 3, \\
+2x - 0.5x^2, & x > 3
+\end{cases}$$
+on the interval $[0, 6]$. (Do not worry about the discontinuity at $x = 3$.)
+
+```{r}
+f <- function(x) {
+  if(x <= 3) {
+    result <- 3*x + 2
+  } else {
+    result <- 2*x - 0.5*x^2
+  }
+  return(result)
+}
+
+x      <- seq(0, 6, by = 0.01)
+f_of_x <- sapply(x, f)
+
+plot(x, f_of_x, type = "l", col = "black", lwd = 2,
+     main = "Graph of f(x)", xlab = "x", ylab = "f(x)")
+```
+
+## Exercise 12 – Sign of a Number
+
+Write a function which outputs whether a given number is positive or negative.
+
+```{r}
+sign_func <- function(x) {
+  if(!is.numeric(x)) stop('Input "x" should be a number')
+
+  if(x < 0)      {result <- "Negative"}
+  else if(x > 0) {result <- "Positive"}
+  else           {result <- "Neither negative, nor positive"}
+
+  return(result)
+}
+
+sign_func(-3)
+sign_func(pi)
+sign_func("A") |> try()
+```
+
+## Exercise 13 – Comparison with Pi
+
+Write a function which outputs whether a given number exceeds $\pi$ in absolute value.
+
+```{r}
+biggerpi<- function(x) {
+  y <- abs(x)
+
+  if(y < pi) {cat("the absolute value of", x, "is smaller than pi")}
+  else if(y == pi) {cat("the absolute value of", x, "is equal to pi")}
+  else {cat("the absolute value of", x, "is bigger than pi")}
+}
+
+biggerpi(-4)
+biggerpi(3)
+biggerpi(pi)
+```
+
+## Exercise 14 – Geometric and Harmonic Mean
+
+Write a function which returns the geometric (or the harmonic) mean of two given numbers.
+
+```{r}
+means <- function(num1, num2, type = c("geometric", "harmonic")) {
+  if(!is.numeric(num1) || !is.numeric(num2)) {
+    stop("Num1 and Num2 should be of class 'numeric'")  # checks for everything except numeric
+  }
+  if(length(num1) > 1 || length(num2) > 1) {           # checks for vectors
+    stop("Num1 and Num2 should be single numbers")
+  }
+
+  # input variable type is matched to one of the allowed options, else error
+  type <- match.arg(type)
+
+  # from the definition of the geometric mean, sqrt(num1 * num2) is undefined
+  # when num1 * num2 < 0
+  if(type == "geometric" && (num1 < 0 || num2 < 0)) {
+    stop("geometric mean requires non-negative numbers")
+  }
+  # from the definition of the harmonic mean, 2 / (1 / num1 + 1 / num2) is defined
+  # for positive real numbers
+  if(type == "harmonic" && (num1 <= 0 || num2 <= 0)) {
+    stop("harmonic mean requires positive numbers")
+  }
+
+  if(type == "geometric") {result <- sqrt(num1 * num2)}
+  if(type == "harmonic")  {result <- (2 / (1/num1 + 1/num2))}
+  return(result)
+}
+
+means(2, 8,   type = "geometric")
+means(2, 8,   type = "harmonic")
+means(2, "A", type = "harmonic")   |> try()
+means(2, 8,   type = "arithmetic") |> try()
+```
+
+## Exercise 15 – Shorter String
+
+Write a function which outputs which of two given character strings is shorter. (Hint: `?"nchar"`.)
+
+```{r}
+shorter_str <- function(str1, str2) {
+  if(!is.character(str1) || !is.character(str2)) {
+    stop("str1 and str2 should be of class 'character'")
+  }
+
+  # Note: blank space is considered a character
+  str1_len <- nchar(str1)
+  str2_len <- nchar(str2)
+  diff     <- str1_len - str2_len
+
+  if(diff > 0)      {return(str2)}
+  else if(diff < 0) {return(str1)}
+  else {
+    warning("Strings have equal lengths")
+    return(c(str1, str2))
+  }
+}
+
+shorter_str("Computing", "Statistics 1")
+shorter_str("WU is better", "TU is worse!")
+```
+
+## Exercise 16 – Repeating a String
+
+Write a function which outputs a given character string once for each character in the string. (Hint: `?"for"`.)
+
+```{r}
+str2chars <- function(str) {
+  if(!is.character(str) || length(str) != 1) {
+    stop("Input must be a single character string")
+  }
+  # strsplit() produces a list by default so flatten it
+  str_len <- strsplit(str, NULL) |> unlist() |> length()
+  for(i in seq_len(str_len)){
+    print(str)
+  }
+}
+
+str2chars("QFin")
+str2chars("WU")
+str2chars("")
+str2chars(c("Quantitative", "Finance")) |> try()
+str2chars(2026) |> try()
+```
+
+## Exercise 17 – Countdown
+
+Write a function which for a given natural number $n$ outputs all natural numbers $\le n$ in reverse order, each on a separate line ("countdown").
+
+```{r}
+countdown <- function(n) {
+  if(!is.numeric(n))      stop("Input must be of type 'numeric'")
+  if(n%%1 != 0 || n <= 0) stop("Input must be a natural number")
+
+  for(i in n:1) {print(i)}
+}
+countdown(5)
+```
+
+For a real countdown (with a delay between the numbers) you can use:
+
+```{r}
+countdowndelay<- function(x){
+  if(!is.numeric(x))      stop("Input must be of type 'numeric'")
+  if(x%%1 != 0 || x <= 0) stop("Input must be a natural number")
+
+  while(x>0){
+    cat(x, "\n")
+    x<-(x-1)
+    Sys.sleep(0.5)
+  }
+}
+
+countdowndelay(10)
+```
+
+## Exercise 18 – Divisibility
+
+For two natural numbers $x$ and $y$, `x %/% y` and `x %% y` give the result and remainder, respectively, of the integer division of $x$ by $y$. Write a function which outputs whether a given $x$ is divisible by a given $y$ (i.e., whether the remainder is zero, or equivalently, whether $x$ is a multiple of $y$).
+
+```{r}
+divisor <- function(x, y) {
+  if(!is.numeric(x) || !is.numeric(y)) {
+    stop("Inputs x and y must be numeric")
+  }
+  if(x%%1 != 0 || x <= 0) {stop("x must be a natural number")}
+  if(y%%1 != 0 || y <= 0) {stop("y must be a natural number")}
+
+  is_divisible <- (x %% y == 0) # binary variable
+
+  if(is_divisible) {
+    cat(x, "is divisible by", y, "\n")
+  } else {
+    cat(x, "is NOT divisible by", y, "\n")
+  }
+  return(invisible(is_divisible))   # hide TRUE / FALSE output from console
+}
+
+divisor(4, 2)
+divisor(5, 2)
+divide <- divisor(5, 2)
+divide
+divisor("A", 2) |> try()
+divisor(NA,  2) |> try()
+```
+
+## Exercise 19 – Sum of Digits
+
+Write a function which computes the sum of the digits of a given natural number. Hint: you can use `%%` and `%/%` to extract and eliminate the last digit, respectively.
+
+Instead of the hint, we convert the number to a character string and split it into its digits.
+
+```{r}
+sum_of_digits <- function(x) {
+  if(!is.numeric(x)) stop("x must be of class 'numeric'")
+  if(length(x) != 1) stop("x must be of length 1")
+  if(x%%1 != 0 || x <= 0) {stop("x must be a single natural number")}
+
+  # work-around using characters :)
+  x_str     <- x |> format(scientific = FALSE, trim = TRUE)
+  x_str_dig <- strsplit(x_str, NULL) |> unlist()
+  x_digits  <- as.numeric(x_str_dig)
+  result    <- sum(x_digits)
+  return(result)
+}
+sum_of_digits(20)
+sum_of_digits(123)
+sum_of_digits(c(123, 456)) |> try()
+sum_of_digits(pi)          |> try()
+sum_of_digits("qfin")      |> try()
+```
+
+## Exercise 20 – Total Number of Digits
+
+Write a function which computes the total number of digits (in the decimal representation) in a given sequence of natural numbers.
+
+```{r}
+total_digit_number <- function(input_seq) {
+  if(any(input_seq %% 1 != 0) || any(input_seq <= 0)) {
+    stop("Sequence must consist of natural numbers")
+  }
+
+  # the format function with scientific = FALSE is required for examples
+  # such as 10000000 (8 digits) that this approach would otherwise
+  # consider as 1e+07 (5 chars)
+  result  <- nchar(input_seq |>
+                     format(scientific = FALSE,
+                            trim = TRUE)) |>
+    sum()
+  return(result)
+}
+
+total_digit_number(1:9)  # should return 9
+total_digit_number(1:10) # should return 11
+total_digit_number(-5:5) |> try() # should raise error (neg numbers)
+total_digit_number(10^6) |> try() # normally R writes 1e+06 which is 5 chars
+
+# seq(1, 3, by = 0.5) = c(1, 1.5, 2, 2.5, 3),
+# i.e. not all are naturals => should raise error
+total_digit_number(seq(1, 3, by = 0.5)) |> try()
+```
+
+## Exercise 21 – Squares of the Two Larger Numbers
+
+Write a function which takes three numbers as arguments and returns the sum of the squares of the two larger numbers.
+
+```{r}
+greatest_two <- function(num1, num2, num3) {
+  if(!is.numeric(num1) || !is.numeric(num2) || !is.numeric(num3)) {
+    stop("Inputs should be of class 'numeric'")
+  }
+  vec     <- c(num1, num2, num3)
+  largest <- vec[-which.min(vec)] # remove the smallest one
+  result  <- sum(largest^2)
+  return(result)
+}
+
+greatest_two( 1, 2, 3)    # should return 9 + 4 = 13
+greatest_two(-1, 0, 1)    # should return 1 + 0 = 1
+greatest_two(-1,-2,-3)    # should return 1 + 4 = 5
+greatest_two("Computing", "Stats 1", "Stats 2") |> try() # should raise error
+```
+
+## Exercise 22 – Cubic Equation
+
+Any cubic equation can be put into the form
+$$x^3 + ax^2 + bx + c = 0.$$
+Assuming the coefficients are real, such an equation has at least one real root, which can be computed in closed form as follows. Make the substitution $y = x + a/3$. The equation then reduces to
+$$y^3 + py + q = 0, \qquad p = \frac{3b - a^2}{3}, \qquad q = \frac{2a^3}{27} - \frac{ab}{3} + c.$$
+If the discriminant $D = (p/3)^3 + (q/2)^2$ is positive, then there is only one real root, and it is given by
+$$x = -\frac{a}{3} + \sqrt[3]{-\frac{q}{2} + \sqrt{D}} + \sqrt[3]{-\frac{q}{2} - \sqrt{D}}.$$
+Write a function which uses this method (in real arithmetic) to compute the unique real root of a cubic equation.
+
+```{r}
+cubic_solver <- function(a, b, c) {
+  if(!is.numeric(a) || !is.numeric(b) || !is.numeric(c)) {
+    stop("Function expects real numbers as inputs for coefficients")
+  }
+
+  p <- (3 * b - a^2) / 3
+  q <- (2 * a^3) / 27 - (a * b) / 3 + c
+  D <- (p / 3)^3 + (q / 2)^2
+
+  if(D <= 0) {stop("This function can't solve your problem")}
+
+  # since R can't take odd roots of negative numbers, use a work-around
+  # with the absolute value function (if x negative, -abs(x))
+  first_term  <- -a/3
+  second_term <- if(-q/2 + sqrt(D) > 0) {
+    (-q/2 + sqrt(D))^(1/3)} else {
+      - abs(-q/2 + sqrt(D))^(1/3)
+    }
+  third_term <- if(-q/2 - sqrt(D) > 0) {
+    (-q/2 - sqrt(D))^(1/3)} else {
+      - abs(-q/2 - sqrt(D))^(1/3)
+    }
+  x <- first_term + second_term + third_term
+
+  return(x)
+}
+
+cubic_solver(1,  2, 3)
+cubic_solver(1,  2, NA) |> try()
+cubic_solver(0, -3, 0)  |> try()
+```
+
+## Exercise 23 – Factorials and Binomial Coefficients
+
+Write a function `factorial` to compute $n! = \prod_{i=1}^{n} i$ using `prod()`.
+
+(a) Compute $10!$, $50!$, $100!$, and $1000!$.
+
+(b) Use `factorial` to write a function which computes the binomial coefficient $\binom{n}{m}$. Compute $\binom{4}{2}$, $\binom{50}{20}$, and $\binom{5000}{2000}$.
+
+(c) The `sum()` function can be used to sum up all elements of its arguments, while the `log()` and `exp()` functions take the natural logarithm and exponential of all elements in their arguments. Use these functions to create an improved function to compute the binomial coefficients. Compute $\binom{4}{2}$, $\binom{50}{20}$, and $\binom{5000}{2000}$ using the improved version.
+
+(a)
+
+```{r}
+factorial_func <- function(n) {
+  if(length(n) != 1) {stop("n should be of length 1")}
+  if(!is.numeric(n)) {stop("n should be of class numeric")}
+  if(n < 0 || n %% 1 != 0) {stop("n should be non-negative integer")}
+
+  if(n == 0) {
+    result <- 1
+  } else {
+    result <- prod(1:n)
+  }
+  return(result)
+}
+# alternatively, use factorial(n) from base R
+
+factorial_func(0)
+factorial_func(50)
+factorial_func(100)
+factorial_func(1000) # Inf
+# Note: factorial(170) < .Machine$double.xmax < factorial(171)
+(factorial(170) - factorial_func(170)) / factorial(170) # precision
+```
+
+(b)
+
+```{r}
+binom <- function(n, k) {
+  if(length(n) != 1 || length(k) != 1) {stop("n and k should be of length 1")}
+  if(!is.numeric(n) || !is.numeric(k)) {stop("n and k should be of class numeric")}
+  if(n < 0 || n %% 1 != 0) {stop("n should be non-negative integer")}
+  if(k < 0 || k %% 1 != 0) {stop("k should be non-negative integer")}
+
+  numerator   <- factorial_func(n)
+  denominator <- factorial_func(k) * factorial_func(n - k)
+  result      <- numerator / denominator
+  return(result)
+}
+# alternatively, use choose(n, k) from base R
+
+binom(0, 0)
+binom(50, 20)
+binom(5000, 2000) # Inf / Inf
+```
+
+(c) By definition of the binomial coefficient,
+$$\binom{n}{k} = \frac{n!}{k!\,(n-k)!}.$$
+Taking the natural logarithm on both sides gives
+$$\ln \binom{n}{k} = \ln n! - \ln k! - \ln (n-k)!.$$
+Using $\ln n! = \sum_{x=1}^{n} \ln x$ (see <https://en.wikipedia.org/wiki/Factorial#Growth_and_approximation>) we arrive at
+$$\ln \binom{n}{k} = \sum_{x=1}^{n} \ln x - \sum_{x=1}^{k} \ln x - \sum_{x=1}^{n-k} \ln x,$$
+and undoing the logarithm by applying $\exp$ to both sides gives
+$$\binom{n}{k} = \exp\left( \sum_{x=1}^{n} \ln x - \sum_{x=1}^{k} \ln x - \sum_{x=1}^{n-k} \ln x \right).$$
+
+```{r}
+binom_improved <- function(n, k) {
+  if(length(n) != 1 || length(k) != 1) {stop("n and k should be of length 1")}
+  if(!is.numeric(n) || !is.numeric(k)) {stop("n and k should be of class numeric")}
+  if(n < 0 || n %% 1 != 0) {stop("n should be non-negative integer")}
+  if(k < 0 || k %% 1 != 0) {stop("k should be non-negative integer")}
+
+  result <-
+    exp(sum(log(seq_len(n))) - sum(log(seq_len(k))) - sum(log(seq_len(n-k))))
+  return(result)
+}
+
+binom_improved(4, 2)
+binom_improved(50, 20)
+binom_improved(5000, 2000) # still too large since
+# .Machine$double.xmax < exp(sum(log(1:171)))
+```
+
+## Exercise 24 – Ratio of Gamma Functions
+
+Write a function to compute
+$$\rho_n = \frac{\Gamma((n-1)/2)}{\Gamma(1/2)\,\Gamma((n-2)/2)}.$$
+Note that a straightforward implementation using `gamma` to compute the Gamma function will fail for large $n$. Why? (Try $n = 2000$ for example.) Instead, compute $\rho_n$ using the logarithm of the Gamma function (provided by `lgamma`). Can you guess the limit of $\rho_n / \sqrt{n}$ for $n \to \infty$?
+
+```{r}
+rho_using_gamma <- function(n) {
+  rho <- gamma((n-1)/2)/(gamma(1/2)*gamma((n-2)/2))
+  return(rho)
+}
+
+rho_using_gamma(2000)
+```
+
+The Gamma function grows extremely fast: in double precision $\Gamma(x)$ is already `Inf` for $x \ge 172$. So at $n = 345$ we get $\rho_n = \infty$, because the numerator $\Gamma\left(\frac{344}{2}\right) = \Gamma(172)$ overflows while the denominator is still finite. From $n = 346$ onwards the denominator overflows too, and $\infty / \infty$ gives `NaN`.
+
+```{r}
+plot(seq(168, 171.6, by = 0.1), sapply(seq(168, 171.6, by = 0.1), gamma),
+     ylim = c(gamma(168), .Machine$double.xmax),
+     main = "Gamma function approaching the largest double",
+     xlab = "x", ylab = "gamma(x)")
+```
+
+Working with logarithms avoids the overflow:
+$$\log \rho_n = \log\Gamma\left(\frac{n-1}{2}\right) - \log\Gamma\left(\frac{1}{2}\right) - \log\Gamma\left(\frac{n-2}{2}\right).$$
+
+```{r}
+rho_using_log_gamma <- function(n) {
+  log_rho <- lgamma((n-1)/2) - (lgamma(1/2)+lgamma((n-2)/2))
+  result  <- exp(log_rho)
+  return(result)
+}
+
+for (n in 10^(1:10)) {
+  result <- rho_using_log_gamma(n) / sqrt(n)
+  cat("n           =", n, "",
+      "\nrho/sqrt(n) =", result, "\n\n")
+}
+```
+
+The ratio converges to
+$$\lim_{n \to \infty} \frac{\rho_n}{\sqrt{n}} = \frac{1}{\sqrt{2\pi}} \approx 0.3989423.$$
+
+# Homework 2
+
+## Exercise 25 – Logstar
+
+The function logstar gives the smallest $n$ such that the $n$-th iterate of the natural logarithm results in a value less than one. For example, $\text{logstar}(123)=3$, because the second iterate $\log(\log(123)) = 1.571151\ge1$ and the third iterate $\log(\log(\log(123))) = 0.4518085<1$. Implement logstar.
+
+```{r}
+logstar <- function(n) {
+  x <- 0
+  if (n<=0) {
+    return ("log is only defined for positive numbers")
+  }
+  if (n<1) {
+    return (0)
+  }
+  else {
+    while (n>=1) {
+      n <- log(n)
+      x <- x+1
+    }
+    return(x)
+  }
+}
+
+logstar (75)
+logstar(123)
+logstar(exp(100))
+logstar(0.5)
+```
+
+## Exercise 26 – Greatest Common Divisor (GCD)
+
+The greatest common divisor (GCD) $\gcd(a, b)$ can be obtained using Euclid's algorithm which is based on the following two observations:
+
+(a) If $b$ is a divisor of $a$, then $\gcd(a, b) = b$.
+(b) If $r$ is the remainder in the integer division of $a$ by $b$, then $\gcd(a,b)=\gcd(b,r)$.
+
+Write a function gcd which computes the GCD using Euclid's algorithm. See also <http://www.cut-the-knot.org/blue/Euclid.shtml>.
+
+```{r}
+# gcd = largest positive integer that divides both numbers
+
+gcd <- function(a, b) {
+  # signs don't change the gcd, so we just use absolute values
+  a <- abs(a)
+  b <- abs(b)
+  if (a == 0 && b == 0) { # gcd(0, 0) is not defined
+    return(NA_integer_)
+  }
+  if (b == 0) { # gcd(a, 0) = a, and we can't divide by 0 in the loop
+    return(a)
+  }
+  while (a %% b != 0) {
+    r <- a %% b
+    a <- b
+    b <- r
+  }
+  return(b)
+}
+
+# example: (a,b) = (45, 35)
+gcd (45,35)
+gcd(20,-85)
+gcd(20,0) # every number divides 0, so gcd(a,0) = a
+```
+
+## Exercise 27 – Evenness Pattern
+
+Write a function which, for a given natural number $n$, returns a logical vector containing for each $i \le n$ in reverse order, a sequence of length $i$ indicating whether $i$ is even or not. E.g., for $n = 3$ the function should return `c(FALSE, FALSE, FALSE, TRUE, TRUE, FALSE)`.
+
+```{r}
+even_or_not <- function(n) {
+
+  result <- c()
+
+  for (i in n:1) {
+    i_vec <- rep(i %% 2 == 0, times = i)
+    result <- c(result, i_vec)
+  }
+  return(result)
+}
+
+even_or_not(3)  # should return the example output
+even_or_not(4)  # should return 4 times TRUE and then even_or_not(3)
+```
+
+## Exercise 28 – Counting Odd Numbers
+
+Write a function which computes the number of odd numbers in a given sequence of natural numbers. (Hint: use `sum` to count the number of `TRUE`s in a logical vector.)
+
+```{r}
+count_odd <- function(n){
+  paste0("There are ", sum(n %% 2 == 1), " odd numbers in the given sequence")
+  }
+
+count_odd(c(1,4,3,5,7,65,32))
+```
+
+## Exercise 29 – Relatively Prime Numbers
+
+Write a function which returns (a logical indicating) whether two given natural numbers are relatively prime (i.e., have GCD 1).
+
+```{r}
+# uses gcd from exercise 26, relatively prime means gcd = 1
+relatively_prime <- function(a, b) {
+  return(gcd(a,b) == 1)
+}
+
+# examples: (a,b) = (7,3), (45,35)
+relatively_prime(7,3)
+relatively_prime(45,35)
+```
+
+## Exercise 30 – Prime Number Test
+
+Write a function `is_prime` returning (a logical indicating) whether a given natural number is a prime number or not.
+
+```{r}
+is_prime <- function(n) {
+  if (n <= 1 || n %% 1 != 0) { # only natural numbers > 1 can be prime
+    return(FALSE)
+  }
+  if (n == 2) {
+    return(TRUE)
+  }
+  else if(any(n %% 2:(n-1) == 0)) {
+    return(FALSE)
+  }
+  else {return(TRUE)}
+}
+
+# examples: n = 27, 29
+is_prime(27)
+is_prime(29)
+is_prime(1)
+is_prime(2)
+is_prime(0)
+```
+
+## Exercise 32 – Perfect Numbers
+
+A perfect number is a positive integer which equals the sum of its proper divisors. The smallest perfect number is $6 = 1 + 2 + 3$. Write a function which tests whether a given positive integer is a perfect number, and determine the first 4 perfect numbers via simple iteration. (See <http://en.wikipedia.org/wiki/Perfect_number> for more information.)
+
+```{r}
+is_perfect <- function(n) {
+  if (n == 1) {
+    return(FALSE) # 1 is not perfect by definition
+  }
+  # all numbers from 1 to n-1 that divide n (proper divisors)
+  divisors <- (1:(n-1))[n %% (1:(n-1)) == 0]
+  return(sum(divisors) == n)
+}
+
+# examples: n = 6, 12
+is_perfect(6)
+is_perfect(12)
+
+# first 4 perfect numbers: just try n = 2, 3, 4, ... until we have 4
+first_4_perfect <- c()
+n <- 2
+
+while(length(first_4_perfect) < 4) {
+  if(is_perfect(n)) {
+    first_4_perfect <- c(first_4_perfect, n)
+  }
+  n <- n + 1
+}
+first_4_perfect
+```
+
+## Exercise 33 – Highly Composite Numbers
+
+A highly composite number is a positive integer that has more divisors (i.e. positive integers that divide into this number) than any smaller positive integer has (<https://en.wikipedia.org/wiki/Highly_composite_number>). Write a function which returns as a logical value if a given number $n$ is highly composite or not and find the first 20 highly composite numbers.
+
+```{r}
+is_highly_composite <- function(n) {
+  # Highly composite numbers are positive integers (>= 1)
+  # Anything less than 1 prevents valid sequence generation
+  # and avoids modulo by 0 crashes
+  if (n < 1) return(FALSE)
+
+  # 1 is considered highly composite by definition (no smaller positive integers exist)
+  if (n == 1) return(TRUE)
+
+  # Calculate divisors for the target number
+  divisors_n <- sum(n %% 1:n == 0)
+
+  # Loop through all smaller numbers to check if any have the same or more divisors
+  for (k in 1:(n - 1)) {
+    divisors_k <- sum(k %% 1:k == 0)
+
+    if (divisors_k >= divisors_n) {
+      return(FALSE) # if we find such a number, break directly
+    }
+  }
+
+  return(TRUE)
+}
+
+is_highly_composite(200)
+
+hcn_vector <- numeric(0)  # Empty vector to store the results
+current_num <- 1          # Start checking from 1
+max_divisors_seen <- 0    # Tracker for the current "record"
+
+while (length(hcn_vector) < 20) {
+  # Count divisors for the current number
+  current_divisors <- sum(current_num %% 1:current_num == 0)
+
+  # If it sets a new record, it's a highly composite number
+  if (current_divisors > max_divisors_seen) {
+    hcn_vector <- c(hcn_vector, current_num)
+    max_divisors_seen <- current_divisors # Update the record
+  }
+
+  current_num <- current_num + 1
+}
+
+# Output the result
+hcn_vector
+```
+
+## Exercise 34 – Collatz Sequence
+
+Consider the following sequence: start with any positive integer $n_0$, and, subsequently, obtain every term $n_i$ for $i \ge 1$ from the previous one as follows:
+$$n_i =
+\begin{cases}
+\dfrac{n_{i-1}}{2}, & \text{if } n_{i-1} \text{ is even}, \\[2mm]
+3n_{i-1} + 1, & \text{otherwise.}
+\end{cases}$$
+According to the (still unproven) Collatz conjecture (<https://en.wikipedia.org/wiki/Collatz_conjecture>), this sequence will always reach 1, no matter what initial value of $n_0$. Write a function to verify the Collatz conjecture for $1 \le n_0 \le 100{,}000$. Which starting value $n_0$ in this range requires the greatest number of steps to reach 1? How many steps does it need?
+
+```{r}
+# returns how many steps the sequence needs to reach 1
+
+collatz <- function(n) {
+
+  if (n < 1) {
+    warning("n must be >= 1")
+    return(NA)
+  }
+
+  steps  <- 0
+
+  while(n != 1) {
+    if(n %% 2 == 0) { # n is even
+      n <- n / 2
+    } else {
+      n <- 3*n + 1
+    }
+    steps <- steps + 1
+  }
+
+  return(steps)
+}
+
+collatz_test    <- 1:1e5
+max_steps       <- 0
+which_max_steps <- 0
+
+for(i in collatz_test) {
+  steps <- collatz(i)
+
+  if(steps > max_steps) {
+    max_steps       <- steps
+    which_max_steps <- i
+  }
+}
+
+c(n_0 = which_max_steps, Steps = max_steps)
+```
+
+Every starting value reaches 1, so the conjecture holds for $1 \le n_0 \le 100{,}000$. The starting value $n_0 = 77031$ needs the most steps, namely 350, so its sequence has 351 terms.
+
+## Exercise 35 – Binary Representation
+
+Write a function which computes the binary representation (as a sequence of 0s and 1s) of a given natural number (e.g., for $x = 6$ the function should return `c(1, 1, 0)`). Also implement the inverse function.
+
+We repeatedly take the remainder mod 2 (the last binary digit) and then divide by 2 with `%/%`. Example for $n = 13$:
+
+| step | $n$ | $r = n \bmod 2$ | binary_help | new $n$ |
+|:----:|:---:|:---:|:---:|:---:|
+| 1 | 13 | 1 | (1) | 6 |
+| 2 | 6 | 0 | (0, 1) | 3 |
+| 3 | 3 | 1 | (1, 0, 1) | 1 |
+| 4 | 1 | 1 | (1, 1, 0, 1) | 0 |
+
+```{r}
+binary <- function(n) {
+  if (n < 0 || n %% 1 != 0) {
+    stop("Please insert a non-negative integer")
+  }
+  if (n == 0) {
+    return(c(0))
+  }
+  binary_help <- c()
+  while (n > 0) {
+    r <- n %% 2 # last binary digit (0 or 1)
+    binary_help <- c(r, binary_help) # put it in front
+    n <- n %/% 2 # remove the last digit
+  }
+  return(binary_help)
+}
+
+# example: n = 10
+binary(10)
+binary(7)
+binary(15)
+```
+
+For the inverse, a vector $x = (x_1, \dots, x_L)$ of 0s and 1s stands for
+$$n = \sum_{j=1}^{L} x_j \, 2^{L-j},$$
+so the first entry gets the highest power of 2 and the last one gets $2^0$. This can be computed in one line without a loop.
+
+```{r}
+inv_binary <- function(x) {
+  # check every entry, not just the first one
+  if (any(x != 0 & x != 1)) {
+    return("Only 0s and 1s are allowed. Please insert a binary number")
+  }
+  n <- sum(2^((length(x)-1):0) * x)
+  return(n)
+}
+
+# examples: x = (1, 0, 1, 0), back and forth with binary(), wrong input
+inv_binary(c(1,0,1,0))
+inv_binary(binary(13))
+inv_binary(c(1,2))
+```
+
+## Exercise 36 – Least Common Multiple (LCM)
+
+Write a function `lcm` which computes the least common multiple (LCM) of two given natural numbers. Hints: derive a relation between the LCM, the GCD and the numbers, and try avoiding integer overflows when computing the LCM.
+
+We use that
+$$\text{lcm}(a,b) \cdot \gcd(a,b) = a \cdot b
+\quad\Rightarrow\quad
+\text{lcm}(a,b) = \frac{a}{\gcd(a,b)} \cdot b.$$
+Dividing by $\gcd(a,b)$ first means we never compute the (possibly huge) product $a \cdot b$. The `gcd` function is from exercise 26.
+
+```{r}
+lcm <- function(a,b) {
+  if (a<1 || b<1 || a%%1!=0 || b%%1 != 0) {
+    return("Please insert two natural numbers")
+  }
+  gcd_help <- gcd(a,b)
+  return((a/gcd_help) * b) # divide first so a*b doesn't get too big
+}
+
+# example: (a,b) = (3,5)
+lcm(3,5)
+lcm(20,8)
+```
+
+## Exercise 38 – Pascal's Triangle
+
+Pascal's triangle is a triangular array of the binomial coefficients. Implement a function which returns the $k$-th row of the triangle starting at 0 (so that for example for $k = 4$ we get `c(1, 4, 6, 4, 1)`).
+
+Row $k$ consists of the binomial coefficients
+$$\binom{k}{i} = \frac{k!}{i!\,(k-i)!}, \qquad i = 0, \dots, k,$$
+so it has $k+1$ entries. Since R starts counting at 1, $\binom{k}{i}$ is stored at position $i+1$.
+
+```{r}
+pascal_row <- function(k) {
+  if (k < 0 || k %% 1 != 0) return("k has to be a non-negative Integer")
+
+  row <- integer(k + 1)
+
+  for (i in 0:k) {
+    row[i + 1] <- factorial(k) / (factorial(i) * factorial(k - i))
+  }
+  return(row)
+}
+
+# examples
+pascal_row(4)
+pascal_row(5)
+```
+
+## Exercise 39 – Binomial Model for Stock Prices
+
+The Binomial model is a popular and easy model for stock prices. The starting value of an asset $S_0$ changes in each time step either by a factor $U$ (up) or by a factor $D$ (down). At timestep $N$ we therefore have $N + 1$ different possibilities $S_{N,i} = S_{0} \cdot U^{i} \cdot D^{N-i}$, where $i = 0, \dots, N$. Write a function that returns the values of the asset at time $n$ as list, i.e. a list $S$, where the $n$-th element contains the elements $S_{n,i}$ for all $i = 0, \dots, n$,
+
+(a) using only "for" loops,
+(b) using the apply function family (i.e., `apply`, `lapply`, `sapply`, ...).
+(c) What are the differences of the above methods, which one works better?
+
+At time $k$ with $i$ up moves (and $k-i$ down moves) the value is $S_{k,i} = S_0 \, U^{i} D^{k-i}$, for $i = 0, \dots, k$. The list element `S[[k+1]]` holds all values at time $k$ (`S[[1]]` is time 0).
+
+```{r}
+# (a) using only "for" loops
+value_for <- function(S0, n, U, D) {
+  S <- list() # S[[k+1]] will hold all values at time k
+
+  for (k in 0:n) { # time steps
+    S_k <- c()
+
+    for (i in 0:k) { # i = number of up moves, k+1 possibilities
+      S_k <- c(S_k, S0 * U^i * D^(k - i))
+    }
+
+    S[[k + 1]] <- S_k # position k+1 because S[[1]] is time 0
+  }
+  return(S)
+}
+
+# example: (S0, n, U, D) = (10, 5, 1.08, 0.8)
+value_for(10, 5, 1.08, 0.8)
+
+# (b) using the apply functions
+value_apply <- function(S0, n, U, D) {
+  # lapply goes through the time steps and returns a list,
+  # sapply computes all values for one time step as a vector
+  S <- lapply(0:n, function(k) {
+    sapply(0:k, function(i) S0 * U^i * D^(k - i))
+  })
+  return(S)
+}
+
+# example: (S0, n, U, D) = (10, 5, 1.08, 0.8)
+value_apply(10, 5, 1.08, 0.8)
+```
+
+(c) Both give the same result. The for loop version is easier to follow step by step, the apply version is shorter and more typical for R. It also doesn't grow vectors inside a double loop, which gets slow for large $n$, so the apply version works better.
+
+## Exercise 40 – Double Sum
+
+Have a look at the following double sum:
+$$\sum_{r=1}^{n} \sum_{c=1}^{r} \frac{c^2}{5 + 10r^3}$$
+Write a function which takes $n \in \mathbb{N}$ as input and outputs the above sum
+
+(a) using "for" loops
+(b) using the functions `col()` and `row()` (for details use `?col`/`?row`)
+
+```{r}
+# (a) using "for" loops
+double_sum <- function(n) {
+  mid_sum <- 0
+  for (r in 1:n){
+    for (c in 1:r){ # inner sum only goes up to r
+      mid_sum <- mid_sum + (c^2)/(5+10*r^3)
+    }
+  }
+  return(mid_sum)
+}
+
+# example: n = 10
+double_sum(10)
+```
+
+(b) Idea: think of an $n \times n$ matrix where $r$ is the row number and $c$ the column number. Because $c$ only goes up to $r$, we only need the lower triangle including the diagonal. For $n = 3$:
+$$R = \begin{pmatrix} 1&1&1\\ 2&2&2\\ 3&3&3 \end{pmatrix}, \quad
+C = \begin{pmatrix} 1&2&3\\ 1&2&3\\ 1&2&3 \end{pmatrix}, \quad
+C \le R: \begin{pmatrix} T&F&F\\ T&T&F\\ T&T&T \end{pmatrix}.$$
+We compute $\frac{c^2}{5 + 10r^3}$ for the whole matrix, keep only the entries where $c \le r$ and sum them up.
+
+```{r}
+double_sum_b <- function(n) {
+  M <- matrix(0, n, n)
+  R <- row(M)
+  C <- col(M)
+  relevant_entries <- C <= R
+  sum((C^2 / (5 + 10 * R^3))[relevant_entries])
+}
+
+# example: n = 10
+double_sum_b(10)
+```
+
+## Exercise 41 – Coin Change Problem
+
+How many different ways can we make change of a USD 1 dollar bill, given half-dollars, quarters, dimes, nickels and pennies? (I.e., coins in denominations of 50, 25, 10, 5 and 1 cents.) Implement a function which computes the number of ways to change a given amount $a$ using $k$ kinds of coins with denominations $d_1, \dots, d_k$ using the observation that this number is the sum of the number of ways to change $a$ without using the first kind of coin and the number of ways to change $a-d$ using all kinds of coins. (Convince yourself to count one way if the amount is 0, but zero ways if the amount is negative or there are no kinds of coins left.)
+
+How many different ways can we make change of EUR 1 using Euro coins?
+
+Let $W(a; d_1, \dots, d_k)$ be the number of ways to change $a$ cents. Either we don't use the first coin at all, or we use it at least once (then $d_1$ is subtracted, but the coin stays available):
+$$W(a; d_1, \dots, d_k) = W(a; d_2, \dots, d_k) + W(a - d_1; d_1, \dots, d_k),$$
+with $W(0; \dots) = 1$, and $W(a; \dots) = 0$ if $a < 0$ or no coins are left.
+
+```{r}
+# amount = what we want to change (in cents), coins = coins we can use
+ways_to_change <- function(amount, coins) {
+  if (amount == 0) { # nothing left to change -> exactly one way
+    return(1)
+  }
+  if (amount < 0 || length(coins) == 0) { # overshot or no coins left
+    return(0)
+  }
+  # ways without the first coin
+  without_first <- ways_to_change(amount, coins[-1])
+
+  # ways using the first coin at least once:
+  # subtract it from the amount, but keep it available
+  with_first <- ways_to_change(amount - coins[1], coins)
+
+  return(without_first + with_first)
+}
+
+# USD
+ways_to_change(100, c(50, 25, 10, 5, 1))
+
+# EUR
+ways_to_change(100, c(50, 20, 10, 5, 2, 1))
+```
+
+So there are 292 ways for USD and 4562 for EUR. If we also count the 1 euro coin itself (the 2 euro coin can't be used for 1 euro anyway), we get exactly one more way. We left it out above since swapping 1 euro for 1 euro isn't really change:
+
+```{r}
+ways_to_change(100, c(200, 100, 50, 20, 10, 5, 2, 1))
+```
+
+We use cents as whole numbers. With decimals (like 0.1), rounding errors could break the `amount == 0` check.
+
+## Exercise 42 – Modular Exponentiation
+
+The remainder of the (integer) division of $x$ by $m$ is also called (the remainder of) $x$ modulo $m$. Verify that the remainder of $x$ times $y$ modulo $m$ can be obtained as the remainder of the product of the remainders of $x$ and $y$ modulo $m$ modulo $m$. Use this to implement a recursive function `expmod` which computes the remainder of $a^x$ modulo $m$ without exponentiation. (Distinguish the cases where $x$ is zero, even or odd.)
+
+We want to check that
+$$(x \cdot y) \bmod m = \big((x \bmod m)(y \bmod m)\big) \bmod m.$$
+
+```{r}
+verification <- function(x,y,m) {
+  if (x%%1!=0 || y%%1!=0 || m%%1!=0) {
+    return("Please only insert integers")
+  }
+  if (m <= 0 ) {
+    return("Modulo base m must be positve")
+  }
+  if ((x*y)%%m == ((x%%m)*(y%%m))%%m) {
+    return("It can be verified")
+  }
+  else {
+    return("It can't be verified")
+  }
+}
+
+# examples: (x,y,m) = (1,2,3), (7,9,2), (632,190,15)
+verification(1,2,3)
+verification(7,9,2)
+verification(632,190,15)
+
+# a few examples aren't much of a check, so we also test 10000 random cases
+# (as.numeric because x*y would be too big for R's integer type)
+set.seed(42)
+x <- as.numeric(sample(1:100000, 10000, replace = TRUE))
+y <- as.numeric(sample(1:100000, 10000, replace = TRUE))
+m <- sample(1:1000, 10000, replace = TRUE)
+all((x*y) %% m == ((x %% m) * (y %% m)) %% m) # TRUE if it holds every time
+```
+
+For `expmod` we use $a^x = \left(a^{x/2}\right)^2$ for even $x$ and $a^x = a \cdot a^{x-1}$ for odd $x$. Together with the rule above this gives
+$$a^x \bmod m =
+\begin{cases}
+1 \bmod m, & x = 0,\\
+\left(\left(a^{x/2} \bmod m\right)^2\right) \bmod m, & x \text{ even},\\
+\left(a \cdot \left(a^{x-1} \bmod m\right)\right) \bmod m, & x \text{ odd}.
+\end{cases}$$
+The recursion stops at $x = 0$, and since we take $\bmod\ m$ at every step the numbers never get large.
+
+```{r}
+expmod <- function(a,x,m) {
+  if (x==0) {
+    return(1%%m)
+  }
+  if (x%%2 == 0) { # x even
+    t <- expmod(a, x/2, m)
+    return((t*t)%%m)
+  }
+  if (x%%2 == 1) { # x odd, x-1 is even so the next call uses the even case
+    return((a*expmod(a, x-1, m))%%m)
+  }
+}
+
+# examples: (a,x,m) = (3,5,4), (10,7,3), (4,15,7)
+expmod(3,5,4)
+expmod(10,7,3)
+expmod(4,15,7)
+```
+
+## Exercise 43 – 32-bit Biased Integers
+
+What are the smallest and largest 32-bit integers representable by the biased scheme?
+
+In the biased scheme a stored bit pattern $s \in \{0, \dots, 2^{32}-1\}$ represents the value $s - \text{bias}$ with $\text{bias} = 2^{31} - 1$. So
+$$\text{smallest} = 0 - (2^{31}-1) = -2^{31} + 1, \qquad
+\text{largest} = (2^{32}-1) - (2^{31}-1) = 2^{31}.$$
+
+```{r}
+n_bits <- 32
+bias <- 2^(n_bits-1) - 1
+
+# as.integer because 2^n is stored as a double in R
+smallest <- 0 - as.integer(bias)
+smallest
+
+largest <- (2^n_bits - 1) - as.integer(bias)
+largest
+```
+
+## Exercise 44 – Two's Complement Interpretation
+
+Using the two's complement representation for signed integers, what are the numbers corresponding to the $k$-bit sequences $1\cdots1$ and $10\cdots01$, respectively? (See <http://en.wikipedia.org/wiki/Two%27s_complement>.)
+
+In two's complement the first bit counts as $-2^{k-1}$ and all other bits as usual. So, using the geometric series,
+$$1\cdots1 \;=\; -2^{k-1} + \sum_{j=0}^{k-2} 2^{j}
+\;=\; -2^{k-1} + \left(2^{k-1} - 1\right) \;=\; -1,$$
+$$10\cdots01 \;=\; -2^{k-1} + 2^{0} \;=\; -2^{k-1} + 1.$$
+For example with $k = 8$ that's $-1$ and $-127$:
+
+```{r}
+k <- 8
+val_1s <- -1
+val_10_01 <- -2^(k-1) + 1
+val_1s
+val_10_01
+```
+
+## Exercise 45 – Two's Complement Conversion
+
+Write a function which computes the $k$-bit (default: $k = 32$) two's complement representation of a given integer. Also implement the inverse function.
+
+A negative $x$ (with $-2^{k-1} \le x < 0$) has the same $k$ bits as the positive number $2^k + x$, so we can just convert that to binary. For the inverse, if $b_1, \dots, b_k$ are the bits,
+$$x = \sum_{j=1}^{k} b_j \, 2^{k-j} \; - \; b_1 \, 2^{k},$$
+i.e. the normal binary value (as in exercise 35), minus $2^k$ if the first bit is 1.
+
+```{r}
+twos <- function(x, k = 32) {
+  if (x < 0) {
+    x <- 2^k + x
+  }
+  bits <- c()
+  while (x > 0) {
+    bits <- c(x %% 2, bits) # last bit goes in front
+    x <- x %/% 2 # remove last bit
+  }
+  while (length(bits) < k) {
+    bits <- c(0, bits) # fill up with 0s on the left to get k bits
+  }
+  bits
+}
+
+# examples: x = 5, 1928198
+twos(5)
+twos(1928198)
+
+# inverse function
+inv_twos <- function(bits) {
+  k <- length(bits)
+  value <- sum(bits * 2^((k-1):0))
+  if (bits[1] == 1) {
+    value <- value - 2^k
+  }
+  value
+}
+
+# examples: bits = 0 0 0 0 0 1 0 1 and 1 1 1 1 1 0 1 1
+inv_twos(c(0,0,0,0,0,1,0,1))
+inv_twos(c(1,1,1,1,1,0,1,1))
+```
+
+## Exercise 46 – Rational Numbers
+
+Rational numbers are fractions of the form $p/q$ with integers $p$ and $q > 0$ satisfying $\gcd(p, q) = 1$. We can represent such numbers as sequences `c(p, q)` of length two. Write a function `make_rat` which for two given numbers $p$ and $q$ returns the corresponding rational number as a sequence of length 2 (e.g., `make_rat(19, -95)` $\Rightarrow$ `c(-1, 5)`.) Also write functions `numer` and `denom` for extracting the numerator and denominator of such a rational number.
+
+```{r}
+# uses gcd from exercise 26
+make_rat <- function(p,q) {
+  if (q == 0) {
+    return("Denominator q cannot be zero")
+  }
+  if (q < 0) { # denominator should be positive, so flip both signs
+    p <- -p
+    q <- -q
+  }
+  g <- gcd(p, q) # divide both by the gcd to simplify
+  p <- p / g
+  q <- q / g
+  c(p, q)
+}
+
+# examples: (p,q) = (10,30), (19,-95), (1812, -902344)
+make_rat(10,30)
+make_rat(19,-95)
+make_rat(1812,-902344)
+
+# numerator of the simplified fraction
+numer <- function(p, q) {
+  make_rat(p, q)[1]
+}
+
+# examples: (1,3), (900,-600)
+numer(1,3)
+numer(900,-600)
+
+# denominator of the simplified fraction
+denom <- function(p, q) {
+  make_rat(p, q)[2]
+}
+
+# examples: (1,3), (900,-600)
+denom(1,3)
+denom(900,-600)
+```
+
+## Exercise 47 – Rational Addition and Multiplication
+
+Write functions `add_rat` and `mul_rat` for the rational addition and multiplication of rational numbers.
+
+We use
+$$\frac{p_1}{q_1} + \frac{p_2}{q_2} = \frac{p_1 q_2 + p_2 q_1}{q_1 q_2},
+\qquad
+\frac{p_1}{q_1} \cdot \frac{p_2}{q_2} = \frac{p_1 p_2}{q_1 q_2},$$
+and then simplify the result with `make_rat`.
+
+```{r}
+add_rat <- function(r1, r2) {
+  p1 <- numer(r1[1], r1[2]) # numer/denom take two numbers, not a vector
+  q1 <- denom(r1[1], r1[2])
+  p2 <- numer(r2[1], r2[2])
+  q2 <- denom(r2[1], r2[2])
+  if (q1 < 0) { # make sure denominators are positive
+    p1 <- -p1
+    q1 <- -q1
+  }
+  if (q2 < 0) {
+    p2 <- -p2
+    q2 <- -q2
+  }
+  L <- q1 * q2 # common denominator
+  s <- p1 * q2 + p2 * q1 # new numerator
+  make_rat(s, L) # simplify
+}
+
+# examples: (c(1,2), c(1,3)), (c(5,-9), c(-1,-6))
+add_rat(c(1,2), c(1,3))
+add_rat(c(5,-9), c(-1,-6))
+
+mul_rat <- function(r1, r2) {
+  p1 <- numer(r1[1], r1[2])
+  q1 <- denom(r1[1], r1[2])
+  p2 <- numer(r2[1], r2[2])
+  q2 <- denom(r2[1], r2[2])
+  if (q1 < 0) { # same sign check as in add_rat
+    p1 <- -p1
+    q1 <- -q1
+  }
+  if (q2 < 0) {
+    p2 <- -p2
+    q2 <- -q2
+  }
+  p <- p1 * p2
+  q <- q1 * q2
+  make_rat(p, q)
+}
+
+# examples: (c(1,2), c(1,3)), (c(5,-9), c(-1,-6))
+mul_rat(c(1,2), c(1,3))
+mul_rat(c(5,-9), c(-1,-6))
+```
+
+# Homework 3
+
+## Exercise 48 – Normalized Floating-Point Numbers
+
+Consider a floating-point number system with base $b$, precision $p$, and exponent range $[e_{\min}, e_{\max}]$.
+
+(a) How many different non-zero normalized numbers are there?
+
+Normalized numbers have the following general form:
+$$x = \sigma \left(\delta_0 + \frac{\delta_1}{b^1} + \cdots + \frac{\delta_{p-1}}{b^{\,p-1}}\right) b^{\,e}$$
+where $e \in [e_{\min}, e_{\max}]$, $i \in \{0, \dots, p-1\}$, $\delta_i \in \{0, \dots, b-1\}$ and $\delta_0 \neq 0$.
+
+For $\delta_0$ we choose from $b-1$ numbers (excl. $0$), while for each of the remaining $p-1$ digits $\delta_1, \dots, \delta_{p-1}$ we choose from $b$ numbers. For the exponent we choose from $e_{\max} - e_{\min} + 1$ integers and for the sign we have $2$ possibilities. Hence, the total amount of numbers is obtained as
+$$2 \cdot (b-1) \cdot b^{\,p-1} \cdot (e_{\max} - e_{\min} + 1).$$
+Since we need normalized numbers, we have $\delta_0 \neq 0$ and hence all 0s are excluded. Moreover, zero cannot be normalized.
+
+(b) What are the smallest (normalized) and largest positive numbers?
+
+The smallest normalized positive number is:
+$$x_{s} = +\left(1 + \frac{0}{b^1} + \cdots + \frac{0}{b^{\,p-1}}\right) b^{e_{\min}} = b^{e_{\min}}.$$
+The largest normalized positive number is:
+$$x_{l} = +\left((b-1) + \frac{b-1}{b^1} + \cdots + \frac{b-1}{b^{\,p-1}}\right) b^{e_{\max}} = b(1-b^{-p})\,b^{e_{\max}}.$$
+
+## Exercise 49 – Representing Numbers Exactly
+
+Consider a floating-point number system with base $b$, precision $p$, and exponent range $[e_{\min}, e_{\max}]$. If $b = 10$, what are the smallest values of $p$ and $e_{\min}$ and largest value of $e_{\max}$ such that both $2365.27$ and $0.0000512$ can be represented exactly as normalized floating-point numbers?
+
+To answer this, we first need to normalize both values:
+
+- $2365.27$ normalized corresponds to $2.36527 \cdot 10^3$.
+- $0.0000512$ normalized corresponds to $5.12 \cdot 10^{-5}$.
+
+The significand of the first number is $6$ digits long, meaning we need a precision $p$ of at least $6$. Furthermore, we need the upper bound of the exponent range to be greater than or equal to $3$, i.e. $e_{\max} \geq 3$.
+
+The significand of the second number is $3$ digits long, which is already covered by the precision of $6$. Furthermore, we need the lower bound of the exponent range to satisfy $e_{\min} \leq -5$.
+
+Therefore the exact tightest bounds are:
+$$p = 6, \qquad e_{\min} = -5, \qquad e_{\max} = 3.$$
+
+## Exercise 50 – Cancellation in Subtraction
+
+In a floating-point number system with precision $p = 6$ decimal digits, let $x = 1.23456$ and $y = 1.23579$.
+
+(a) How many significant digits does the difference $y - x$ contain?
+
+(b) What is the minimum exponent range for which $x$, $y$ and $y - x$ are all exactly representable as normalized numbers?
+
+A normalized decimal number with $p = 6$ digits has the form $d_0.d_1d_2d_3d_4d_5 \cdot 10^e$ with $d_0 \ne 0$. Subtracting gives
+$$y - x = 1.23579 - 1.23456 = 0.00123 = 1.23000 \cdot 10^{-3}.$$
+The leading digits cancel, so only the digits $123$ are left.
+
+```{r}
+x <- 1.23456
+y <- 1.23579
+
+# R uses binary numbers, so the result is not exactly 0.00123
+print(y - x)
+print(y - x, digits = 16)
+
+# exponents of x, y and y - x: 0, 0 and -3
+format(c(x, y, y - x), scientific = TRUE)
+```
+
+(a) The difference has only 3 significant digits. The other 3 digits of the 6-digit result are just zeros that carry no information.
+
+(b) $x$ and $y$ have exponent $0$ and $y - x = 1.23000 \cdot 10^{-3}$ has exponent $-3$. So the minimum exponent range is $[e_{\min}, e_{\max}] = [-3, 0]$.
+
+## Exercise 51 – Single Precision Range
+
+In single precision four bytes are used to represent a floating point number: 1 bit is used for the sign, 8 for the exponent, and 23 for the fraction. What are the largest and smallest non-zero positive numbers in single precision (including denormalized numbers)?
+
+A number is stored as $\pm \text{mantissa} \cdot 2^{\text{exponent}}$. For the largest number we take the biggest mantissa and the biggest exponent, for the smallest number the smallest ones.
+
+Mantissa example in the decimal system: $5230000 = 5.23 \cdot 10^6$ has mantissa $5.23$ and exponent $6$.
+
+Exponent: 8 bits give the values 0 to 255 and we subtract the bias 127. Two values are special: 255 is used for $\infty$ and NaN, and 0 is used for denormalized numbers. So normal numbers have exponents from $1 - 127 = -126$ to $254 - 127 = 127$.
+
+For the largest number the biggest exponent is 127. The biggest mantissa has all 23 fraction bits equal to 1:
+$$1.11\ldots1 = 1 + \tfrac{1}{2} + \dots + \tfrac{1}{2^{23}} = 2 - 2^{-23},$$
+which is almost 2. So the largest number is $(2 - 2^{-23}) \cdot 2^{127}$.
+
+For the smallest number we use denormalized numbers, which start with 0 instead of 1 (like $0.xxx\ldots$) and use the exponent $-126$. The smallest one has only the last bit equal to 1, so its mantissa is $0.00\ldots01 = 2^{-23}$. So the smallest number is $2^{-23} \cdot 2^{-126} = 2^{-149}$.
+
+```{r}
+n_bits <- 23  # number of fraction bits
+e_max <- 127  # largest exponent
+e_min <- -126 # smallest exponent
+
+largest <- (2 - 2^(-n_bits)) * 2^e_max
+# biggest mantissa (all fraction bits are 1) * biggest exponent
+largest
+
+smallest <- 2^(-n_bits) * 2^e_min
+# denormalized, so only the last fraction bit is 1
+smallest
+```
+
+So the largest positive number is about $3.4028 \cdot 10^{38}$ and the smallest positive number is about $1.4013 \cdot 10^{-45}$.
+
+## Exercise 52 – Spacing of Floating-Point Numbers
+
+Let $x$ and $y$ be adjacent normalized non-zero floating-point numbers in a floating-point number system with base $b$, precision $p$, and exponent range $[e_{\min}, e_{\max}]$. What are the minimum and maximum possible spacing between $x$ and $y$?
+
+A normalized number has the form
+$$x = \pm\,(d_0.d_1 d_2 \dots d_{p-1})_b \cdot b^{e}, \qquad d_0 \neq 0,
+\quad e_{\min} \le e \le e_{\max}.$$
+Two adjacent numbers with the same exponent $e$ differ by one unit in the last digit $d_{p-1}$, which is worth $b^{-(p-1)}$. Scaled by $b^e$, the spacing is
+$$y - x = b^{-(p-1)} \cdot b^{e} = b^{\,e-p+1}.$$
+So the spacing only depends on the exponent. It is smallest for the smallest exponent and largest for the largest exponent:
+$$\text{min spacing} = b^{\,e_{\min}-p+1}, \qquad
+\text{max spacing} = b^{\,e_{\max}-p+1}.$$
+
+```{r}
+spacing <- function(b, p, e_min, e_max) {
+  min_spacing <- b^(e_min - p + 1)
+  max_spacing <- b^(e_max - p + 1)
+  c(min = min_spacing, max = max_spacing)
+}
+
+# small example: b = 10, p = 3, exponents from -2 to 2
+spacing(10, 3, -2, 2)
+
+# IEEE double precision: b = 2, p = 53, exponents from -1022 to 1023
+spacing(2, 53, -1022, 1023)
+```
+
+For double precision this gives $2^{-1074}$ and $2^{971}$. We can check both values in R: the spacing next to the smallest normalized number $2^{-1022}$, and the spacing just below the largest number `.Machine$double.xmax`.
+
+```{r}
+x_small <- 2^-1022 # smallest normalized number
+(x_small + 2^-1074) - x_small == 2^-1074 # the next number up is exactly 2^-1074 away
+
+x_big <- .Machine$double.xmax # largest number, all digits 1 with e = 1023
+x_big - (x_big - 2^971) == 2^971 # the number below it is exactly 2^971 away
+```
+
+## Exercise 53 – Approximating the Unit Roundoff
+
+In many floating-point systems, a quick approximation to the unit roundoff error can be obtained by the approximation
+$$\epsilon_{\text{mach}} \approx |3 \cdot (4/3 - 1) - 1|.$$
+What is the idea behind this "trick"? Does it work when using IEEE 754 double precision?
+
+In regular arithmetic this is 0, but in floating-point arithmetic it is not. Since $4/3$ is an infinite (non-terminating) decimal ($1.333 \dots$), it is rounded to the nearest floating-point number in the given system.
+
+Let $\text{float}(x)$ represent the floating-point variant of $x$. Then $\text{float}\left(\frac{4}{3}\right) = \frac{4}{3} + \eta$ is given by $\frac{4}{3}$ and some rounding error $\eta$. Then we have
+$$\begin{aligned}
+\epsilon_{\text{mach}} &\approx \left| 3\left(\text{float}\left(\frac{4}{3}\right) - 1\right) - 1 \right| \\
+&= \left|3\left(\frac{4}{3} + \eta - 1\right) - 1 \right| \\
+&= \left|3\left(\frac{1}{3} + \eta\right) - 1 \right| \\
+&= |1 + 3\eta - 1 | \\
+&= |3\eta|.
+\end{aligned}$$
+
+This trick also works with IEEE 754 double precision. Consider $\frac{4}{3}$ in binary: $\frac{4}{3} = (1.010101 \dots)_2$. In IEEE 754 we have 52 bits for the significand, hence the stored fraction is $0101\dots$ (the leading bit is implicit). What gets discarded then is $(0.010101\dots)_2 \times 2^{-52} = \frac{1}{3} \cdot 2^{-52}$. Hence, the floating-point representation of $\frac{4}{3}$ under IEEE 754 is
+$$\text{float}\left(\frac{4}{3}\right)= \frac{4}{3} - \frac{1}{3}\cdot2^{-52}.$$
+
+Similarly to the general example above, we have
+$$\begin{aligned}
+\epsilon_{\text{mach}} &\approx \left|3\left(\text{float}\left(\frac{4}{3}\right) - 1\right) - 1\right| \\
+&= \left|3 \left(\frac{4}{3} - \frac{1}{3}\cdot2^{-52} - 1\right) - 1\right| \\
+&= \left|3 \left(\frac{1}{3} - \frac{1}{3}\cdot2^{-52}\right) - 1 \right| \\
+&= \left| 1 - 2^{-52} - 1 \right| \\
+&= 2^{-52}.
+\end{aligned}$$
+
+## Exercise 54 – Non-Integer Indices
+
+Can you explain these two results?
+
+```{r}
+x <- c(0, 7, 8)
+x[0.9999999999999999]
+x[0.99999999999999999]
+```
+
+First, the vector `x` has 3 elements. If R receives an index that is not an integer, it does not round, but truncates the number after the decimal point (so 0.5 becomes 0, and 1.5 becomes 1).
+
+Since the first number has 16 decimal digits, it falls within R's double precision limit ($\approx 15.9$ digits), so it is represented as a fraction less than 1. Because it is not a whole number, R truncates it rather than rounding. Therefore, R evaluates the index as `x[0]`.
+
+R starts counting elements from 1 (so `x[1]` = 0), but the truncation leads to `x[0]`. In R, the index `[0]` does not address an element, but rather returns the empty shell or data type of the object. So R returns a vector of length 0 with the corresponding data type (`numeric(0)`). Furthermore, if you were to specify a character vector like `x_char <- c("A", "B", "C")`, calling `x_char[0]` would return `character(0)`, and for a logical vector, it would return `logical(0)`.
+
+Now for the second number: the distance between 0.99999999999999999 and 1 is now smaller than the machine epsilon. Because this exceeds the 53-bit precision limit, R cannot distinguish between these two numbers, so the R parser reads and evaluates it exactly as 1. Instead of truncating to 0, R now calls the element at the first position: `x[1]`. Since the first element in our vector is 0, R returns 0.
+
+Side note: by running `.Machine$double.eps` you can see the machine epsilon, roughly $2.2 \cdot 10^{-16}$, which is the smallest representable difference between 1 and the next larger floating-point number in R.
+
+## Exercise 55 – Machine Epsilon
+
+Write functions which use a starting value of 1 and repeated division by 2 to find the smallest numbers $\epsilon$ such that $1 + \epsilon \neq 1$ and $1 - \epsilon \neq 1$, respectively. What are these numbers?
+
+We start with $\epsilon = 1$ (where $1 \pm \epsilon \ne 1$ holds) and keep halving as long as $1 \pm \epsilon / 2$ is still different from 1. When the loop stops, halving one more time would make the sum equal to 1, so the current $\epsilon$ is the smallest one that still works.
+
+```{r}
+# smallest epsilon with 1 + epsilon != 1
+epsilon_plus <- function() {
+  epsilon <- 1
+  while (1 + epsilon / 2 != 1) {
+    epsilon <- epsilon / 2
+  }
+  return(epsilon)
+}
+
+# smallest epsilon with 1 - epsilon != 1
+epsilon_minus <- function() {
+  epsilon <- 1
+  while (1 - epsilon / 2 != 1) {
+    epsilon <- epsilon / 2
+  }
+  return(epsilon)
+}
+
+epsilon_plus()
+epsilon_minus()
+
+# comparison with 2^(-52), 2^(-53) and R's built-in values
+epsilon_plus() == 2^(-52)
+epsilon_plus() == .Machine$double.eps
+epsilon_minus() == 2^(-53)
+epsilon_minus() == .Machine$double.neg.eps
+
+# why the two epsilons differ
+1 + 2^(-53) == 1
+1 + 2^(-52) == 1
+1 - 2^(-54) == 1
+1 - 2^(-53) == 1
+```
+
+The numbers are $\epsilon_+ = 2^{-52} \approx 2.22 \cdot 10^{-16}$ for $1 + \epsilon \ne 1$ and $\epsilon_- = 2^{-53} \approx 1.11 \cdot 10^{-16}$ for $1 - \epsilon \ne 1$. They match `.Machine$double.eps` and `.Machine$double.neg.eps`.
+
+They differ by a factor of 2 because the spacing of the doubles is different above and below 1. Above 1 the spacing is $2^{-52}$, so $1 + 2^{-53}$ is exactly halfway between 1 and $1 + 2^{-52}$ and is rounded to 1. Below 1 the spacing is $2^{-53}$, so $1 - 2^{-53}$ is still representable, while $1 - 2^{-54}$ is rounded to 1. Additionally, as we halve each time, we only find powers of 2.
+
+## Exercise 62 – Squares and Differences of Squares
+
+Suppose $x$ and $y$ can be represented without error in double precision. Can the same be said for $x^2$ and $y^2$? Which would be more accurate, $x^2 - y^2$ or $(x + y)(x - y)$? For what values of $x$ and $y$, relative to each other, is there a substantial difference in the accuracy of the two expressions?
+
+If $x$ and $y$ are represented without error in double precision, we can't be sure that $x^2$ or $y^2$ will also be represented without error. Suppose we have $x = 2^{52} + 1$. The double representation of this number needs 53 bits and it is thus exactly representable ($\delta_0 = 1$, $\delta_i = 0$ for $i\in[1, 51]$, $\delta_{52} = 1$). Then $x^2 = (2^{52} + 1)^2 = 2^{104} + 2^{53} + 1$. This number would require 105 bits to be represented exactly. Thus, the $+1$ will be rounded away.
+
+The difference of squares is therefore more accurately obtained using $(x+y)(x-y)$. If we use $x^2 - y^2$, then the squares are rounded first with small relative errors introduced (up to $2^{-53}$). The subtraction of the squares cancels the leading digits and the relative error will dominate the result. This is also known as "catastrophic cancellation". If we use $(x + y)(x - y)$ instead, then the subtraction is applied to exact numbers (by assumption). The formula $(x + y)(x - y)$ also avoids overflow and underflow of $x^2$ and $y^2$ for very large or very small values of $x$ and $y$. The difference between the two formulas will be substantial when $x \approx y$.
+
+## Exercise 63 – Non-Associative Addition
+
+Find three floating-point numbers $a$, $b$ and $c$ for which addition is not associative, i.e., for which
+$$(a + b) + c \neq a + (b+c).$$
+
+```{r}
+a <- 1
+b <- 10^16
+c <- -10^16
+
+(a+b) + c
+a + (b+c)
+```
+
+First case: because we add 1 to $10^{16}$ and the mantissa only has roughly 15.9 decimal digits of precision, the system does not have enough bits to represent the 1 at the end. Therefore it is absorbed and the result is $10^{16}$. When we now add $-10^{16}$, we get 0.
+
+Second case: since $b$ and $c$ have the same magnitude, they cancel out to 0. When we then add $a$, we get 1.
+
+Side note: if you choose $a = 5$ and $b$, $c$ as $10^{16}$ and $-10^{16}$, you can see that the results are 4 and 5. This is because the underlying representation is binary, not decimal: at $10^{16}$ the last bit has a value of 2, so we can only move in steps of 2. If you increase to $10^{17}$ or higher, this phenomenon changes again, because more bits fall outside the storage.
+
+## Exercise 64 – Log and Exp as Inverses
+
+The natural logarithm and exponential functions are inverses of each other, so that mathematically $\log(\exp(x)) = \exp(\log(x)) = x$. Show by example that this property does not hold exactly in computer arithmetic. Does it hold "approximately"?
+
+```{r}
+# log(exp(x)) = x fails for x = 0.1
+x <- 0.1
+log(exp(x)) == x
+log(exp(x)) - x
+
+# exp(log(x)) = x also fails for x = 0.1
+exp(log(x)) == x
+exp(log(x)) - x
+
+# approximately: all.equal allows for a small relative difference
+x <- c(0.1, 0.5, 1.5, 2, 3, 5, 10, 100)
+all.equal(log(exp(x)), x)
+all.equal(exp(log(x)), x)
+
+# but not for extreme values
+log(exp(1000))  # exp(1000) overflows
+log(exp(-1000)) # exp(-1000) underflows to 0
+log(exp(1e-20)) # exp(1e-20) is rounded to 1
+```
+
+So the property does not hold exactly: $\log(\exp(0.1))$ is off by about $6.9 \cdot 10^{-17}$ and $\exp(\log(0.1))$ by about $1.4 \cdot 10^{-17}$, because both functions return rounded results.
+
+It does hold approximately for moderate values of $x$ (the relative errors above are around $10^{-16}$, and the default tolerance of `all.equal` is around $1.5 \cdot 10^{-8}$, therefore it returns `TRUE`), but not always:
+
+- For large $x$ like $1000$, $\exp(x)$ overflows to `Inf`, and for large negative $x$ like $-1000$, it underflows to 0, so $\log(\exp(x))$ is `Inf` or `-Inf`.
+- For small $x$ like $10^{-20}$, $\exp(x)$ is rounded to exactly 1, so $\log(\exp(x)) = 0$ and all information about $x$ is lost.
+
+## Exercise 65 – Approximating e
+
+Write a program to compute $e$, the base of natural logarithms, from the definition $e = \lim_{n\to\infty} (1 + 1/n)^n$. Specifically, compute $(1 + 1/n)^n$ for $n = 10^k$, $k = 1, \dots, 20$. Determine the error in your successive approximations by comparing them with the value of `exp(1)`. Does the error always decrease as $n$ increases? Explain your results.
+
+Mathematically $(1 + 1/n)^n$ gets closer to $e$ when $n$ grows and the error is about $e/(2n)$. On a computer there is a second error: $1 + 1/n$ is rounded to about 16 digits and raising to the power $n$ multiplies this small rounding error by $n$. So for small $n$ the first error dominates, for large $n$ the rounding error dominates.
+
+```{r}
+e <- function(n) {(1 + 1/n)^n}
+
+k <- 1:20
+n <- 10^k
+e <- e(n)
+print(e, digits = 10)
+error <- abs(e - exp(1)) # absolute error
+error
+
+which.min(error) # to find the smallest one
+which.max(error) # to find the largest one
+
+# checks
+1 + 1/10^16 == 1
+```
+
+No, the error doesn't always decrease. It gets smaller until $k = 8$ and then grows again, because the rounding error of `1 + 1/n` is multiplied by about $n$ when we raise it to the power $n$. For example, for $k \ge 16$ we have `1 + 1/n == 1`, so the result is exactly 1 and the error is $e - 1 \approx 1.718$. So on a computer we can only approximate $e$ with about 8 correct digits in this way.
+
+## Exercise 66 – Precision of Approximating e
+
+Euler's number $e$ is defined as:
+$$e = \lim_{n\to\infty} \left(1 + \frac{1}{n}\right)^n = \lim_{h\to 0} (1 + h)^{\frac{1}{h}}$$
+Write a function, which, for a given $n$ (or $h$), outputs an approximation of $e$ using either one of those two definitions. Up to how many decimal digits of precision can you approximate $e$ in this way?
+
+```{r}
+approx_e <- function(n = NULL, h = NULL) {
+  if (!is.null(n)) { # first definition with n
+    return((1 + 1/n)^n)
+  }
+  else if (!is.null(h)) { # second definition with h
+    return((1 + h)^(1/h))
+  }
+  else {
+    stop("Please provide either n or h.")
+  }
+}
+
+approx_e(n = 1e6)
+approx_e(h = 1e-6)
+exp(1)
+```
+
+To measure the precision we count the correct decimal digits. If the error is around $10^{-d}$, then about $d$ digits are correct, so we use $\lfloor -\log_{10}(\text{error}) \rfloor$.
+
+```{r}
+correct_digits <- function(approx) {
+  error <- abs(approx - exp(1))
+  if (error == 0) {
+    return(16) # matches exp(1) in every digit a double can store
+  }
+  max(0, floor(-log10(error)))
+}
+```
+
+**First try: powers of 10.** We use $n = 10^k$ (and $h = 10^{-k}$).
+
+```{r}
+k <- 1:16
+digits_n <- sapply(k, function(k) correct_digits(approx_e(n = 10^k)))
+digits_h <- sapply(k, function(k) correct_digits(approx_e(h = 10^-k)))
+data.frame(k, digits_n, digits_h)
+```
+
+With powers of 10 we only get about 7 correct digits (best around $n = 10^8$). After that it gets worse again, and from $n = 10^{16}$ on the result is just 1.
+
+The reason is that $1/n = 10^{-k}$ can't be stored exactly in binary, so $1 + 1/n$ is rounded with a relative error of up to $\varepsilon/2 \approx 1.1 \cdot 10^{-16}$. Raising it to the power $n$ multiplies this error by roughly $n$. So the total error has two parts:
+$$\text{error} \approx \underbrace{\frac{e}{2n}}_{\text{from the formula}}
++ \underbrace{e \cdot n \cdot \frac{\varepsilon}{2}}_{\text{from rounding}}.$$
+The first part gets smaller as $n$ grows, the second part gets bigger. They are about equal at $n \approx 1/\sqrt{\varepsilon} \approx 10^8$, where the error is about $10^{-8}$, so we get about 7 to 8 digits.
+
+**Better: powers of 2.** If we take $n = 2^k$, then $1/n = 2^{-k}$ is stored exactly, and $1 + 2^{-k}$ is also exact as long as $2^{-k} \ge \varepsilon = 2^{-52}$ (the smallest number with $1 + \varepsilon \neq 1$, see exercise 55). So there is no rounding error in $1 + 1/n$ anymore, and only the error $\frac{e}{2n}$ from the formula is left.
+
+```{r}
+k <- c(10, 20, 30, 40, 50, 51, 52, 53)
+digits_n <- sapply(k, function(k) correct_digits(approx_e(n = 2^k)))
+digits_h <- sapply(k, function(k) correct_digits(approx_e(h = 2^-k)))
+data.frame(k, digits_n, digits_h)
+
+approx_e(n = 2^52) == exp(1)
+```
+
+The best choice is $n = 2^{52}$ (or $h = 2^{-52}$): this is the largest $n$ for which $1 + 1/n$ is still exact, so the formula error $\frac{e}{2 \cdot 2^{52}} \approx 3 \cdot 10^{-16}$ is as small as it can get. The result is the same double as `exp(1)`, so we get all 15 to 16 decimal digits that double precision can hold. For $n = 2^{53}$, $1 + 2^{-53}$ rounds to exactly 1, and the result collapses to $1$.
+
+So the answer is: with powers of 10 about 7 to 8 digits, with $n = 2^{52}$ the full precision of about 15 to 16 decimal digits.
+
+## Exercise 67 – Wilson's Theorem
+
+According to Wilson's Theorem, a fail-safe test of whether a given number $n$ is prime or not is to check if $n$ divides $(n-1)! + 1$. If it does, it is sure to be prime, if not, it is a composite number. Write a function that implements a primality test based on Wilson's Theorem and test all the integers from $2$ up to $25$ for their primality using your function. Is this a good way to test for primality using a computer? For which number does it start to fail and why?
+
+```{r}
+wilson_test <- function(n) {
+
+  big_number <- factorial(n-1) + 1
+  remainder  <- big_number %% n
+
+  if(remainder == 0) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+integers <- seq(2,25)
+for(i in integers) {
+  cat(i, ":", wilson_test(i),"\n")
+}
+```
+
+We can see that for $n=20$ we already have an incorrect result. The reason is that the factorial is represented as a "double" in R.
+
+```{r}
+typeof(factorial(5))
+```
+
+This means that after a certain $n$, `factorial(n-1)` is no longer represented exactly. In fact, above $2^{53}$ the gap between consecutive doubles is at least 2. Wilson's test depends on adding 1 to the factorial, so this $+1$ may be rounded away after a certain $n$.
+
+```{r}
+# Example for a double's step in R after 2^53
+2^53+2 == 2^53
+
+2^53+1 == 2^53
+```
+
+From the output of the function above we can see that the first wrong answer is at $n=20$. This happens because $(20-1)! > 2^{53}$. Then we have
+
+```{r}
+factorial(20-1) + 1 == factorial(20-1)
+```
+
+Then the answer is wrong because $19!$ is divisible by 20.
+
+Moreover, $(n-1)!$ grows faster than exponentially, which means that its computation is slow and overflows early. Hence, this is not a good approach to test if a number is prime with a computer.
+
+## Exercise 68 – Cancellation in exp(x) - 1
+
+Consider the function $f(x) = \frac{e^x - 1}{x}$.
+
+(a) Use l'Hôpital's rule to show that $\lim_{x \to 0} f(x) = 1$.
+
+(b) Check the result empirically by writing a program to compute $f(x)$ for $x = 10^{-k}$, $k = 1, \dots, 15$. Do your results agree with theoretical expectations? Explain why.
+
+(c) Perform the experiment in part (b) again, this time using the mathematically equivalent formulation $f(x) = \frac{e^x - 1}{\log(e^x)}$, evaluated as indicated with no simplifications. If this works any better, can you explain why?
+
+**Part (a)**
+
+$$\lim_{x \to 0^+} \frac{e^x - 1}{x} = \frac{1-1}{0} = \frac{0}{0}$$
+
+We can use l'Hôpital's rule:
+$$(e^x - 1)' = e^x, \qquad x' = 1,$$
+$$\lim_{x \to 0^+} \frac{e^x}{1} = \frac{1}{1} = 1.$$
+
+**Part (b): The Problem of Catastrophic Cancellation**
+
+When computing $f(x) = \frac{e^x - 1}{x}$ for extremely small values of $x$ (e.g., $10^{-15}$), the term $e^x$ evaluates to a number extremely close to 1.
+
+In finite-precision floating-point systems, computing $e^x-1$ forces the subtraction of two nearly identical numbers. This triggers catastrophic cancellation (loss of significance): the accurate leading digits cancel each other out, leaving only the "noisy" rounding errors in the least significant bits. When this corrupted, highly inaccurate residual is subsequently divided by the exact, tiny value of $x$, the relative error explodes. This causes the output to diverge drastically from the theoretical expectation of 1 and eventually collapse to 0.
+
+**Part (c): Numerical Stability through Error Correlation**
+
+The mathematically equivalent formulation $f(x)= \frac{e^x-1}{\ln(e^x)}$ resolves this issue by synchronizing the floating-point inaccuracies. When the computer evaluates $e^x$, it stores a slightly rounded, machine-representable intermediate value; let's call this approximation $y$. Instead of mixing a rounded intermediate value with an exact input value (as in part (b)), the new formulation evaluates $\frac{y-1}{\ln(y)}$. In this structure, both the numerator and the denominator are subjected to the exact same perturbed input $y$. Because the natural logarithm mathematically corresponds to this specific $y$, the approximation errors in the numerator and denominator are perfectly correlated. As long as $y$ does not round to exactly 1 due to machine limits, the division naturally stabilizes the result, allowing the system to reliably return 1.
+
+The problem in this example is the mantissa: in the IEEE 754 standard used by R, the mantissa has a fixed capacity of 53 bits, which provides roughly 15.9 significant decimal digits. When $x=10^{-15}$, the value of $e^x$ is approximately $1.000000000000001$. The leading 1 and the long sequence of zeros consume almost all the available space in the mantissa. Any finer, mathematically exact fractional digits that should follow simply do not fit into the memory and are truncated. When the formula computes $e^x - 1$, that leading 1 is subtracted, leaving the mantissa virtually empty. The only thing remaining is the inaccurate "noise" that happened to be stored in the very last bit.
+
+Ultimately, the mantissa causes the error because it runs out of space to accurately record a microscopically small change alongside a large leading digit. The significant digits wipe each other out, resulting in a total loss of information.
+
+```{r}
+# (b) (e^x - 1) / x
+
+# vector for k from 1 to 15
+k <- 1:15
+
+# x values
+x <- 10^(-k)
+
+# function (b): standard
+f_b <- function(x) {
+  (exp(x) - 1) / x
+}
+
+# function (c): mathematically equivalent
+f_c <- function(x) {
+  (exp(x) - 1) / log(exp(x))
+}
+
+# outcomes
+res_b <- f_b(x)
+res_c <- f_c(x)
+
+# data frame with the different settings
+results <- data.frame(
+  k = k,
+  x = x,
+  Values_B = res_b,
+  values_C = res_c
+)
+
+options(digits = 10) # sets the number of printed digits
+print(results)
+
+# We see:
+# For (b) at first it gets closer to 1, as we expect,
+# but at k around 8 it starts to fall out of line with our theory.
+```
+
+## Exercise 69 – Finite Differences
+
+Write a program to compute an approximate value for the derivative of a function using the finite-difference formula
+$$f'(x) \approx \frac{f(x+h) - f(x)}{h}.$$
+Test your program using the function $\tan(x)$ for $x = 1$ (remember that $\tan'(x) = 1 + \tan(x)^2$).
+
+```{r}
+# f is a function, x the point and h the step size
+finite_diff <- function(f, x, h) {
+  return((f(x + h) - f(x)) / h)
+}
+
+x <- 1
+exact <- 1 + tan(x)^2
+print(exact, digits = 16)
+
+# example: h = 1e-5
+finite_diff(tan, x, 1e-5)
+
+# try h = 10^(-1), ..., 10^(-16)
+h <- 10^(-(1:16))
+approx <- finite_diff(tan, x, h)
+err <- abs(approx - exact)
+
+# h with the smallest error
+h[which.min(err)]
+min(err)
+
+# plotting the errors
+plot(h, err, log = "xy", type = "b", xlab = "h", ylab = "absolute error", main =
+"error for the approximation of tan'(x) for x = 1 \n using the finite-difference formula")
+```
+
+The exact value is $1 + \tan(1)^2 = 3.425518820814759$. The error first decreases with $h$ and is smallest for $h = 10^{-8}$ (error about $2.6 \cdot 10^{-8}$), and then it increases again. This happens because there are two errors at the same time:
+
+- The truncation error shrinks as $h$ gets smaller.
+- The rounding error grows as $h$ gets smaller, since $f(x+h) - f(x)$ is a subtraction of two almost equal numbers. For $h = 10^{-16}$, $1 + h$ is exactly $1$, so $f(x+h) = f(x)$, the approximation is $0$ and the error equals the derivative itself.
+
+## Exercise 70 – Quadratic Formula
+
+As every schoolchild learns, the two solutions of the quadratic equation $ax^2 + bx + c = 0$ are given by the formula
+$$\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}.$$
+For $|b| \approx \sqrt{b^2 - 4ac}$ it is better to compute one of the roots using the alternative formula
+$$\frac{2c}{-b \mp \sqrt{b^2 - 4ac}}.$$
+Why?
+
+If we have the case that $|b| \approx \sqrt{b^2 - 4ac}$, then $4ac$ is very small compared to $b^2$. In the school formula one of the roots then subtracts two almost equal numbers; for $b > 0$ this is $-b + \sqrt{b^2 - 4ac}$. The result is close to 0 and most of the significant digits cancel, so the rounding errors of the square root become a significant part of the result.
+
+The alternative formula comes from $x_1 \cdot x_2 = c/a$ (Vieta). The other root $x_2 = \frac{-b - \sqrt{b^2 - 4ac}}{2a}$ adds two numbers of the same sign, so it is accurate, and then
+$$x_1 = \frac{c}{a \, x_2} = \frac{2c}{-b - \sqrt{b^2 - 4ac}}.$$
+Here the denominator is a sum of two numbers with the same sign, so there is no cancellation.
+
+We can compare the two formulas. Let's take $a = 1$, $b = 10^8$, $c = 1$, because the problem appears only when $b^2$ is much bigger than $4ac$. Then $\sqrt{b^2 - 4ac}$ is almost the same number as $b$ and in $-b + \sqrt{b^2 - 4ac}$ we subtract two almost equal numbers. With small numbers like $b = 10$ the error is about $10^{-15}$, so we cannot see it. With $b = 10^8$ the error is big enough to see, which we show now.
+
+The correct value of the small root is $x \approx -c/b = -10^{-8}$, because $x$ is so small that $ax^2$ is almost 0 and the equation $ax^2 + bx + c = 0$ becomes $bx + c \approx 0$.
+
+```{r}
+# classical school formula
+classic_s<- function(a, b, c) {(-b + sqrt(b^2 - 4 * a * c)) / (2 * a)}
+
+# alternative formula for the same root
+alter <- function(a, b, c) { 2 * c / (-b - sqrt(b^2 - 4 * a * c))}
+
+classic_s(1, 10^8, 1)
+alter(1, 10^8, 1)
+abs(classic_s(1, 10^8, 1) + 1e-8) / 1e-8 # relative error compared to the root
+abs(alter(1, 10^8, 1) + 1e-8) / 1e-8
+```
+
+So, the school formula subtracts two almost equal numbers for one of the roots, which loses many significant digits, like 25% in this example. In the second formula the numbers in the denominator are added and have the same sign, so there is no cancellation, and the relative error we checked is about 0.
+
+## Exercise 71 – Rearranging to Avoid Cancellation
+
+Consider the expression
+$$\frac{1}{1-x} - \frac{1}{1+x}$$
+assuming $x \neq \pm 1$.
+
+(a) For what range of values $x$ is it difficult to compute the expression accurately in floating-point arithmetic?
+
+(b) Give a re-arrangement of the terms such that, for the range of values from part (a), the computation is more accurate in floating-point arithmetic.
+
+(a) For $x$ close to 0, both $\frac{1}{1-x}$ and $\frac{1}{1+x}$ are almost 1. Subtracting two nearly equal numbers cancels the leading digits (catastrophic cancellation), so the small rounding errors in the two terms become large relative to the result.
+
+```{r}
+g <- function(x) {
+  1 / (1 - x) - 1 / (1 + x)
+}
+
+# for small x the result should be about 2x
+x_values <- c(1e-1, 1e-5, 1e-9, 1e-12, 1e-15)
+data.frame(x = x_values, g = g(x_values), should_be = 2 * x_values)
+```
+
+For $x = 10^{-12}$ only about 4 digits are correct, and for $x = 10^{-15}$ the result is about 10% off. At $x = \pm 1$ the expression is not defined at all, since we divide by zero.
+
+(b) Putting both fractions over a common denominator gives
+$$\frac{1}{1-x} - \frac{1}{1+x} = \frac{(1+x) - (1-x)}{(1-x)(1+x)} = \frac{2x}{1 - x^2}.$$
+There is no subtraction of nearly equal numbers anymore, so this works well for small $x$:
+
+```{r}
+g_better <- function(x) {
+  (2 * x) / (1 - x^2)
+}
+
+data.frame(x = x_values, g_better = g_better(x_values), should_be = 2 * x_values)
+```
+
+**Further improvement.** $\frac{2x}{1-x^2}$ still has a problem when $x$ is close to $\pm 1$: then $x^2$ is rounded first, and $1 - x^2$ is again a subtraction of two nearly equal numbers, so that rounding error gets blown up. If we keep the denominator factored,
+$$\frac{2x}{(1-x)(1+x)},$$
+this does not happen. For $x$ close to 1, $1 - x$ is computed exactly in floating point (both numbers are within a factor 2 of each other), and $1 + x$ has no cancellation at all. Near $-1$ it is the same with the roles swapped.
+
+```{r}
+g_best <- function(x) {
+  (2 * x) / ((1 - x) * (1 + x))
+}
+
+# close to 1 the two rearrangements start to differ
+x_near_1 <- c(1 - 1e-5, 1 - 1e-7, 1 - 1e-9)
+rel_diff <- abs(g_better(x_near_1) - g_best(x_near_1)) / abs(g_best(x_near_1))
+data.frame(one_minus_x = 1 - x_near_1, g_better = g_better(x_near_1),
+           g_best = g_best(x_near_1), rel_diff = rel_diff)
+
+# and for small x it is just as good as g_better
+data.frame(x = x_values, g_best = g_best(x_values), should_be = 2 * x_values)
+```
+
+The relative difference grows as $x$ gets closer to 1 (up to about $5 \cdot 10^{-10}$ here), and that error comes from `g_better`, because there $x^2$ is rounded before the subtraction. So $\frac{2x}{(1-x)(1+x)}$ is accurate both near 0 and near $\pm 1$. At exactly $x = \pm 1$ the expression is still undefined, but that's a mathematical limit, not a numerical one.

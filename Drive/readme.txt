@@ -1,0 +1,2 @@
+Note for ALL Hornik exams:
+Do all exercises beforehand, but understand or if needed learn by heart the repeating exercises on all previous exams- check drive. The chance that he will repeat most of them is high. 

@@ -1,0 +1,288 @@
+---
+title: "Computing Notes"
+author: "Aleksandar Gradev"
+date: "2026-10-01"
+output: html_document
+---
+
+# Lecture 1
+`Date: 01.10.2026`
+
+## Definitions
+
+Programming - designing, writing and testing programs
+Computer program - computer algorithm
+Algorithm - sequence of instructions/actions to get something done
+Programming language - an artificial language used to generate computer programs
+Language - system of symbols used for communication; consists of syntax and sematnics
+
+
+## Crash-course in programming languages
+Possible grouping of programming languages:
+
+Imperative PLs
+- giving commands
+- state is implied by variables
+- state is modified by assignment
+
+Declarative PLs
+- you dont need variables, you dont assign variables to capture the state
+- directly evaluates an expression
+
+First Generation Languages (1GL)
+- digital computer system is a system that is based on the binary system (bits and bytes)
+- analogous system uses natural phenomena to do computations 
+- raw machine code (binary)
+- bit is a single number 0 or 1
+- byte is 8 bits
+
+Second Generation Languages (2GL)
+- introduced symbolic representation of machine code
+- macros - placeholders for sequences of instructions
+- assembler - program that converts the symbols to the actual machine code
+
+Third Generation Languages (3GL)
+- high level languages
+- instead of macros it has variables
+- loops and condiditions are introduces for structure
+- source code is the human-looking code while machine code (or object code) is the code the computer understands
+- interpreter is an engine that translates source code to machine code command by command (examples R and Python)
+- compiler is an engine that translates source code to machine code as a whole before execution (examples C++, C#, etc)
+
+Fourth Generation Languages (4GL)
+- high-level languages created specifically for some application; do some specific things well/covnvinient
+- slower execution than 3GL, often vendor-dependent
+- examples are SQL for interactive data retrieval, report generators such as PDF (languages that describes how to fill the paper)
+- very high-level programming languages such as MATLAB and SAS
+
+1GL to 4GL explain the development and groupings of Imperative programming languages
+
+Funcitonal and Locid programming languages are part of Declarative programming languages
+
+Functional Programming Languages
+- based on the idea of mathematical functions and nested functions
+- ideally no assignments (no side effects)
+- functions are first-class objects (treated like vlaues)
+
+Logic Programming Languages
+- based on the rules of formal 
+
+Strongly typed language - all variables need to have their data type predefined
+Weakly typed language - the interpretor somehow guesses what the data type is
+
+Taking a sum with binary operator (infixed notation) is $x + y$
+Taking a sum with ... (prefixed notation) is $+(x,y)$
+S/R is 4GL is particularly good at dealing with sequences (also called vectors in R textbooks)
+R is both a functional language (declerative PL) it is also 4GL 
+
+
+- Cursor - indicator where ... is at ?
+- Prompt - indication for the interpreter that an input is following ? (e.g. `R>`)
+- parsing ?
+- REPL (read, eval, print, loop) - ??
+
+## R as pocket calculator
+
+```{r}
+# simplest (completed) program in R source code
+1
+```
+
+The element `[1]` of the output denotes ...
+
+In R there is not such notion as just the number 1, instead this is just the first element (namely 1) of a sequence of length 1. 
+
+```{r}
+2*3
+```
+```{r}
+2 * 3
+```
+
+Spaces don't have to be there, but recommended to write code such that humans can read it well. Hence, visual separation is suggested. 
+
+```{r}
+3/4 # printed as floating-point number
+```
+
+```{r}
+log(0) # R knows about infinities
+```
+
+```{r}
+0/0
+```
+The result of this numerical computation is a number. However, since `0/0` is not defined R doesn't throw an error but a `NaN` (Not a Number).
+
+R induces a standard for working with floating-point numbers.
+
+The assignment operator `<-` is read as `GETS`. For example, `x <- 2` is read as `X GETS 2`. Alternatively, one could read `the value 2 GETS bound to x`.
+   
+`ls()` is a function that returns the names of the variables in the environment. Names are strings. `ls()` stands for list objects and it allows for arguments.
+
+`rm(name of variable)` is a function that removes a variable from the environment.
+
+```{r}
+# assign 2 to x / x GETS 2
+x <- 2
+# print x
+print(x)
+# show that x is in the environment
+ls()
+# remove x from the environment
+rm("x")
+# check that x is not in the environment
+tryCatch({
+  print(x)
+}, error = function(e) {
+  print("ERROR")
+})
+```
+
+## R works with sequences
+
+```{r}
+y <- c(1, 2, 3)
+rep(y, 3)
+length(rep(y,5)) # should be 5 * 3 = 15
+```
+
+`seq(from, to, by)` is a function that creates an arithmetic sequence. 
+
+```{r}
+dim(matrix(1:4, ncol = 2))
+```
+```{r}
+dim(rep(3,3)) # why not same as length(rep(3,3)) ???
+```
+
+R can create a named sequence, i.e. each element has a name
+```{r}
+a <- c(Nikola = 22, Yulia = 21)
+a["Nikola"]
+```
+
+```{r}
+names(a) <- NULL # drops the names
+```
+
+`NULL` represent Nothing, so setting the names to nothing (names of a get nothing) drops them.
+
+`load()` can load an object stored on disk.
+
+`dump()` ...
+
+`options(digits)` allows to change the formating of the output in the console
+
+# Lecture 2
+`Date: 06.10.2026`
+
+`R>` is the prompt
+
+`NULL` is both constant (how we tell R to understand nothing) but also an object (how R outputs nothing). We can think of it as the empty set.
+
+Predicate function - all functions starting with `is.` that returns TRUE if the type of the object is this.
+
+R has actually 3 logical values - TRUE, FALSE and NA. NA means don't know. Used when data is not available. 
+
+`R> FALSE  <- 
+[1] FALSE` <- first element of sequence output, FALSE is the output
+
+`logical()` - creator function
+
+`logical(0)` outputs empty set with logical type, hence its not NULL (not nothing) because `length(logical(0)) = 0` but `typeof(logical(0)) = logical`
+
+Coersion function - all functions starting with `as.`
+
+In R we can apply something to the whole sequence without the need to iterate over each element.
+
+`TRUE & FALSE = FALSE`  
+`TRUE & NA = NA`  
+`NA & FALSE = FALSE`  
+
+`outer(x, y, f)` applies the function FUN to the outer product of x and y, i.e. for x = (x_1, ..., x_n) and y= (y_1, ..., y_n) its a matrix outer(x,y,f) = [f(x_i, y_j)]_{i = 1, ..., n ; j = 1, ..., n}
+
+Binary function - a function that takes 2 inputs
+
+1L - long integer, stored in 4 bytes
+
+```{r}
+floor(3.2)
+
+floor(-3.2)
+
+as.integer(3.2)
+
+round(0.5)
+
+round(1.5)
+```
+
+`round()` rounds to the closest multiple of 2 and not as we typically know as 0.5
+
+## Numbers
+
+- Integers can be stored as bits, e.g. with k=2 we can have 0 = 00, 1 = 01, 2 = 10, 3 = 11
+
+- with k bits we can store 2^k integers, and the largest integer in them is 2^k-1
+
+- representation of negative numbers can be done via sign and magnitude scheme, bias scheme and two's complement scheme 
+
+- sign and magnitude representation uses one extra bit for the sign (0 and 1 to represent + and -)
+
+- biased representation - use the middle number as bias, then the substract the bias from every other number 
+
+- two's complement scheme ....
+
+- in R one could represent numbers as multiple of 10, e.g.
+```{r}
+5e2  # same as 5 * 10^2
+2e-1 # same as 2 * 10^(-1)
+```
+
+- representing the smallest positive normalized number goes in case (a) from slides; range of exponent is between -1022 and 1024, however 1024 is Inf/NaNs; therefore sigma is 1, significand as small as possible (all deltas 0) and exponent as small as possible (i.e. 00...01) 
+
+- denormalized are arranged so that they start after the normalized end (thats why exponent is exactly -1022 there)
+
+
+# Lecture 3
+
+- $n^n = e^{n \cdot \log(n)}$. Hence, $n^n$ grows faster than $e^n$
+
+- `sapply` (simple apply) is bad because it simplifies by itself. Better to use `vapply`
+
+- finite precision???
+
+$\frac{a}{bc} = \exp(\log(\frac{a}{bc})) = \exp(\log(a) - \log(b) - \log(c)$. The way we take the ratio of two big numbers makes difference because if we use a number larger than what the machine can handle we may end up with inf/inf = NaN. 
+
+- in recursively-defined function, instead of using the explicit name of the function we can use `Recall(...)` with the new arguments inside
+
+- `Re()`, `Im()` ???
+
+- `complex(n)` to generate sequence of `n` complex numbers
+- `complex` is a data type in R, similarly to `integer`, etc.
+- empty string `""` is has length of 1
+
+- `writeLines(char)` is a function that writes only character objects
+```{r}
+x <- c("apple", "banana")
+
+print(x)
+
+cat(x)
+
+writeLines(x)
+```
+
+- `utf8ToInt(char)`
+
+- `nchar(x, type = "bytes")` tells us how many bytes we need to save something
+
+```{r}
+"\u00e4"
+```
+
+- `substring(what, from, to)`
+
+- `sprintf()` formated print???
+

@@ -1,0 +1,5 @@
+# Ignore everything
+*
+
+# Allow specific files
+!Colloqium/computing_colloquim_1
