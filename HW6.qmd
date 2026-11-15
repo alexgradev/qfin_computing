@@ -111,3 +111,82 @@ with $w_1,w_2 \in (0,1)$ and $w_1 + w_2 = 1$. Hence, $w_{k+1}$ lies between $x_k
 This leads to no cancellation in both the numerator and denominator. WLoG, suppose $f(x_k) > 0 > f(x_{k-1})$ and $x_k, x_{k-1} > 0$. In the denominator we have $$f(x_k) - f(x_{k-1}) = f(x_k) + |f(x_{k-1})|$$
 At the same time, in the numerator we have $$x_{k-1} \cdot f(x_k) - x_k \cdot f(x_{k-1}) = x_{k-1} \cdot f(x_k) +   x_k \cdot |f(x_{k-1})|$$
 Hence, in such case this formula does not make rounding errors worse.
+
+## Exercise 152
+
+For an odd number of data values $x_1, \dots,x_n$, the minimizer of the function
+$$
+f(x) = \sum_{i=1}^{n} |x −x_i|
+$$
+is the sample median of the data values. Verify this result for the following data:
+(a) 3, 7, 9, 12, 15.
+(b) 3, 7, 9, 12, 15, 18, 21.
+Describe, in words, what happens when the number of observations is even.
+
+*Solution*
+
+We start by writing a simple `R` function that constructs $f(x)$ given the data values $x_1, \dots,x_n$.
+```{r}
+construct_f <- function(x_vector) {
+  Vectorize(function(x) {
+    sum(abs(x - x_vector))
+  }
+  )
+}
+
+data_a <- c(3, 7, 9, 12, 15)
+
+f_a <- construct_f(data_a)
+```
+
+We will now plot the function, created by using the observations in (a). Additionally, we will show the median of the observations.
+
+```{r}
+x_values <- seq(min(data_a) - 2, max(data_a) + 2, by = 0.05)
+y_values <- f_a(x_values)
+
+plot(x_values, y_values, type = "l", lwd = 2, col = "steelblue",
+     xlab = "x", ylab = "f_a(x)",
+     main = "Graph of f_a(x)")
+
+abline(v = median(data_a), lty = 2, col = "red")             # median
+points(median(data_a), f_a(median(data_a)), pch = 19, col = "red")  # minimum
+legend("topright", legend = c("f(x)", "median"),
+       col = c("steelblue", "red"), lty = c(1, 2), lwd = c(2, 1), bty = "n")
+```
+We will now check numerically that the median is indeed the minimizer of $f_a$. We use `optimize()`, which performs a one-dimensional search for the minimum of a function over a given interval. The interval $[-100, 100]$ is much wider than the range of the data, so the search does not depend on knowing the answer in advance and the tolerance is set very small to get a precise result.
+
+```{r}
+opt_a <- optimize(f_a, interval = c(-100, 100), maximum = FALSE, tol = 1e-12)
+
+cat("Median         =", median(data_a),
+    "\nNumerical min  =", opt_a$minimum)
+```
+We see that the minimizer found by the optimizer agrees with the sample median $9$ up to a very small difference. However, the two numbers are not exactly the same, because `optimize()` is an iterative numerical method. It narrows down an interval around the minimizer and stops once the interval is shorter than the specified tolerance. Moreover, all computations are carried out in finite-precision floating-point arithmetic, so the result cannot be expected to
+match the exact value $9$ to every digit. The minimal value $f_a(9) = 17$ is reproduced exactly and the median is the exact minimizer.
+
+We show the same for (b)
+```{r}
+data_b <- c(3, 7, 9, 12, 15, 18, 21)
+f_b <- construct_f(data_b)
+
+x_values <- seq(min(data_b) - 2, max(data_b) + 2, by = 0.05)
+y_values <- f_b(x_values)
+
+plot(x_values, y_values, type = "l", lwd = 2, col = "steelblue",
+     xlab = "x", ylab = "f_b(x)",
+     main = "Graph of f_b(x)")
+
+abline(v = median(data_b), lty = 2, col = "red")             # median
+points(median(data_b), f_b(median(data_b)), pch = 19, col = "red")  # minimum
+legend("topright", legend = c("f(x)", "median"),
+       col = c("steelblue", "red"), lty = c(1, 2), lwd = c(2, 1), bty = "n")
+
+
+opt_b <- optimize(f_b, interval = c(-100, 100), maximum = FALSE, tol = 1e-12)
+cat("Median         =", median(data_b),
+    "\nNumerical min  =", opt_b$minimum)
+
+```
+
+When the number of observations is even, the value $x$ that gives the minimum of $f$ is no longer unique. Let $x_{1} \le \dots \le x_{n}$ be the sorted data. Between the two middle values $x_{\frac{n}{2}}$ and $x_{\frac{n}{2} + 1}$, exactly half of the observations lie to the left of $x$ and half lie to the right. Moving $x$ slightly to the right then increases the distance to the left half by the same amount as it decreases the distance to the right half, so $f$ stays constant. The graph of $f$ is therefore flat at its lowest level and every point of the interval $[x_{\frac{n}{2}}, x_{\frac{n}{2} + 1}]$ is a minimizer. The usual definition of the sample median for even $n$, the average of the two middle values, is the midpoint of this interval, so it is still a minimizer, but it is just one of infinitely many.
