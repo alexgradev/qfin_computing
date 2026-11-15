@@ -4,6 +4,67 @@ format: pdf
 editor: visual
 ---
 
+## Exercise 129
+
+Use a fixed-point iteration to determine the solution (in $[0,1]$) of the equation $\cos(x) = x$.
+Use a starting value of 0.5. How many iterations does it take before you have an answer which is accurate in the first two, three or four digits? What happens if you change the starting value to 0.7 or to 0.0?
+
+*Solution*
+
+We start with implementing the fixed-point iteration algorithm to find the exact number it converges to. Since $\cos(x) = x$ is directly in the form $x_{n+1} = g(x_n)$, we can just write
+
+```{r}
+
+cos_fixed_point <- function(starting_value, tol = 1e-12) {
+  x <- starting_value
+  counter <- 0
+  
+  while(abs(cos(x) - x) > tol){
+    x <- cos(x)
+    counter <- counter+1
+  }
+  return(list(fixed_point = x, iterations = counter))
+}
+
+x_star <- cos_fixed_point(0)$fixed_point
+```
+
+Now we will implement a function that counts the iterations so answer is accurate in the first $d$ digits.
+
+```{r}
+
+digits_needed <- function(starting_value, d, x_star) {
+  x <- starting_value
+  counter <- 0
+  while (abs(x - x_star) > 0.5 * 10^(-d)) {
+    x <- cos(x)
+    counter <- counter + 1
+  }
+  counter
+}
+
+cat("Iterations needed with starting value 0.5 for",
+    "\n2 digits ->", digits_needed(0.5, 2, x_star),
+    "\n3 digits ->", digits_needed(0.5, 3, x_star),
+    "\n4 digits ->", digits_needed(0.5, 4, x_star)
+)
+```
+
+We will now check how does the number of iterations change when we use 0.0 or 0.7 as starting value.
+
+```{r}
+cat("Iterations needed with starting value 0.0 for",
+    "\n2 digits ->", digits_needed(0.0, 2, x_star),
+    "\n3 digits ->", digits_needed(0.0, 3, x_star),
+    "\n4 digits ->", digits_needed(0.0, 4, x_star)
+)
+
+cat("Iterations needed with starting value 0.7 for",
+    "\n2 digits ->", digits_needed(0.7, 2, x_star),
+    "\n3 digits ->", digits_needed(0.7, 3, x_star),
+    "\n4 digits ->", digits_needed(0.7, 4, x_star)
+)
+```
 ## Exercise 138
 
 Show that the iterative method
