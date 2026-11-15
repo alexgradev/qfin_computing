@@ -1,0 +1,1203 @@
+---
+title: "Computing - Homework Assignment 4"
+author: "Group 1: Bachtiary, Gradev, Hartai, Isakova, Pemsel"
+output: pdf_document
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+## Exercise 73
+
+Consider functions of the form:
+
+$$
+\phi_j(x) := \frac{1}{(j-1)!}\int_0^1 e^{(1-\theta)x}\theta^{j-1}\,d\theta,
+\qquad j \ge 1,\; x \in \mathbb{R}.
+$$
+
+**(a) Prove the following recursion:**
+
+$$
+\phi_j(x)=\frac{\phi_{j-1}(x)-\phi_{j-1}(0)}{x},
+\qquad j>1,\; x\neq 0.
+$$
+
+Proof.
+
+Define the integral part of the function as $I_j(x)$, i.e.
+
+$$
+I_j(x) := \int_0^1 e^{(1-y)x}\,y^{j-1}\,dy
+$$
+
+Hence, we can rewrite as
+
+$$
+\phi_j(x)=\frac{1}{(j-1)!}\,I_j(x)
+$$
+
+For integration by parts we choose $$
+u = y^{j-1} \qquad \text{and} \qquad dv = e^{(1-y)x}\,dy 
+$$
+
+Then
+
+$$
+du = (j-1)\,y^{j-2}\,dy \qquad \text{and} \qquad v = -\frac{1}{x}\,e^{(1-y)x}
+$$ since $\frac{d}{dy}e^{(1-y)x} = -x\,e^{(1-y)x}$.
+
+Using $\int u\,dv = uv - \int v\,du$, we get
+
+$$
+I_j(x)
+= \left[-\frac{y^{j-1}e^{(1-y)x}}{x}\right]_{0}^{1}
++ \frac{j-1}{x}\int_0^1 e^{(1-y)x}\,y^{j-2}\,dy 
+$$
+
+Observe the boundary term. At $y=1$ the bracket equals $-\frac{1}{x}$.
+At $y=0$ it equals $0$ because $j-1\ge 1$. Hence $$
+\left[-\frac{y^{j-1}e^{(1-y)x}}{x}\right]_{0}^{1} = -\frac{1}{x}
+$$
+
+The remaining integral is
+
+$$
+\int_0^1 e^{(1-y)x}\,y^{j-2}\,dy = I_{j-1}(x)
+$$
+
+so
+
+$$
+I_j(x) = -\frac{1}{x} + \frac{j-1}{x}\,I_{j-1}(x)
+$$
+
+We divide by $(j-1)!$. Since $\frac{j-1}{(j-1)!}=\frac{1}{(j-2)!}$,
+
+$$
+\phi_j(x)
+= -\frac{1}{x\,(j-1)!} + \frac{1}{x}\cdot\frac{1}{(j-2)!}\,I_{j-1}(x)
+= -\frac{1}{x\,(j-1)!} + \frac{1}{x}\,\phi_{j-1}(x).
+$$
+
+We should identify the constant. Evaluating $\phi_{j-1}$ at $0$: $$
+\phi_{j-1}(0)
+= \frac{1}{(j-2)!}\int_0^1 y^{j-2}\,dy
+= \frac{1}{(j-2)!}\cdot\frac{1}{j-1}
+= \frac{1}{(j-1)!}
+$$
+
+Substituting back, we get
+
+$$
+\phi_j(x) = \frac{\phi_{j-1}(x) - \phi_{j-1}(0)}{x},
+\qquad j>1,\; x\neq 0 \qquad \square
+$$
+
+**(b) What happens in this recursion for small x? What is the problem?
+How could you avoid/bypass this problem?**
+
+For small $x$ the recursion subtracts two nearly equal numbers and then
+divides by this tiny number. This leads to catastrophic cancellation.
+More specifically, if $x$ is really close to 0, then the leading digits
+cancel and what is left is mostly rounding error. Dividing by $x$
+introduces an absolute error of $\frac{\epsilon}{|x|}$. This error is
+further amplified as we go to $j$.
+
+Possible way to avoid this problem is to use Taylor series for a small
+$|x|$. If we expand $e^{(1-y)x}$ and integrate term by term, we get
+
+$$
+\phi_j(x) = \frac{1}{(j-1)!}\int_0^1 e^{(1-y)x}\,y^{j-1}\,dy
+= \frac{1}{(j-1)!}\sum_{k=0}^{\infty}\frac{x^k}{k!}\int_0^1 (1-y)^k y^{j-1}\,dy.
+$$
+
+The integral part of the equation gives
+
+$$
+\int_0^1 (1-y)^k y^{j-1}\,dy = \frac{(j-1)!\,k!}{(k+j)!},
+$$
+
+so
+
+$$
+\phi_j(x) = \sum_{k=0}^{\infty}\frac{x^k}{(k+j)!} = \frac{1}{j!}+\frac{x}{(j+1)!}+\frac{x^2}{(j+2)!}+\cdots
+$$
+
+The terms decay very fast so we can use this alternative when $|x|$ is
+below certain threshold and use the recursion for large $|x|$ where no
+cancellation occurs. The threshold can be set as a dependent to $j$.
+
+## Exercise 74
+
+The Euclidean norm of an n-dimensional vector x with components
+$x_{1},...,x_{n}$ is defined by:
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} x_i^2 \right)^{1/2}.
+$$
+
+How would you avoid overflow and harmful underflow in this computation?
+
+1.  Search for the element with the biggest absolute value:
+    $max[|x_1|,...,|x_n|]$
+
+2.  Divide every entry before taking the square with this entry.
+
+3.  Multiply the final Square root with the found entry.
+
+Why this holds:
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} x_i^2 \right)^{1/2}
+$$
+
+We multiply by $\frac{m^2}{m^2}$ which equals to 1.
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} \frac{m^2}{m^2} \cdot x_i^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} m^2\cdot \frac{x_i^2}{m^2} \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} m^2 \cdot \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = \left( m^2 \cdot\sum_{i=1}^{n} \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = (m^2)^{1/2} \cdot\left( \sum_{i=1}^{n} \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = m \cdot\left( \sum_{i=1}^{n} \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+Further information for Implementing:
+
+When the maximum absolute value $m$ is exactly zero, it mathematically
+implies that every single component of your vector $x$ is exactly zero.
+
+If your algorithm does not explicitly check for this condition before
+proceeding, the scaling step $\frac{x_i}{m}$ will attempt to compute
+$\frac{0}{0}$. In floating-point arithmetic, this does not simply throw
+a standard error—it quietly produces a `NaN` (Not-a-Number). If this
+`NaN` goes unnoticed, it will propagate through your entire mathematical
+model, corrupting subsequent matrix operations, derivative checks, or
+regression outputs.
+
+## Exercise 77
+
+To calculate $\log(x)$ we use the expansion
+$$\log(1 + x) = x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + \cdots$$
+Truncating to $n$ terms, the error is no greater in magnitude than the
+last term in the sum. How many terms in the expansion are required to
+calculate $\log(1.5)$ with an error of at most $10^{-16}$? How many
+terms are required to calculate $\log(2)$ with an error of at most
+$10^{-16}$? Use the fact that $\log(2) = 2\log(\sqrt{2})$ to suggest a
+better way of calculating $\log(2)$.
+
+We write $\log(1.5) = \log(1 + 0.5)$, so $x = 0.5$. After $n$ terms the
+error is at most the last term, $|x|^n / n$. So we need the smallest $n$
+with $|x|^n / n \le 10^{-16}$. The function `log_series()` adds up the
+first $n$ terms, and `terms_needed()` searches for the smallest such $n$
+(for $|x| < 1$).
+
+```{r}
+# first n terms of the series for log(1 + x)
+log_series <- function(x, n) {
+  k <- 1:n
+  sum((-1)^(k + 1) * x^k / k)
+}
+
+# smallest n satisfying the given error bound (for 0 < x < 1)
+terms_needed <- function(x, tol = 1e-16) {
+  n <- 1:500
+  min(which(abs(x)^n / n <= tol))
+}
+
+# log(1.5) = log(1 + 0.5)
+terms_needed(0.5)
+0.5^47 / 47  # bound for 47 terms: too large
+0.5^48 / 48  # bound for 48 terms: small enough
+
+log_series(0.5, 48)
+log(1.5)
+abs(log_series(0.5, 48) - log(1.5))
+```
+
+For $\log(1.5)$, **48 terms** are sufficient according to the given
+error bound: the bound is $1.5 \cdot 10^{-16}$ for 47 terms and
+$7.4 \cdot 10^{-17}$ for 48 terms. This is the truncation error of the
+series. The computed value differs from log(1.5) by $1.7 \cdot 10^{-16}$
+in our run (this may depend on the machine). The additional difference
+is rounding error: adding 48 terms in double precision adds a few
+rounding errors, and the doubles near 0.4 are $5.6 \cdot 10^{-17}$
+apart.
+
+For $\log(2) = \log(1 + 1)$ we have $x = 1$ and the series is the
+alternating harmonic series. The bound is $1/n$, so we would need
+$1/n \le 10^{-16}$, i.e. $n = 10^{16}$ terms. This is hopeless, since
+the series converges very slowly. With a million terms the error is
+still about $5 \cdot 10^{-7}$:
+
+```{r}
+1 / 1e-16 # number of terms needed
+
+log_series(1, 1e6)
+abs(log_series(1, 1e6) - log(2))
+```
+
+**A better way.** With
+$\log(2) = 2\log(\sqrt{2}) = 2\log(1 + (\sqrt{2} - 1))$ we can use
+$x = \sqrt{2} - 1 \approx 0.414$, which is much smaller than 1, so the
+terms $x^n / n$ decrease much faster. The result is multiplied by 2, so
+the error of the series has to be at most $0.5 \cdot 10^{-16}$.
+
+```{r}
+x <- sqrt(2) - 1
+x
+terms_needed(x, tol = 1e-16 / 2)
+
+2 * log_series(x, 39)
+log(2)
+abs(2 * log_series(x, 39) - log(2))
+```
+
+So **39 terms** are enough according to the given error bound instead of
+$10^{16}$. The computed value differs from log(2) by about
+$6.7 \cdot 10^{-16}$ in our run (this may depend on the machine). This
+is not the truncation error of the series, which is below $10^{-16}$,
+but rounding error: the doubles near 0.69 are only $1.1 \cdot 10^{-16}$
+apart, and the rounding errors of the 39 additions and of the powers add
+up to a few of these steps.
+
+## Exercise 78
+
+The sine of an angle (specified in radians) can be computed by making
+use of the approximation
+
+$$\sin(x)\approx x \qquad \text{for } x \text{ sufficiently close to zero,}$$
+
+and the trigonometric identity
+
+$$\sin(x)=3\sin\!\left(\frac{x}{3}\right)-4\left(\sin\!\left(\frac{x}{3}\right)\right)^{3}$$
+
+to reduce the size of the argument. Use these ideas to implement a
+function which approximates $\sin$, taking $x$ “sufficiently close to
+zero” if its absolute value is less than $0.1$ radians. What is the
+order of the number of different $x$ values and steps needed for
+computing the approximation?
+
+The idea: we need to compute $\sin(x)$ for any $x$, for example $x=1$ or
+$x=100$. For a big angle we have no easy formula, so we use two tricks.
+
+Trick 1: If the angle is very close to zero, the sine is almost the same
+number as the angle:
+
+$$|x|<0.1 \;\Longrightarrow\; \sin(x)\approx x$$
+
+This is the standard small-angle approximation
+([Wikipedia](https://en.wikipedia.org/wiki/Small-angle_approximation))
+
+For example, $\sin(0.037)=0.0369916\ldots$, which is almost $0.037$. The
+mistake is really small (about $x^3/6$), so we are fine with it.
+
+Why $\sin(x)\approx x$ for small? $x$
+
+The reason: the series. The sine can be written as a sum (Taylor
+series):
+
+$$\sin(x)=x-\frac{x^{3}}{6}+\frac{x^{5}}{120}-\cdots$$
+
+If $x$ is small, $x^3$ is much smaller than $x$, and $x^5$ is even
+smaller. For $|x|<0.1$ we can throw away everything after the first
+term, and what is left is $\sin(x)\approx x$. The first thing we throw
+away is $\dfrac{x^3}{6}$, so this is the size of our mistake ([John D.
+Cook](https://www.johndcook.com/blog/2010/07/27/sine-approximation-for-small-x/)).
+
+Circle reason: take an angle $x$ on the unit circle. The sine is the
+height of the point. The angle $x$ itself is the length of the arc. For
+a tiny angle the arc is almost a straight vertical line, so the height
+and the arc length are almost the same number.
+
+Trick 2: make the angle smaller. The identity says that $\sin(x)$ can be
+computed from the sine of an angle that is three times smaller. Let us
+call the right side $f$:
+
+$$f(s)=3s-4s^{3}, \qquad\text{so}\qquad \sin(x)=f\!\left(\sin\frac{x}{3}\right)$$
+
+The plan: go down, then come back up.
+
+Go down. If $x$ is big, we divide it by $3$. If it is still big, we
+divide again. We stop when the angle is smaller than $0.1$. After $k$
+divisions the angle is $\dfrac{x}{3^{k}}$. Bottom. The angle is small
+now, so we just say
+$\sin\!\left(\dfrac{x}{3^{k}}\right)\approx\dfrac{x}{3^{k}}$. Come back
+up. For every division we made, we use $f$ one time:
+$$\sin(x)\approx \underbrace{f\big(f(\cdots f}_{k\text{ times}}\big(\tfrac{x}{3^{k}}\big)\cdots\big)\big)$$
+
+It stops, because every step makes the angle 3 times smaller, so after
+some steps it must be below $0.1$.
+
+We look for the smallest $k$ with
+
+$$\frac{|x|}{3^{k}}<0.1 \iff 3^{k}>10\,|x| \iff k=\left\lceil\log_3\!\big(10\,|x|\big)\right\rceil$$
+
+The values we use are
+$x,\ \dfrac{x}{3},\ \dfrac{x}{9},\ \dots,\ \dfrac{x}{3^{k}}$. That is
+$k+1$ different values of $x$ and we use $f$ exactly $k$ times.
+
+Since $k$ grows like $\log|x|$, we get
+
+$$\boxed{\text{number of values and steps}=O(\log|x|)}$$
+
+Here $O$ shows how fast the number of steps grows when $x$ grows and we
+ignore constants. So $O(\log|x|)$ means very slow growth.
+
+So if $x$ is 10 times bigger, we need only about 2 more steps
+($\log_3 10\approx 2$). Example with $x=1$. Here
+$k=\lceil\log_3 10\rceil=\lceil 2.0959\rceil=3$:
+
+$$1\;\to\;\tfrac13\;\to\;\tfrac19\;\to\;\tfrac1{27}=0.037037 \quad(\text{when below }0.1\text{, stop})$$
+
+Now we go back up with $f$:
+
+$$0.037037\;\to\;0.1109079\;\to\;0.3272668\;\to\;0.8415946$$
+
+The true value is $\sin(1)=0.8414710$, so our answer is very close.
+
+```{r}
+my_sin <- function(x) {
+  if (abs(x) < 0.1) { #Base case: x is small, so sin(x) is about x
+    return(x)
+  }
+  s <- my_sin(x / 3) #make the argument 3 times smaller, that the function calls itself
+  return(3 * s - 4 * s^3) #Go back with the identity sin(x) = 3s - 4s^3
+}
+
+steps <- function(x) { #How many divisions by 3 we need for x, this is the number of steps
+  k <- 0
+  while (abs(x) >= 0.1) {
+    x <- x / 3
+    k <- k + 1
+  }
+  return(k)
+}
+
+my_sin(1)
+sin(1)
+sapply(c(1, 10, 100, 1000, 10^6), steps) #applies steps to every number in the vector 
+#and returns the results as a vector
+```
+
+`0.8415946` is our approximation: $\text{my\_sin}(1)=0.8415946$.
+`0.841471` is the exact value from R: $\sin(1)=0.841471$. The difference
+is small, so they agree in the first three
+digits$$0.8415946-0.841471=0.0001236\approx 1.2\cdot 10^{-4}$$`3 5 7 9 15`
+is the number of steps $k$ for $x=1,\,10,\,100,\,1000,\,10^{6}$:
+
+$$k=\left\lceil \log_3\bigl(10\,|x|\bigr)\right\rceil$$
+
+| $x$ | $1$ | $10$ | $10^{2}$ | $10^{3}$ | $10^{6}$ |
+|-----|-----|------|----------|----------|----------|
+| $k$ | $3$ | $5$  | $7$      | $9$      | $15$     |
+
+## Exercise 79
+
+Determine $\sum_{n=1}^{\infty} \frac{1}{10^n}$ as accurately as
+possible.
+
+$\sum_{n=1}^{\infty} \frac{1}{10^n}$ is a geometric series with
+$q = \frac{1}{10}$. Since $|q| < 1$ it converges, and because it starts
+at $n = 1$,
+$$\sum_{n=1}^{\infty} q^n = \frac{q}{1-q} = \frac{1/10}{9/10} = \frac{1}{9}.$$
+So the exact answer is $\frac19 = 0.1111\ldots$
+
+On a computer $\frac19$ can't be stored exactly either, since it has
+infinitely many digits in binary too. The most accurate thing we can get
+is the double closest to $\frac19$, which is what `1/9` gives:
+
+```{r}
+1/9
+print(1/9, digits = 20)   # the closest double, not exactly 1/9
+```
+
+Adding up the terms numerically gets there too, but only up to rounding:
+
+```{r}
+partial_sum <- function(n) sum(10^-(1:n))
+
+n <- c(5, 10, 15, 16, 17, 20)
+data.frame(n, difference_to_1_9 = sapply(n, partial_sum) - 1/9)
+```
+
+After about 16 terms the new terms are smaller than the rounding error
+of the sum (around $10^{-17}$), so adding more doesn't help anymore.
+With 16 terms we happen to hit the closest double exactly, with more
+terms the rounding errors push it one step away. So the best answer is
+the exact value $\frac19$ from the formula, and numerically `1/9`.
+
+## Exercise 80
+
+Determine
+$1 - \frac{1}{2} + \frac{1}{3} - \frac{1}{4} + \cdots = \sum_{n=0}^{\infty} \frac{(-1)^n}{n+1}$
+as accurately as possible.
+
+The direct answer would be just $\log(2)$, which **R** can compute
+easily and correctly. The proof can be found
+[here](https://math.stackexchange.com/questions/3454007/what-is-1-1-2-1-3-1-4-1-5-1-6-1-7-1-8-1-9).
+
+```{r}
+log(2)
+```
+
+However, we will implement two functions to compute it numerically and
+see the error
+
+```{r}
+# Simple, straigth-forward implementation of the alternating sum
+plain_alternating_sum <- function(N) {
+  n <- 0:(N - 1)
+  sum((-1)^n / (n + 1))
+}
+
+# More sophisticated approach following the CVZ algorithm
+cvz_alternating_sum <- function(a, n) {
+  d <- (3 + sqrt(8))^n
+  d <- (d + 1 / d) / 2          # d = T_n(3), the Chebyshev normalisation
+  b <- -1
+  ck <- -d
+  s <- 0
+  for (k in 0:(n - 1)) {
+    ck <- b - ck                # optimal weight c_k
+    s  <- s + ck * a(k)         # weighted sum of the terms
+    b  <- (k + n) * (k - n) * b / ((k + 1 / 2) * (k + 1))
+  }
+  s / d
+}
+
+# The terms of our series: 1 / (k + 1)
+a <- function(k) 1 / (k + 1)
+
+# Compare the errors
+time_cvz <- system.time(
+  err_cvz <- cvz_alternating_sum(a, 20) - log(2)     # CVZ with only 20 terms
+)
+
+time_plain <- system.time(
+  err_plain <- plain_alternating_sum(1e6) - log(2)   # plain sum using one 
+)                                                    # million terms
+
+time_cvz
+time_plain
+c(cvz = err_cvz, plain = err_plain)
+```
+
+The simple implementation of the sum is slow because each additional
+term jumps around the true value $\log(2)$ by approximately the size of
+the next term. Its error is about $\frac{1}{2N}$, so every additional
+digit needs 10 times more terms.
+
+On the opposite side, the Cohen-Villegas-Zagier algorithm is an
+acceleration method for alternating series. It uses only the first $n$
+terms of the sum, but combines them in a smart way, so the result is far
+more accurate than the plain partial sum of the same length.
+
+The partial sums of an alternating series zigzag around the true value,
+so averaging neighbouring partial sums cancels most of the zigzag. CVZ
+does this averaging with optimal weights $c_k$, which are derived from
+Chebyshev polynomials and cancel the oscillation as well as possible for
+a fixed $n$. The approximation is then the weighted sum
+
+$$
+\sum_{k=0}^{\infty} (-1)^k a_k \approx \frac{1}{d_n} \sum_{k=0}^{n-1} c_k\, a_k, \qquad a_k = \frac{1}{k+1},
+$$
+
+where $d_n$ is a normalization constant.
+
+```{r}
+# Error of CVZ as a function of the number of terms
+n_terms <- c(5, 10, 15, 20)
+data.frame(
+  n     = n_terms,
+  error = sapply(n_terms, function(n) cvz_alternating_sum(a, n) - log(2))
+)
+```
+
+The error shrinks like $(3+2\sqrt{2})^{-n} \approx 5.83^{-n}$. Each
+additional term therefore gives about $0.77$ correct digits, whereas the
+plain sum needs $10$ times more terms for every additional digit. About
+$20$ terms already reach double precision.
+
+## Exercise 81
+
+Determine:
+
+$$
+ \frac{1}{1*3} + \frac{1}{5*7} + \frac{1}{9*11} + ...
+$$
+
+as accurately as possible.
+
+**Step 1: Construction of the general term**
+
+The sequence of the denominators consists of factors that form an
+arithmetic progression. The first factor of the products is
+$1, 5, 9, \dots$ and can be expressed as $4n-3$ for indices $n \ge 1$.
+The second factor is $3, 7, 11, \dots$ and corresponds to $4n-1$. The
+infinite series can thus be formally defined as:
+$$S = \sum_{n=1}^{\infty} \frac{1}{(4n-3)(4n-1)}$$
+
+**Step 2: Partial fraction decomposition**
+
+To transform the product in the denominator into an addition, we use
+partial fraction decomposition. The algebraic approach is:
+$$\frac{1}{(4n-3)(4n-1)} = \frac{A}{4n-3} + \frac{B}{4n-1}$$ Multiplying
+both sides by the common denominator $(4n-3)(4n-1)$ yields the identity:
+$$1 = A(4n-1) + B(4n-3)$$ To determine the constants $A$ and $B$, we
+systematically choose values for $n$ that eliminate one of the terms:
+
+Setting $4n = 1$ (which makes $4n-1 = 0$), we eliminate $A$:
+$1 = B(1-3) \implies 1 = -2B \implies B = -1/2$. Setting $4n = 3$ (which
+makes $4n-3 = 0$), we eliminate $B$:
+$1 = A(3-1) \implies 1 = 2A \implies A = 1/2$.
+
+The general term of the fraction can now be rewritten by factoring out
+the common term:
+$$a_n = \frac{1/2}{4n-3} - \frac{1/2}{4n-1} = \frac{1}{2} \left( \frac{1}{4n-3} - \frac{1}{4n-1} \right)$$
+
+**Step 3: Expansion of the infinite series**
+
+By sequentially substituting the first indices $n = 1, 2, 3, \dots$ into
+this new expression, we get:
+
+For $n=1$: $\frac{1}{2} \left(\frac{1}{1} - \frac{1}{3}\right)$
+
+For $n=2$: $\frac{1}{2} \left(\frac{1}{5} - \frac{1}{7}\right)$
+
+For $n=3$: $\frac{1}{2} \left(\frac{1}{9} - \frac{1}{11}\right)$
+
+When we assemble the infinite sum and pull the factor $\frac{1}{2}$ to
+the front, the pattern of the alternating harmonic series emerges:
+$$S = \frac{1}{2} \left( 1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + \frac{1}{9} - \frac{1}{11} + \dots \right)$$
+
+**Step 4: Analytical proof via Taylor series**
+
+The expression inside the large parentheses is the well-known
+Gregory-Leibniz series. It is derived from the Taylor series expansion
+of the arctangent function:
+$$\arctan(x) = \sum_{k=0}^{\infty} \frac{(-1)^k}{2k+1} x^{2k+1} = x - \frac{x^3}{3} + \frac{x^5}{5} - \frac{x^7}{7} + \dots$$
+Since the point $x = 1$ lies on the boundary of the radius of
+convergence and the series converges there according to the alternating
+series test (Leibniz criterion), we can directly substitute this value:
+$$\arctan(1) = 1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + \dots$$
+From trigonometry, we know that the tangent of $\frac{\pi}{4}$ (which
+corresponds to $45^\circ$) is exactly $1$. Conversely, this means
+$\arctan(1) = \frac{\pi}{4}$.
+
+**Step 5: Final calculation**
+
+Substituting the value for the infinite sum into the equation from Step
+3 yields the exact algebraic result of the original series:
+$$S = \frac{1}{2} \cdot \frac{\pi}{4} = \frac{\pi}{8}$$
+
+## Exercise 82
+
+The Wallis product for $\pi$ states that
+$$\frac{\pi}{2} = \frac{2 \cdot 2 \cdot 4 \cdot 4 \cdot 6 \cdot 6 \cdot 8 \cdots}{1 \cdot 3 \cdot 3 \cdot 5 \cdot 5 \cdot 7 \cdot 7 \cdots}$$
+(<http://en.wikipedia.org/wiki/Wallis_product>). Use this to compute
+approximations to $\pi$.
+
+We group the factors in pairs: the $k$-th factor is
+$\frac{2k \cdot 2k}{(2k-1)(2k+1)} = \frac{4k^2}{4k^2 - 1}$, so
+$$\frac{\pi}{2} = \prod_{k=1}^{\infty} \frac{(2k)^2}{(2k-1)(2k+1)}.$$
+Stopping after $n$ factors gives the approximation
+$\pi_n = 2 \prod_{k=1}^{n} \frac{(2k)^2}{(2k-1)(2k+1)}$. Since R works
+with vectors, we can compute all factors at once and multiply them with
+`prod()`.
+
+```{r}
+wallis <- function(n) {
+  k <- 1:n
+  2 * prod((2 * k)^2 / ((2 * k - 1) * (2 * k + 1)))
+}
+
+# the first approximations: 2 * 4/3, 2 * 4/3 * 16/15, ...
+wallis(1)
+wallis(2)
+wallis(3)
+
+n <- 10^(1:6)
+approximation <- vapply(n, wallis, numeric(1))
+print(data.frame(n = n, wallis = approximation, error = pi - approximation,
+                 ratio = (pi - approximation) * 4 * n / pi), digits = 10)
+```
+
+The approximations are always below $\pi$ and converge very slowly: even
+for $n = 10^6$ factors we only get about 6 correct digits
+($3.141591\ldots$). The last column shows that the error is very close
+to $\frac{\pi}{4n}$ (the ratio of the error and $\frac{\pi}{4n}$ tends
+to 1), i.e. to get one more digit we need 10 times as many factors. This
+is also visible in the plot, where the error follows the red dashed line
+$\frac{\pi}{4n}$:
+
+```{r, fig.height=4}
+plot(n, pi - approximation, log = "xy", type = "b", xlab = "n",
+     ylab = "error of the approximation", main = "Error of the Wallis product")
+lines(n, pi / (4 * n), col = "red", lty = 2)
+```
+
+Since the error is known to be about $\frac{\pi}{4n}$, we can improve
+the approximation by multiplying with $1 + \frac{1}{4n}$:
+
+```{r}
+corrected <- approximation * (1 + 1 / (4 * n))
+print(data.frame(n = n, wallis = approximation, corrected = corrected, 
+                 error = abs(pi - approximation),
+                 error_corrected = abs(pi - corrected)), digits = 10)
+```
+
+The corrected error (in absolute value) is much smaller, it decreases
+like $1/n^2$: it is reduced by a factor of about 100 whenever $n$ is
+multiplied by 10.
+
+## Exercise 83
+
+Write a function to compute how many elements of a given character
+vector contain more than one word. The standard data set state.name
+gives the names of the 50 US states: how many of these consist of
+several words?
+
+```{r}
+x<-state.name
+Spaces<- function(x){sum(grepl(" ",x))}  
+Spaces(x)
+```
+
+`x <- state.name` assigns the built-in R dataset `state.name` - a
+character vector containing the names of the 50 US states - to the
+variable `x`.
+
+`Spaces <- function(x) { ... }` defines a new custom function named
+`Spaces` that takes a vector `x` as its input parameter.
+
+**`grepl(" ", x)`** is the core logic for pattern recognition. The
+function performs a vectorized check on each element in `x` to see if
+the string `" "` (a space) is present. The result is a logical vector of
+the same length, consisting of `TRUE` (space found) and `FALSE` (no
+space found). Because it is vectorized, this step is highly efficient
+and avoids iterative loops entirely.
+
+`sum(...)` counts the positive matches. R automatically converts logical
+values into integers during arithmetic operations: `TRUE` becomes 1, and
+`FALSE` becomes 0. The sum of this vector directly provides the absolute
+number of elements containing a space.
+
+`Spaces(x)` calls the newly created function and passes the vector `x`
+(the US states) to it. The calculated value (10) is returned as the
+final output.
+
+## Exercise 84
+
+How many US states have names with more vowels than consonants?\
+
+```{r}
+x <- state.name
+names_clean <- gsub(" ", "", x)
+vowels <- nchar(gsub("[^aeiouAEIOU]", "", names_clean))
+consonants <- nchar(names_clean) - vowels
+sum(vowels > consonants)
+```
+
+`x <- state.name` assigns the built-in R dataset containing the 50 US
+state names to the variable `x`.
+
+`names_clean <- gsub(" ", "", x)` removes all spaces from the state
+names using pattern replacement (e.g., turning "New York" into
+"NewYork"). This is crucial to prevent spaces from being incorrectly
+counted as consonants when calculating the string length later.
+
+`gsub("[^aeiouAEIOU]", "", names_clean)` uses a regular expression to
+match anything that is *not* (`^`) a vowel and replaces it with an empty
+string `""`. This strips away all consonants, leaving only a string of
+vowels behind (e.g., "Alabama" becomes "aaaa").
+
+`vowels <- nchar(...)` counts the number of characters in a given
+string. By wrapping this around the filtered vowel strings, it
+calculates and stores the exact count of vowels for each state in a
+numeric vector.
+
+`consonants <- nchar(names_clean) - vowels` calculates the number of
+consonants by taking the total character length of the space-free state
+name and subtracting the calculated number of vowels.
+
+`sum(vowels > consonants)` evaluates the logical condition
+`vowels > consonants` for each state, resulting in a vector of `TRUE`
+and `FALSE` values. The `sum()` function then adds up the `TRUE` matches
+(which R treats as 1) to return the final count of 10.
+
+## Exercise 85
+
+How many US states have names with more than three ‘s’?
+
+```{r}
+x <- state.name
+s_only <- gsub("[^sS]", "", x)
+s_counts <- nchar(s_only)
+sum(s_counts > 3)
+```
+
+`x <- state.name` assigns the built-in R dataset containing the 50 US
+state names to the variable `x`.
+
+`s_only <- gsub("[^sS]", "", x)` uses a regular expression to match any
+character that is *not* a lowercase or uppercase 's' (`[^sS]`) and
+replaces it with an empty string `""`. This strips away all other
+letters and spaces, leaving only a string of 's' characters behind
+(e.g., "Massachusetts" becomes "ssss").
+
+`s_counts <- nchar(s_only)` counts the number of characters in each
+filtered string. By applying this to the `s_only` vector, it calculates
+and stores the exact count of 's' characters for each state in a numeric
+vector.
+
+`sum(s_counts > 3)` evaluates the logical condition `s_counts > 3` for
+each state, resulting in a vector of `TRUE` and `FALSE` values. The
+`sum()` function then adds up the `TRUE` matches (which R treats as 1)
+to return the final count of 2.
+
+## Exercise 86
+
+How many US states have names with a double vowel?
+
+```{r}
+x <- state.name
+has_double_vowel <- grepl("([aeiouAEIOU])\\1", x, ignore.case = TRUE)
+sum(has_double_vowel)
+
+#[aeiouAEIOU]{2} would look for 2 Adjecent vouls, regardless if they are identical.
+```
+
+`x <- state.name` assigns the built-in R dataset containing the 50 US
+state names to the variable `x`.
+
+`grepl("([aeiouAEIOU])\\1", x, ignore.case = TRUE)` uses a regular
+expression to search for identical consecutive vowels. The parentheses
+`([aeiouAEIOU])` create a capture group that matches any single vowel.
+The backreference `\\1` immediately after it tells R to look for the
+exact same character that was just captured. Setting
+`ignore.case = TRUE` ensures it catches both uppercase and lowercase
+matches, though for double vowels in state names, they are always
+lowercase. This results in a logical vector of `TRUE` and `FALSE`.
+
+`sum(has_double_vowel)` evaluates the logical vector and adds up all the
+`TRUE` matches (which R treats as 1) to return the final count of 2.
+
+## Exercise 87
+
+Function `colors()` gives the names of all available colors in R.
+Compute the number of different reds available.
+
+`colors()` returns a character vector with the names of the colors (657
+names). The names of the reds contain the string "red", so we search for
+it with `grep()` using `value = TRUE`, which returns the matching names
+rather than their positions.
+
+```{r}
+length(colors())
+
+reds <- grep("red", colors(), value = TRUE)
+length(reds)
+reds
+```
+
+There are **27** color names containing "red". However, some names refer
+to the same RGB color (e.g. `red` and `red1`). To count the distinct
+colors, we convert the names to RGB values using `col2rgb()`, transpose
+the resulting matrix so that each row represents one color, and remove
+duplicate rows with `unique()`.
+
+```{r}
+nrow(unique(t(col2rgb(reds))))
+```
+
+Thus, the 27 names correspond to **24 distinct RGB colors**. The names
+also include other hues containing "red", such as `orangered`,
+`violetred` and `palevioletred`. The following plot illustrates all 27
+named colors, including the duplicate shades.
+
+```{r, fig.height=3}
+barplot(rep(1, length(reds)), col = reds, border = NA, names.arg = reds,
+        las = 2, cex.names = 0.6, axes = FALSE)
+```
+
+## Exercise 88
+
+Write a function which finds the most frequent character in a given file
+(e.g., <http://statmath.wu.ac.at/~hornik/index.html>). (Hint: use
+readLines() for reading lines of text from a given file or URI, and
+table() for creating frequency tables.)
+
+```{r}
+#Idea to read the lines, cut them into single characters, count each character
+# and take the biggest count
+#n_c = number of times character c appears, answer = the c with the biggest n_c
+#"abracadabra" -> a b r a c a d a b r a -> a=5, b=2, r=2, c=1, d=1, 
+#so the frequent one is "a"
+
+most_frequent_char <- function(file, count_spaces = FALSE) {
+  lines <- readLines(file, warn = FALSE)   #read all lines
+  chars <- unlist(strsplit(lines, ""))#cut every line into characters and put them
+                                           #into one vector
+  if (count_spaces == FALSE) { #we do not count spaces
+    chars <- chars[chars != " "] 
+  }
+  freq <- table(chars) #how often every character appears
+  best <- which.max(freq) #position of the biggest count
+
+  cat("Most frequent character:", names(freq)[best], "\n")
+  cat("It appears", freq[[best]], "times\n")
+  return(freq[best])
+}
+
+most_frequent_char("http://statmath.wu.ac.at/~hornik/index.html")
+```
+
+## Exercise 89
+
+Write a function `wc` which computes the number of different words in a
+given file (note the existence of punctuation characters).
+
+The idea: read the file, put all lines together into one string, make
+everything lower case (so "The" and "the" count as the same word), split
+the text into words at spaces and punctuation, and count the different
+words with `unique()`.
+
+```{r}
+get_words <- function(filename, include_numbers = TRUE) {
+  text <- paste(readLines(filename, encoding = "UTF-8", warn = FALSE),
+                collapse = " ")
+  text <- tolower(text)
+  text <- gsub("'", "", text)   # didn't -> didnt, so it stays one word
+
+  # split at spaces and punctuation (and digits, if numbers shouldn't count)
+  if (include_numbers) {
+    separator <- "[[:space:][:punct:]]+"
+  } else {
+    separator <- "[[:space:][:punct:][:digit:]]+"
+  }
+  words <- unlist(strsplit(text, separator))
+  words[words != ""]   # remove empty strings, e.g. from a leading space
+}
+
+wc <- function(filename, include_numbers = TRUE) {
+  length(unique(get_words(filename, include_numbers)))
+}
+```
+
+We split with `[[:space:][:punct:]]` instead of "everything that isn't
+a-z": the second version would also split words with special letters,
+like "naïve" into "na" and "ve". Whether numbers count as words depends
+on the situation, so the function has an argument for it.
+
+To test it, we write a small sample file. It contains punctuation, upper
+and lower case, a special letter and numbers.
+
+```{r}
+sample_text <- c("The naïve cat sat on the mat.",
+                 "The cat didn't see the 2 dogs!",
+                 "Naïve dogs, naïve cats: 2 + 2 = 4.")
+writeLines(sample_text, "sample.txt", useBytes = TRUE)
+
+readLines("sample.txt", encoding = "UTF-8")
+
+unique(get_words("sample.txt"))
+wc("sample.txt")
+wc("sample.txt", include_numbers = FALSE)
+```
+
+There are 12 different words (the, naïve, cat, sat, on, mat, didnt, see,
+2, dogs, cats, 4), or 10 without the numbers 2 and 4.
+
+## Exercise 90
+
+**Write a function which counts how often a given word occurs in a given
+file, ignoring case.**
+
+We start by creating some small example text file. *Note: the text was
+generated using GenAI*
+
+```{r}
+# Some example LLM-generated text
+text <- "R is a language for statistical computing. 
+It is used by statisticians and data scientists.
+Is R hard to learn? Not really - R is easy, if you practice every day!
+
+The word \"is\" appears in lines one, two and three. 
+Isolated or Island do not count and neither does this. 
+But IS, Is and is all do."
+
+# Export as file
+cat(text, file = "my_text.txt")
+```
+
+We define the function below.
+
+```{r}
+word_counter <- function(file, word) {
+  # Read in the file
+  text <- readLines(file, warn = F)
+  
+  # Split the text into a vector of separate words, each lowercased
+  tokenized_text <- strsplit(text, "[^[:alpha:]']+") |> unlist() |> tolower()
+  
+  # Remove apostrophes at the start or end of a token ('is' -> is),
+  # but keep internal ones (don't stays don't)
+  tokenized_text <- gsub("^'+|'+$", "", tokenized_text)
+  
+  # Lowercase the word we are looking for
+  target_word <- word |> tolower()
+  
+  # Count how many times this word appears
+  count <- sum(tokenized_text == target_word)
+  
+  return(count)
+}
+```
+
+We will check the text for two words - "is" and "R". "is" should appear
+8 times, while "R" should appear 3 times.
+
+```{r}
+word_counter(file = "my_text.txt", word = "is")
+
+word_counter(file = "my_text.txt", word = "R")
+```
+
+## Exercise 91
+
+Write a function which computes the binary representation of a given
+natural number x, as a binary string. (I.e., for x = 6 the result should
+be the string "110".)
+
+```{r}
+dec2bin <- function(x) {
+  if (x == 0) {
+    return("0")
+  } else if (x == 1) {
+    return("1")
+  } else {
+    return(paste0(dec2bin(x %/% 2), x %% 2))
+  }
+}
+
+dec2bin(7)
+```
+
+`dec2bin <- function(x) { ... }` defines the custom recursive function
+named `dec2bin` that takes an integer `x` as its input parameter.
+
+`if (x == 0) return("0") else if (x == 1) return("1")` establishes the
+base cases for the recursion. If the number is 0 or 1, the function
+returns the corresponding string directly without making further
+recursive calls. This is the crucial stopping condition that prevents an
+infinite loop.
+
+`x %/% 2` performs integer division (e.g., `6 %/% 2` evaluates to 3).
+This mathematically shifts the binary representation one position to the
+right, stripping off the least significant bit so the remaining value
+can be passed into the next recursive call.
+
+`x %% 2` the modulo operator calculates the remainder of the division by
+2 (e.g., `6 %% 2` evaluates to 0). This extracts the current least
+significant bit (either 0 or 1) for the given level of the recursion.
+
+`paste0(...)` concatenates the result of the recursive call
+`dec2bin(x %/% 2)` with the current remainder `x %% 2` without any
+separating spaces. R automatically coerces the numeric remainder into a
+character string during this step, assembling the final binary sequence
+from left to right as the recursive stack unwinds.
+
+## Exercise 92
+
+Use the `state.name` data set to write a function that takes some
+letters as input and randomly selects a state of the data set and
+outputs a logical indicating whether all of the letters are contained in
+that state name. (Hint: use `?sample`.)
+
+`state.name` contains the names of the 50 US states. We select one with
+`sample(state.name, 1)`. To test the letters, we split the lower-case
+name into its single characters with `strsplit()` and check with `%in%`
+whether every given letter appears among them. We also turn the input
+into lower-case, so that upper-case letters work as well. Because
+`strsplit()` splits every string into characters, the input can be given
+as one string (`"ia"`) or as several letters (`c("I", "A", "W")`). The
+argument `verbose = TRUE` additionally prints the selected state, so
+that we can check the result.
+
+```{r}
+# are all letters (given as a string or vector of letters) in the name?
+has_all_letters <- function(input, name) {
+  letters_to_check <- unlist(strsplit(tolower(input), NULL))
+  name_characters  <- strsplit(tolower(name), NULL)[[1]]
+  all(letters_to_check %in% name_characters)
+}
+
+# random state
+random_state_check <- function(input, verbose = FALSE) {
+  state <- sample(state.name, 1)
+  if (verbose) cat("selected state:", state, "\n")
+  has_all_letters(input, state)
+}
+
+# the check itself, for fixed states
+has_all_letters("ia", "Iowa")
+has_all_letters(c("I", "A", "W"), "Iowa")
+has_all_letters("asd", "Iowa")
+
+# random states
+set.seed(1)
+random_state_check("ae", verbose = TRUE)
+random_state_check("ae", verbose = TRUE)
+random_state_check(c("A", "B", "L"), verbose = TRUE)
+random_state_check(c("A", "B", "L"), verbose = TRUE)
+```
+
+## Exercise 94
+
+Over the complex plane, every polynomial
+
+$$p(z)=z^{n}+\beta_n z^{n-1}+\cdots+\beta_2 z+\beta_1$$
+
+has $n$ roots $z_1,\dots,z_n$ and can be written as
+
+$$p(z)=\prod_{k=1}^{n}(z-z_k).$$
+
+Write a function which computes the coefficients
+$(\beta_1,\dots,\beta_n)$ from the roots. A polynomial with leading
+coefficient $1$ is fully determined by its roots:
+
+$$p(z)=z^{n}+\beta_n z^{n-1}+\cdots+\beta_2 z+\beta_1=\prod_{k=1}^{n}(z-z_k)$$
+
+If we know the roots $z_1, z_2, \dots, z_n$, the polynomial is the
+product of the brackets:
+
+$$p(z) = (z - z_1)(z - z_2) ... (z - z_n)$$
+
+We have to open the brackets and read the numbers in front of the powers
+of $z$. These numbers are $\beta_1, ..., \beta_n$ ($\beta_1$ is the
+number without $z$).
+
+So we multiply the brackets one by one. Multiplying by $(z - r)$ means
+two things: multiply by $z$ (the coefficients move one place) and
+subtract $r$ times the polynomial (the coefficients are multiplied by
+$-r$). Then we add both parts.
+
+**Example with roots 1, 2, 3:**
+
+$$1 \; to \; z - 1 \; to \; z^2 - 3z + 2 \; to \; z^3 - 6z^2 + 11z - 6$$
+
+So $\beta_1 = -6$, $\beta_2 = 11$, $\beta_3 = -6$.
+
+```{r}
+#p(z) = (z - z1)(z - z2)...(z - zn)
+
+poly_coef <- function(roots) {
+  a <- 1 # start with the polynomial 1
+  for (r in roots) { #multiply by (z - r) for every root r
+    a <- c(-r * a, 0) + c(0, a)
+  }
+  n <- length(roots) #the last number is the leading coefficient 1, we do not need it
+  return(a[1:n])
+}
+
+poly_coef(c(1, 2, 3))
+```
+
+The last number of the vector `a` is the coefficient of $z^n$. Since the
+polynomial is $p(z) = z^n + \beta_n z^{n-1} + ... + \beta_1$, this
+coefficient is always $1$ (the $z^n$ has no $\beta$ in front of it). For
+roots $1, 2, 3$ the vector is $(-6, 11, -6, 1)$, and the last number $1$
+belongs to $z^3$. The task asks only for $\beta_1, ..., \beta_n$, so we
+keep the first $n$ numbers and drop the last one.
+
+## Exercise 97
+
+Represent polynomials
+$p(z) = \beta_1 + \beta_2 z + \dots + \beta_n z^{n-1}$ by their
+coefficient vectors $(\beta_1, . . . , \beta_n)$. Write a function
+`polyderiv` which computes the coefficient vector of the derivative $p'$
+of $p$. Use this function in combination with `polyroot` to compute the
+inflection points of a given polynomial.
+
+A polynomial $p(z) = \beta_1 + \beta_2 z + \dots + \beta_n z^{n-1}$ is
+stored as the vector $(\beta_1, \dots, \beta_n)$. Its derivative is
+$$p'(z) = \beta_2 + 2\beta_3 z + \dots + (n-1)\beta_n z^{n-2},$$ so we
+drop $\beta_1$ (the constant disappears) and multiply the others by
+$1, 2, \dots, n-1$. A constant polynomial ($n = 1$) has derivative 0.
+
+```{r}
+polyderiv <- function(coeffs) {
+  n <- length(coeffs)
+  if (n == 1) {
+    return(0)   # derivative of a constant is 0
+  }
+  coeffs[-1] * (1:(n - 1))
+}
+
+polyderiv(c(1, 2, 3, 4))   # 1 + 2z + 3z^2 + 4z^3  ->  2 + 6z + 12z^2
+polyderiv(5)               # constant
+polyderiv(c(3, 7))         # 3 + 7z  ->  7
+```
+
+**Inflection points.** At an inflection point the second derivative is 0
+**and changes its sign**. So we compute $p''$ with `polyderiv` twice,
+find its roots with `polyroot`, keep only the real ones, and check the
+sign change. Without that check, $p(z) = z^4$ would count $z = 0$ as an
+inflection point, although $p''(z) = 12z^2$ doesn't change sign there.
+
+```{r}
+polyval <- function(coeffs, z) {
+  sum(coeffs * z^(0:(length(coeffs) - 1)))   # evaluate p at the point z
+}
+
+inflection_points <- function(coeffs) {
+  second <- polyderiv(polyderiv(coeffs))
+  if (all(second == 0)) {
+    return(numeric(0))   # degree <= 1: p'' = 0, no inflection points
+  }
+
+  roots <- polyroot(second)
+  real_roots <- Re(roots[abs(Im(roots)) < 1e-8])   # only real roots
+
+  # keep the roots where p'' changes its sign
+  h <- 1e-4
+  changes_sign <- sapply(real_roots, function(x) {
+    polyval(second, x - h) * polyval(second, x + h) < 0
+  })
+  sort(real_roots[changes_sign])
+}
+
+inflection_points(c(1, 2, 3, 4))     # p'' = 6 + 24z      ->  -0.25
+inflection_points(c(1, -3, 0, 1))    # 1 - 3z + z^3       ->  0
+inflection_points(c(0, 0, 0, 0, 1))  # z^4: no inflection point
+inflection_points(c(0, 0, 0, 0, -10, 0, 1))  # z^6 - 10z^4  ->  -2, 2
+inflection_points(5)                 # constant
+```
+
+```{r}
+p <- c(1, -3, 0, 1)   # p(z) = 1 - 3z + z^3
+z <- seq(-2.5, 2.5, by = 0.01)
+plot(z, sapply(z, function(x) polyval(p, x)), type = "l",
+     xlab = "z", ylab = "p(z)", main = "p(z) = 1 - 3z + z^3")
+abline(v = inflection_points(p), lty = 2, col = "red")
+```
+
+The red line marks the inflection point at $z = 0$, where the curve
+changes from curving down to curving up.
