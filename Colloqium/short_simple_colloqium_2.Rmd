@@ -117,8 +117,6 @@ Also, the proof page is a a hyperlink in the word "here".
 
 ## Exercise 81
 
-Exercise 81
-
 The task: compute
 
 $$\frac{1}{1 \cdot 3} + \frac{1}{5 \cdot 7} + \frac{1}{9 \cdot 11} + \cdots$$
@@ -176,7 +174,7 @@ The idea: same trick. Delete everything that isn’t an “s”, count what’s 
 
 The task: count the state names with a double vowel.
 
-The idea: search for a vowel immediately followed by the same vowel. The pattern (`[aeiou])\\1` means “find a vowel, remember it, and check that the next letter is the same one”. Answer: 2 (Hawaii and Tennessee).
+The idea: search for a vowel immediately followed by the same vowel. The pattern `([aeiou])\\1` means “find a vowel, remember it, and check that the next letter is the same one”. Answer: 2 (Hawaii and Tennessee).
 
 “Double vowel” could also mean any two vowels next to each other, like “io” in Ohio. Your code comment already mentions that alternative (`[aeiou]{2}`), which is good.
 
@@ -272,7 +270,7 @@ A constant has derivative $0$.
 Part 2, the inflection points: an inflection point is where the curve switches from bending down to bending up (or the other way around). There, the second derivative is $0$ and changes sign.
 
 Use polyderiv twice to get $p''$.
-Use polyroot to find where $p’’ = 0`, and keep only the real solutions.
+Use polyroot to find where $p’’ = 0$, and keep only the real solutions.
 For each solution $x$, check $p''$ a tiny step to the left and right ($x - 0.0001$ and $x + 0.0001$). If the two values have opposite signs, $p''$ changes sign, so $x$ is an inflection point.
 
 Step 3 matters. For $z^4$, $p'' = 12z^2$ is $0$ at $z = 0$ but positive on both sides, so the curve doesn’t switch there and $z = 0$ isn’t an inflection point.
@@ -340,6 +338,8 @@ The idea: everything after $a_0$ is again a continued fraction, just shorter. So
 $$\text{cfrac}(a_0, \dots, a_n) = a_0 + \frac{1}{\text{cfrac}(a_1, \dots, a_n)},$$
 
 and stops when only one number is left. With the numbers for $\pi$ $(3, 7, 15, 1, 292, \ldots)$, every extra term brings the approximation closer to $\pi$.
+
+Comparing with $\pi$: the error shrinks with every term, from $0.14$ down to $0$, and the approximations jump back and forth around $\pi$. A big coefficient like 292 means the fraction just before it ($355/113$) was already almost exact, so including it drops the error by a factor of about 460 in one step. From $n = 14$ on the error is exactly 0: the result is the same double as R's `pi`, and more terms can't help anymore, because doubles can't get any closer.
 
 ## Exercise 105
 
@@ -566,4 +566,4 @@ Both are smaller versions of the same problem, the same split as in Exercise 118
 
 The task: write a number in base 8.
 
-The idea: the last octal digit is the remainder after dividing by 8 (n %% 8). The digits in front of it are the octal form of n %/% 8. The function calls itself on that and stops when $n < 8$. For example, $100 = (144)_8$ and
+The idea: the last octal digit is the remainder after dividing by 8 (`n %% 8`). The digits in front of it are the octal form of `n %/% 8`. The function calls itself on that and stops when $n < 8$. For example, $100 = (144)_8$ and $2026 = (3752)_8$.
