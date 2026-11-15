@@ -1763,7 +1763,6 @@ for CVZ vs. 0.010 s for the plain sum).</p>
 </div>
 <div id="exercise-81" class="section level2">
 <h2>Exercise 81</h2>
-<p>Exercise 81</p>
 <p>The task: compute</p>
 <p><span class="math display">\[\frac{1}{1 \cdot 3} + \frac{1}{5 \cdot
 7} + \frac{1}{9 \cdot 11} + \cdots\]</span></p>
@@ -1827,7 +1826,7 @@ what’s left, and check whether it’s more than 3. Answer: 2
 <h2>Exercise 86</h2>
 <p>The task: count the state names with a double vowel.</p>
 <p>The idea: search for a vowel immediately followed by the same vowel.
-The pattern (<code>[aeiou])\\1</code> means “find a vowel, remember it,
+The pattern <code>([aeiou])\\1</code> means “find a vowel, remember it,
 and check that the next letter is the same one”. Answer: 2 (Hawaii and
 Tennessee).</p>
 <p>“Double vowel” could also mean any two vowels next to each other,
@@ -1941,8 +1940,11 @@ switches from bending down to bending up (or the other way around).
 There, the second derivative is <span class="math inline">\(0\)</span>
 and changes sign.</p>
 <p>Use polyderiv twice to get <span class="math inline">\(p&#39;&#39;\)</span>. Use polyroot to find where
-$p’’ = 0`, and keep only the real solutions. For each solution <span class="math inline">\(x\)</span>, check <span class="math inline">\(p&#39;&#39;\)</span> a tiny step to the left and
-right (<span class="math inline">\(x - 0.0001\)</span> and <span class="math inline">\(x + 0.0001\)</span>). If the two values have
+<span class="math inline">\(p’’ = 0\)</span>, and keep only the real
+solutions. For each solution <span class="math inline">\(x\)</span>,
+check <span class="math inline">\(p&#39;&#39;\)</span> a tiny step to
+the left and right (<span class="math inline">\(x - 0.0001\)</span> and
+<span class="math inline">\(x + 0.0001\)</span>). If the two values have
 opposite signs, <span class="math inline">\(p&#39;&#39;\)</span> changes
 sign, so <span class="math inline">\(x\)</span> is an inflection
 point.</p>
@@ -2029,6 +2031,15 @@ itself:</p>
 <p>and stops when only one number is left. With the numbers for <span class="math inline">\(\pi\)</span> <span class="math inline">\((3, 7,
 15, 1, 292, \ldots)\)</span>, every extra term brings the approximation
 closer to <span class="math inline">\(\pi\)</span>.</p>
+<p>Comparing with <span class="math inline">\(\pi\)</span>: the error
+shrinks with every term, from <span class="math inline">\(0.14\)</span>
+down to <span class="math inline">\(0\)</span>, and the approximations
+jump back and forth around <span class="math inline">\(\pi\)</span>. A
+big coefficient like 292 means the fraction just before it (<span class="math inline">\(355/113\)</span>) was already almost exact, so
+including it drops the error by a factor of about 460 in one step. From
+<span class="math inline">\(n = 14\)</span> on the error is exactly 0:
+the result is the same double as R’s <code>pi</code>, and more terms
+can’t help anymore, because doubles can’t get any closer.</p>
 </div>
 <div id="exercise-105" class="section level2">
 <h2>Exercise 105</h2>
@@ -2295,8 +2306,9 @@ ones).</p>
 <h2>Exercise 126</h2>
 <p>The task: write a number in base 8.</p>
 <p>The idea: the last octal digit is the remainder after dividing by 8
-(n %% 8). The digits in front of it are the octal form of n %/% 8. The
-function calls itself on that and stops when <span class="math inline">\(n &lt; 8\)</span>. For example, <span class="math inline">\(100 = (144)_8\)</span> and</p>
+(<code>n %% 8</code>). The digits in front of it are the octal form of
+<code>n %/% 8</code>. The function calls itself on that and stops when
+<span class="math inline">\(n &lt; 8\)</span>. For example, <span class="math inline">\(100 = (144)_8\)</span> and <span class="math inline">\(2026 = (3752)_8\)</span>.</p>
 </div>
 </div>
 
