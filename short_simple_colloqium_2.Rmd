@@ -1,0 +1,569 @@
+---
+title: "Short and Simple Explanations"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Homework 4
+
+## Exercise 73
+
+The setup: $\phi_j(x)$ is a family of functions defined by an integral. The task shows they can be computed one after another, each from the previous one.
+
+(a) Integration by parts gives a shortcut:
+
+
+$$\phi_j(x) = \frac{\phi_{j-1}(x) - \phi_{j-1}(0)}{x}.$$
+
+If you know $\phi_1$, you get $\phi_2$, then $\phi_3$, and so on, without computing any integrals.
+
+(b) The problem: when $x$ is tiny, $\phi_{j-1}(x)$ and $\phi_{j-1}(0)$ are almost equal. Subtracting them wipes out most of the correct digits, and dividing by a tiny $x$ blows up the leftover rounding error. The error also gets worse with every step up in $j$.
+
+The fix: for small $x$, skip the recursion and use a series instead:
+
+
+$$\phi_j(x) = \frac{1}{j!} + \frac{x}{(j+1)!} + \frac{x^2}{(j+2)!} + \cdots$$
+
+It has no subtraction and no division by $x$, so there is no problem. Use the series for small $x$ and the recursion for larger $x$.
+
+## Exercise 74
+
+The task: compute the length of a vector, $\sqrt{x_1^2 + \dots + x_n^2}$, without the squares becoming too large (Inf) or too small (0).
+
+The trick: first divide every entry by the largest one in absolute value, $m$. All entries are then between $-1$ and $1$, so squaring them is safe. At the end, multiply back by $m$:
+
+$$\|x\|_2 = m \cdot \sqrt{\left(\tfrac{x_1}{m}\right)^2 + \dots + \left(\tfrac{x_n}{m}\right)^2}.$$
+
+In exact math the result is the same, just computed in a safe range.
+
+Special case: if all entries are $0$, then $m = 0$ and you’d divide by zero, so check for that first and return $0$.
+
+## Exercise 77
+
+The task: compute $\log$ by adding up terms of a series:
+
+
+$$\log(1+x) = x - \frac{x^2}{2} + \frac{x^3}{3} - \cdots$$
+
+The error after $n$ terms is at most the size of the last term, $\frac{|x|^n}{n}$. The question is how many terms you need for an error below $10^{-16}$.
+
+$\log(1.5)$: here $x = 0.5$, so the terms shrink quickly (each one is about half the previous). 48 terms are enough.
+
+$\log(2)$: here $x = 1$, so the terms are $1, \frac12, \frac13, \dots$ and shrink extremely slowly. You’d need $10^{16}$ terms, which is impossible in practice.
+
+The better way: write $\log(2) = 2 \log(\sqrt{2})$. Now $x = \sqrt{2} - 1 \approx 0.414$, which is small, so the terms shrink fast again. 39 terms are enough (with the error target halved, since the result gets multiplied by 2).
+
+Takeaway: the closer $x$ is to $0$, the faster the series works. So rewrite the problem until $x$ is small.
+
+## Exercise 78
+
+The task is to compute $\sin(x)$ for any angle using only two simple facts.
+
+Fact 1: for a tiny angle, the sine is almost the angle itself: 
+$\sin(x) \approx x$ when $|x| < 0.1$.
+
+Fact 2: if you know the sine of a third of the angle, 
+you can get the sine of the whole angle:
+
+$$\sin(x) = 3s - 4s^3, \qquad \text{where } s = \sin\!\left(\tfrac{x}{3}\right).$$
+
+The method:
+
+Shrink: keep dividing $x$ by 3 until it’s smaller than 0.1.
+Approximate: for that tiny angle, take the sine equal to the angle.
+Grow back: apply $3s - 4s^3$ once for every division you made, to get back to $\sin(x)$.
+
+For $x = 1$: shrink $1 \to \frac13 \to \frac19 \to \frac{1}{27} \approx 0.037$, 
+use $\sin(0.037) \approx 0.037$, then grow back three times to get $0.8416$. 
+The true value is $0.8415$.
+
+The question at the end asks how many steps this takes. Each division makes $x$ 
+three times smaller, so a 10 times bigger $x$ needs only about 2 extra steps. 
+The number of steps grows very slowly, like $\log|x|$, which is
+written $O(\log|x|)$.
+
+## Exercise 79
+
+The task: find the exact value of
+
+$$\frac{1}{10} + \frac{1}{100} + \frac{1}{1000} + \cdots = 0.1111\ldots$$
+
+The answer: it’s a geometric series (each term is the previous one times $\frac{1}{10}$), and there’s a formula for those:
+
+$$\sum_{n=1}^{\infty} q^n = \frac{q}{1-q} = \frac{1/10}{9/10} = \frac{1}{9}.$$
+
+On the computer: $\frac19$ has infinitely many digits in binary, so R can’t store it exactly. The best possible is the closest number R can store, which is what 1/9 gives. Adding the terms one by one also gets there, but after about 16 terms the new terms are smaller than the rounding errors, so adding more doesn’t help.
+
+Takeaway: a formula beats adding up terms.
+
+## Exercise 80
+
+The task: compute
+
+$$1 - \frac12 + \frac13 - \frac14 + \cdots$$
+
+The answer: this sum is known to equal $\log(2) \approx 0.693$, so R’s log(2) already gives the best answer.
+
+The numerical part: adding the terms directly is very slow. The partial sums jump back and forth around $\log(2)$, and the error after $N$ terms is about $\frac{1}{2N}$. Each extra correct digit needs 10 times more terms, so even a million terms give only about 6 digits.
+
+The smart way (CVZ algorithm): since the partial sums zigzag above and below the true value, averaging them cancels most of the zigzag. CVZ does this averaging with the best possible weights. With only 20 terms it reaches full double precision, compared with the plain sum’s 6 digits from a million terms.
+
+Takeaway: for alternating sums, don’t just add terms; combine them cleverly.
+
+Also, the proof page is a a hyperlink in the word "here".
+
+`system.time()` runs the code you give it and measures how long it took, in seconds. user is the CPU time spent running your R code itself, system is the CPU time the operating system spent on R’s behalf (e.g. memory or file handling), and elapsed is the real clock time from start to finish, which is the number you’d usually compare (here 0.006 s for CVZ vs. 0.010 s for the plain sum).
+
+## Exercise 81
+
+Exercise 81
+
+The task: compute
+
+$$\frac{1}{1 \cdot 3} + \frac{1}{5 \cdot 7} + \frac{1}{9 \cdot 11} + \cdots$$
+
+Step 1: write the general term as $\frac{1}{(4n-3)(4n-1)}$.
+
+Step 2: split each fraction into two simpler ones (partial fractions):
+
+$$\frac{1}{(4n-3)(4n-1)} = \frac12\left(\frac{1}{4n-3} - \frac{1}{4n-1}\right).$$
+
+Step 3: writing out the terms, the sum becomes
+
+$$S = \frac12\left(1 - \frac13 + \frac15 - \frac17 + \cdots\right).$$
+
+Step 4: the bracket is a known series equal to $\arctan(1) = \frac{\pi}{4}$.
+
+Result:
+
+$$S = \frac12 \cdot \frac{\pi}{4} = \frac{\pi}{8} \approx 0.3927.$$
+
+Takeaway: same idea as Exercise 79. Rewrite the sum until you recognise a known value, then compute that value directly (in R: pi/8).
+
+## Exercise 82
+
+The task: compute $\pi$ using the Wallis product, an infinite product of fractions:
+
+
+$$\frac{\pi}{2} = \frac{2 \cdot 2}{1 \cdot 3} \cdot \frac{4 \cdot 4}{3 \cdot 5} \cdot \frac{6 \cdot 6}{5 \cdot 7} \cdots$$
+
+What you do: multiply the first $n$ fractions and double the result. The more fractions, the closer you get to $\pi$.
+
+The finding: it’s very slow. The error is about $\frac{\pi}{4n}$, so each extra correct digit needs 10 times more fractions. A million fractions give only about 6 digits.
+
+The improvement: since you know the error is about $\frac{\pi}{4n}$, you can correct for it by multiplying by $1 + \frac{1}{4n}$. The error then shrinks much faster: about 100 times smaller each time $n$ grows 10 times.
+
+## Exercise 83
+
+The task: count the US state names that have more than one word.
+
+The idea: a name has more than one word if it contains a space. grepl(" ", x) checks each name for a space and gives TRUE/FALSE, and sum() counts the TRUEs (R treats TRUE as 1). Answer: 10 (New York, North Carolina, West Virginia, …).
+
+## Exercise 84
+
+The task: count the state names with more vowels than consonants.
+
+The idea: remove the spaces, then delete everything that isn’t a vowel and count what’s left. That’s the number of vowels. Consonants are the remaining letters: total letters minus vowels. Then count the states where vowels win. Answer: 10 (e.g. Alabama, Hawaii, Iowa, Ohio).
+
+## Exercise 85
+
+The task: count the state names with more than three letters “s”.
+
+The idea: same trick. Delete everything that isn’t an “s”, count what’s left, and check whether it’s more than 3. Answer: 2 (Massachusetts and Mississippi, with 4 each).
+
+## Exercise 86
+
+The task: count the state names with a double vowel.
+
+The idea: search for a vowel immediately followed by the same vowel. The pattern (`[aeiou])\\1` means “find a vowel, remember it, and check that the next letter is the same one”. Answer: 2 (Hawaii and Tennessee).
+
+“Double vowel” could also mean any two vowels next to each other, like “io” in Ohio. Your code comment already mentions that alternative (`[aeiou]{2}`), which is good.
+
+## Exercise 87
+
+The task: count how many shades of red R has.
+
+The idea: colors() lists all 657 color names. grep("red", ...) keeps the names that contain “red”, giving 27. Some names are the same color under two names (e.g. red and red1), so you convert each name to its RGB values and remove duplicates, leaving 24 different colors. The bar plot just shows them.
+
+## Exercise 88
+
+The task: find the most common character in a file.
+
+The idea:
+
+Read the file line by line (readLines).
+Cut every line into single characters (strsplit(..., "")).
+Count how often each character appears (table).
+Take the one with the highest count (which.max).
+
+Spaces are skipped by default, since they would probably win otherwise.
+
+## Exercise 89
+
+The task: count how many different words are in a file.
+
+The idea: read the file, make everything lower case (so “The” = “the”), and split the text into words wherever there’s a space or punctuation. Then unique() removes repeats, and length() counts what’s left. Apostrophes are deleted first, so “didn’t” stays one word (“didnt”). On the test file, that gives 12 different words, or 10 if numbers don’t count.
+
+## Exercise 90
+
+The task: count how often one given word appears in a file, ignoring upper/lower case.
+
+The idea: split the text into words, make everything lower case, and count how many words are exactly equal to the searched word. Because it compares whole words, “Island” and “this” don’t count as “is”. In the test text, “is” appears 8 times and “R” 3 times.
+
+## Exercise 91
+
+The task: turn a number into its binary form, e.g. $6 \to$ "110".
+
+The idea: the last binary digit is the remainder when dividing by 2 (x %% 2). The other digits are the binary form of $x$ divided by 2 (x %/% 2). So the function calls itself on the smaller number and sticks the last digit on the end, stopping when the number is 0 or 1. For 6: $6 \to 3 \to 1$, with remainders $0, 1$, giving "1" + "1" + "0" = "110".
+
+One suggestion: your code only tests dec2bin(7). Add dec2bin(6) so the output shows the exercise’s own example, "110".
+
+## Exercise 92
+
+The task: pick a random state and check whether it contains all the given letters.
+
+The idea: sample(state.name, 1) picks a random state. The name and the input letters are both made lower case and split into single letters. Then, for every requested letter, the function counts how often it is asked for and how often it appears in the name. The name must have each letter at least as many times as requested. For example:
+
+“ia” in “Iowa” gives TRUE.
+“asd” in “Iowa” gives FALSE (no “s” or “d”).
+“aaa” in “Alaska” gives TRUE (Alaska has three a’s).
+“aaaa” in “Alaska” gives FALSE (only three a’s, but four are requested).
+
+Counting is the important part. Just checking whether each letter appears somewhere would wrongly say “aaaa” is in “Alaska”.
+
+set.seed(1) makes the random picks the same every time you run it, and verbose = TRUE prints which state was picked.
+
+The comment has been implemented and the function has been fixed.
+
+## Exercise 94
+
+The task: you know the roots of a polynomial and want its coefficients.
+
+The idea: if the roots are $z_1, \dots, z_n$, the polynomial is
+
+
+$$p(z) = (z - z_1)(z - z_2)\cdots(z - z_n).$$
+
+You multiply the brackets out one at a time and read off the numbers in front of each power of $z$.
+
+How the code does it: start with the polynomial $1$. For each root $r$, multiply by $(z - r)$, which means adding two parts:
+
+times $z$: every coefficient moves one place up;
+times $-r$: every coefficient is multiplied by $-r$.
+
+For roots $1, 2, 3$:
+
+
+$$1 \;\to\; z - 1 \;\to\; z^2 - 3z + 2 \;\to\; z^3 - 6z^2 + 11z - 6.$$
+
+The coefficients are $(-6, 11, -6)$. The leading $1$ in front of $z^3$ is always there, so it’s dropped.
+
+
+## Exercise 97
+
+Part 1, the derivative: a polynomial is stored as its list of coefficients, e.g. $1 + 2z + 3z^2 + 4z^3$ as $(1, 2, 3, 4)$. To differentiate, drop the first number (the constant disappears) and multiply the rest by $1, 2, 3, \dots$:
+
+
+$$(1, 2, 3, 4) \;\to\; (2, 6, 12), \quad \text{i.e. } 2 + 6z + 12z^2.$$
+
+A constant has derivative $0$.
+
+Part 2, the inflection points: an inflection point is where the curve switches from bending down to bending up (or the other way around). There, the second derivative is $0$ and changes sign.
+
+Use polyderiv twice to get $p''$.
+Use polyroot to find where $p’’ = 0`, and keep only the real solutions.
+For each solution $x$, check $p''$ a tiny step to the left and right ($x - 0.0001$ and $x + 0.0001$). If the two values have opposite signs, $p''$ changes sign, so $x$ is an inflection point.
+
+Step 3 matters. For $z^4$, $p'' = 12z^2$ is $0$ at $z = 0$ but positive on both sides, so the curve doesn’t switch there and $z = 0$ isn’t an inflection point.
+
+Examples:
+
+$1 - 3z + z^3$: inflection point at $z = 0$, marked by the red line in the plot.
+$z^6 - 10z^4$: inflection points at $z = -2$ and $z = 2$.
+$z^4$: none.
+
+`polyval` is a small helper that evaluates the polynomial at a point, which the sign check in step 3 needs.
+
+## Exercise 99
+
+The task: for each word, count how many of its letters appear in a given list of letters. Example: “Wien” with the letters a–m gives 2 (only “i” and “e” are in a–m).
+
+The idea: split each word into single letters, check each letter against the list, and count the TRUEs. You do this check in two ways, which give the same result:
+
+%in% answers TRUE/FALSE directly (“is this letter in the list?”);
+match() gives the letter’s position in the list, or 0 if it isn’t there, so > 0 turns that into TRUE/FALSE.
+
+For “Wien”, “Graz”, “QFin” the result is $2, 1, 1$.
+
+## Exercise 100
+
+The task: count the uppercase letters in each string.
+
+The idea: gregexpr("[A-Z]", x) finds the positions of all uppercase letters in each string. The number of positions found is the count. If none are found, R returns $-1$, so that case gives $0$. For “Hallo”, “Toll”, “Sehr GUT” the result is $1, 1, 4$.
+
+## Exercise 101
+
+The task: reverse a string: “ABC” → “CBA”.
+
+The idea: three steps. Split the string into letters (strsplit), reverse their order (rev), and glue them back together (paste(..., collapse = "")). vapply does this for every string in a vector, so it works for one string or many.
+
+## Exercise 102
+
+The task: count the words in each string.
+
+The idea: cut each string wherever there’s white space ("\\s+" means one or more spaces, tabs or new lines). The number of pieces is the number of words. Empty pieces, which appear when a string starts with a space, are not counted. For example, "  one   two  three " gives 3, and " " gives 0.
+
+## Exercise 103
+
+The task: figure out what each small loop computes.
+
+(a) adds up $1$ to $5$, giving $15$.
+(b) collects $1$ to $5$ into a vector, giving $(1, 2, 3, 4, 5)$.
+(c) is the same, but starts with $0$, giving $(0, 1, 2, 3, 4, 5)$.
+(d) multiplies $1$ to $5$, giving $5! = 120$.
+(e) each new number is “7 times the previous one, then the remainder after dividing by 31”:
+
+$$3, 21, 23, 6, 11, 15, \ldots$$
+It looks random, but it follows a fixed rule and comes back to $3$ after 15 steps. That’s how simple random number generators work. The brackets matter, because R computes %% before *.
+
+## Exercise 104
+
+The task: compute a continued fraction:
+
+
+$$a_0 + \cfrac{1}{a_1 + \cfrac{1}{a_2 + \cdots}}$$
+
+The idea: everything after $a_0$ is again a continued fraction, just shorter. So the function calls itself:
+
+
+$$\text{cfrac}(a_0, \dots, a_n) = a_0 + \frac{1}{\text{cfrac}(a_1, \dots, a_n)},$$
+
+and stops when only one number is left. With the numbers for $\pi$ $(3, 7, 15, 1, 292, \ldots)$, every extra term brings the approximation closer to $\pi$.
+
+## Exercise 105
+
+The task: turn a continued fraction for $\pi$ into ordinary fractions.
+
+The idea: there’s a shortcut formula that builds each fraction’s top and bottom number from the previous two:
+
+
+$$h_i = a_i\, h_{i-1} + h_{i-2}, \qquad k_i = a_i\, k_{i-1} + k_{i-2}.$$
+
+With $(3, 7, 15, 1, 292)$ this gives
+
+
+$$3, \quad \tfrac{22}{7}, \quad \tfrac{333}{106}, \quad \tfrac{355}{113}, \quad \tfrac{103993}{33102},$$
+
+each one closer to $\pi$. For example, $\frac{355}{113} = 3.1415929\ldots$ is already correct to 6 decimal places.
+
+## Exercise 109
+
+The task: compute a more general continued fraction, where the numerators can be anything, not just 1:
+
+
+$$a_0 + \cfrac{b_1}{a_1 + \cfrac{b_2}{a_2 + \cdots}}$$
+
+Then use it to approximate $\tan(x)$.
+
+The idea: compute from the inside out. Start with the innermost $a_n$ and work outward, one level at a time:
+
+
+$$v \leftarrow a_i + \frac{b_{i+1}}{v}.$$
+
+For $\tan$: the Lambert formula fits this form with $a = (0, 1, 3, 5, \ldots)$ and $b = (x, -x^2, -x^2, \ldots)$.
+
+Result: for $x = \pi/4$ and $k = 5$, the approximation is $0.9999999865$. The exact value is $\tan(\pi/4) = 1$, so the error is only about $10^{-8}$. Each extra term gains about 2 more correct digits.
+
+Exercises 100, 103, 104 and 105 don’t restate the exercise text at the start, unlike your other exercises. If the grader expects that, add the task statement above each solution. Exercise 100 also has no written explanation, only code comments.
+
+## Exercise 112
+
+The task: split a number into prime factors, e.g. $120 \to 2, 2, 2, 3, 5$.
+
+The idea: try dividing by $2, 3, 4, \dots$. Whenever $d$ divides $n$, save $d$ and divide $n$ by it, as often as it fits. Then move on to the next $d$.
+
+The shortcut: once $d \cdot d > n$, the leftover $n$ must itself be a prime, because a non-prime would have a factor $\le \sqrt{n}$, and you’d have found it already. So you add it and stop. For 120, after removing $2, 2, 2, 3$, the leftover $5$ is added directly
+
+## Exercise 113
+
+The task: find all twin primes below 1000, pairs of primes that differ by 2, like $(3, 5)$ and $(11, 13)$.
+
+The idea:
+
+is_prime tests whether a number is prime by trying divisors up to $\sqrt{n}$. That’s enough, since a larger factor always comes with a smaller one.
+For every $x$, check whether both $x$ and $x + 2$ are prime.
+
+Result: 35 pairs, from $(3, 5)$ to $(881, 883)$. The special line for $n = 3$ is needed because in R, 2:1 counts backwards and would wrongly test division by 1.
+
+## Exercise 114
+
+The task: look at the ratios of neighbouring Fibonacci numbers, $\frac{f_{n+1}}{f_n}$: $\frac11, \frac21, \frac32, \frac53, \ldots$ Do they converge?
+
+The answer: yes, to the golden ratio $\varphi = \frac{1 + \sqrt{5}}{2} \approx 1.618$, as the plot shows.
+
+The proof idea: the ratios follow the rule $r_n = 1 + \frac{1}{r_{n-1}}$.
+
+If they converge to some $L$, then $L = 1 + \frac{1}{L}$, which gives $L = \varphi$.
+Each step makes the distance to $\varphi$ at least $1.618$ times smaller, so the distance goes to $0$.
+
+## Exercise 115
+
+The task: count the Fibonacci numbers below one million.
+
+The idea: start with $1, 1$ and keep adding the last two numbers until the next one would reach one million.
+
+Result: 30 numbers ($1, 1, 2, 3, \dots, 832040$), or 29 different ones, since $1$ appears twice.
+
+## Exercise 116
+
+The task: compute Fibonacci numbers very fast, with about $\log_2(n)$ steps instead of $n$.
+
+The idea: one Fibonacci step is the map $T(a, b) = (a + b, a)$. It belongs to a family $T_{pq}$, and applying $T_{pq}$ twice gives another map of the same family, $T_{p'q'}$, with
+
+
+$$p' = p^2 + q^2, \qquad q' = 2pq + q^2.$$
+
+So “apply $T$ $n$ times” can be done by halving:
+
+$n$ even: apply the doubled map $\frac{n}{2}$ times;
+$n$ odd: apply $T$ once, then $n - 1$ is even.
+
+Result: $n$ is halved at least every two steps. For $n = 10^{12}$ you need only 52 steps, compared with $10^{12}$ for the simple loop. The Fibonacci numbers themselves are exact only up to $F_{78}$, because doubles can’t store bigger whole numbers exactly.
+
+## Exercise 117
+
+The task: list all pairs $(i, j)$ with $i < j \le n$.
+
+The idea: two loops. $i$ goes from $1$ to $n - 1$, and for each $i$, $j$ goes from $i + 1$ to $n$. For $n = 4$:
+
+
+$$(1,2), (1,3), (1,4), (2,3), (2,4), (3,4), \quad \text{6 pairs.}$$
+
+## Exercise 118
+
+The task: list all ways to pick $k$ numbers from $1, \dots, n$ in increasing order.
+
+The idea: split into two groups.
+
+With $n$: pick $k - 1$ numbers from $1, \dots, n-1$ and put $n$ at the end.
+Without $n$: pick all $k$ numbers from $1, \dots, n-1$.
+
+Both are smaller versions of the same problem, so the function calls itself. It stops when $k = 1$ (each number alone) or $k = n$ (all numbers). For $n = 5$, $k = 3$ you get $\binom{5}{3} = 10$ tuples.
+
+## Exercise 119
+
+The task (Josephus): $n$ soldiers in a circle, and each one kills the next. Where must you stand to be the last one left?
+
+The idea: after one round, all even positions are dead and you have a circle half the size. So the answer for $n$ comes from the answer for $\frac{n}{2}$:
+
+
+$$W(2m) = 2W(m) - 1, \qquad W(2m+1) = 2W(m) + 1.$$
+
+Explicit formula: the table shows $W = 1$ at every power of 2, and then it goes up by 2. So if $2^m$ is the largest power of 2 with $2^m \le n$,
+
+
+$$W(n) = 2(n - 2^m) + 1.$$
+
+For example, $n = 7$: $2^m = 4$, so $W = 2 \cdot 3 + 1 = 7$.
+
+## Exercise 120
+
+The task: evaluate a polynomial $a_1 + a_2 x + a_3 x^2 + \cdots$ the direct way.
+
+The idea: compute each term $a_i \cdot x^{i-1}$ separately and add them up. It works for a whole vector of $x$ values at once. For $2 - 3x + x^2$ at $x = 0, 1, 2, 3, 4$ you get $2, 0, 0, 2, 6$.
+
+## Exercise 121
+
+The task: evaluate the same polynomial with Horner’s scheme.
+
+The idea: rewrite it with nested brackets, so you never need powers:
+
+
+$$a_3 x^2 + a_2 x + a_1 = (a_3 x + a_2)\,x + a_1.$$
+
+Start with the last coefficient, then repeat “times $x$, plus the next coefficient”. Each step is just one multiplication and one addition. It gives the same results as directpoly, up to rounding.
+
+## Exercise 122
+
+The task: time directpoly against hornerpoly on 5 million $x$ values.
+
+The idea: system.time() measures how long each takes.
+
+(a) With 7 coefficients, Horner is faster, because the direct method computes powers $x^0, \dots, x^6$ for every $x$, while Horner only multiplies and adds.
+(b) With only 3 coefficients there’s less work overall, so the difference between the two methods gets smaller.
+
+The exact times change from run to run.
+
+## Exercise 123
+
+(a) The basis polynomials: for given points $x_0, x_1, \dots$, each basis polynomial $L_i$ is built so that it equals 1 at its own point $x_i$ and 0 at all the other points:
+
+
+$$L_i(x) = \prod_{j \ne i} \frac{x - x_j}{x_i - x_j}.$$
+
+The top of the fraction is zero at every other point, and the bottom makes it exactly 1 at $x_i$. The plot shows this for the points $-1, 2, 3$.
+
+(b) Interpolating $f(x) = x^5$ at $-1, 0, 1, 2$:
+
+The basis polynomials: plugging the four points into the formula and multiplying out gives
+
+
+$$L_0 = -\frac{x^3 - 3x^2 + 2x}{6}, \quad L_1 = \frac{x^3 - 2x^2 - x + 2}{2}, \quad L_2 = -\frac{x^3 - x^2 - 2x}{2}, \quad L_3 = \frac{x^3 - x}{6}.$$
+
+The interpolation polynomial: multiply each $L_i$ by the function value at its point ($-1, 0, 1, 32$) and add them up:
+
+
+$$L(x) = -L_0 + 0 \cdot L_1 + L_2 + 32\,L_3 = 5x^3 - 4x.$$
+
+Since each $L_i$ is 1 at its own point and 0 at the others, $L(x)$ hits all four values exactly. The R check confirms that the formulas match the function.
+
+The plot: the four basis polynomials, the interpolation polynomial and $x^5$ are shown together. The basis polynomials are small (around $-1$ to $1$) while $L(x)$ and $x^5$ go up to about 50, so the plot uses two y-axes.
+
+Why cubic and not degree 5? Each $L_i$ is a product of 3 brackets, so it has degree 3, and so does their sum. With 4 points you get exactly one cubic through them. The method only sees the 4 values, not the formula $x^5$, so it can’t know the function is degree 5. The difference
+
+
+$$x^5 - (5x^3 - 4x) = (x+2)(x+1)\,x\,(x-1)(x-2)$$
+
+is 0 at the four points but not in between. For example, at $x = 1.5$, $x^5 \approx 7.59$ but $L(1.5) = 10.875$. Outside $[-1, 2]$ the gap grows quickly.
+
+## Exercise 124
+
+The task: count how often a pattern appears in a string, recursively, including overlapping matches. For example, “aba” in “ababa” appears 2 times: at positions 1–3 and 3–5, sharing the middle “a”.
+
+The idea:
+
+Find the first match with regexpr(). It returns where the match starts.
+If there’s no match, return 0 and stop.
+Otherwise, count 1, cut the string one character after the start of the match, and call the function again on the rest.
+
+Why “one after the start”: each match is identified by where it starts. Cutting just after the start does two things:
+
+a match that begins inside the current one can still be found, so overlaps are counted;
+the current match can’t be found again, because its first letter is gone. So nothing is counted twice.
+
+Example, “aba” in “ababa”:
+
+
+$$\texttt{ababa} \xrightarrow{\text{match at 1}} \texttt{baba} \xrightarrow{\text{match at 2}} \texttt{a} \xrightarrow{\text{no match}} 1 + 1 + 0 = 2.$$
+
+The old way: cutting after the end of the match skips overlaps. “ababa” would give only 1. This version is still available with overlapping = FALSE.
+
+An empty pattern is rejected with an error. It would match everywhere, and the recursion would never stop.
+
+## Exercise 125
+
+The task: list all ways to choose $k$ objects from $n$, written as 0/1 strings. “1” means the object is chosen, and “0” means it isn’t. For $n = 3$, $k = 2$: 110, 101, 011.
+
+The idea: decide the first position.
+
+Put a “1”: fill the remaining $n - 1$ positions with $k - 1$ ones.
+Put a “0”: fill the remaining $n - 1$ positions with all $k$ ones.
+
+Both are smaller versions of the same problem, the same split as in Exercise 118. It stops when $k = 0$ (all zeros) or $k = n$ (all ones).
+
+## Exercise 126
+
+The task: write a number in base 8.
+
+The idea: the last octal digit is the remainder after dividing by 8 (n %% 8). The digits in front of it are the octal form of n %/% 8. The function calls itself on that and stops when $n < 8$. For example, $100 = (144)_8$ and
