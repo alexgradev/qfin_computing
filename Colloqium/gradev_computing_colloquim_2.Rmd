@@ -1,0 +1,3019 @@
+---
+title: "Computing Exercises: Homework 4-5"
+author: "Group 1"
+output: pdf_document
+---
+
+# Homework 4
+
+
+## Exercise 73
+
+Consider functions of the form:
+
+$$
+\phi_j(x) := \frac{1}{(j-1)!}\int_0^1 e^{(1-\theta)x}\theta^{j-1}\,d\theta,
+\qquad j \ge 1,\; x \in \mathbb{R}.
+$$
+
+**(a) Prove the following recursion:**
+
+$$
+\phi_j(x)=\frac{\phi_{j-1}(x)-\phi_{j-1}(0)}{x},
+\qquad j>1,\; x\neq 0.
+$$
+
+Proof.
+
+Define the integral part of the function as $I_j(x)$, i.e.
+
+$$
+I_j(x) := \int_0^1 e^{(1-y)x}\,y^{j-1}\,dy
+$$
+
+Hence, we can rewrite as
+
+$$
+\phi_j(x)=\frac{1}{(j-1)!}\,I_j(x)
+$$
+
+For integration by parts we choose $$
+u = y^{j-1} \qquad \text{and} \qquad dv = e^{(1-y)x}\,dy 
+$$
+
+Then
+
+$$
+du = (j-1)\,y^{j-2}\,dy \qquad \text{and} \qquad v = -\frac{1}{x}\,e^{(1-y)x}
+$$ since $\frac{d}{dy}e^{(1-y)x} = -x\,e^{(1-y)x}$.
+
+Using $\int u\,dv = uv - \int v\,du$, we get
+
+$$
+I_j(x)
+= \left[-\frac{y^{j-1}e^{(1-y)x}}{x}\right]_{0}^{1}
++ \frac{j-1}{x}\int_0^1 e^{(1-y)x}\,y^{j-2}\,dy 
+$$
+
+Observe the boundary term. At $y=1$ the bracket equals $-\frac{1}{x}$.
+At $y=0$ it equals $0$ because $j-1\ge 1$. Hence $$
+\left[-\frac{y^{j-1}e^{(1-y)x}}{x}\right]_{0}^{1} = -\frac{1}{x}
+$$
+
+The remaining integral is
+
+$$
+\int_0^1 e^{(1-y)x}\,y^{j-2}\,dy = I_{j-1}(x)
+$$
+
+so
+
+$$
+I_j(x) = -\frac{1}{x} + \frac{j-1}{x}\,I_{j-1}(x)
+$$
+
+We divide by $(j-1)!$. Since $\frac{j-1}{(j-1)!}=\frac{1}{(j-2)!}$,
+
+$$
+\phi_j(x)
+= -\frac{1}{x\,(j-1)!} + \frac{1}{x}\cdot\frac{1}{(j-2)!}\,I_{j-1}(x)
+= -\frac{1}{x\,(j-1)!} + \frac{1}{x}\,\phi_{j-1}(x).
+$$
+
+We should identify the constant. Evaluating $\phi_{j-1}$ at $0$: $$
+\phi_{j-1}(0)
+= \frac{1}{(j-2)!}\int_0^1 y^{j-2}\,dy
+= \frac{1}{(j-2)!}\cdot\frac{1}{j-1}
+= \frac{1}{(j-1)!}
+$$
+
+Substituting back, we get
+
+$$
+\phi_j(x) = \frac{\phi_{j-1}(x) - \phi_{j-1}(0)}{x},
+\qquad j>1,\; x\neq 0 \qquad \square
+$$
+
+**(b) What happens in this recursion for small x? What is the problem?
+How could you avoid/bypass this problem?**
+
+For small $x$ the recursion subtracts two nearly equal numbers and then
+divides by this tiny number. This leads to catastrophic cancellation.
+More specifically, if $x$ is really close to 0, then the leading digits
+cancel and what is left is mostly rounding error. Dividing by $x$
+introduces an absolute error of $\frac{\epsilon}{|x|}$. This error is
+further amplified as we go to $j$.
+
+Possible way to avoid this problem is to use Taylor series for a small
+$|x|$. If we expand $e^{(1-y)x}$ and integrate term by term, we get
+
+$$
+\phi_j(x) = \frac{1}{(j-1)!}\int_0^1 e^{(1-y)x}\,y^{j-1}\,dy
+= \frac{1}{(j-1)!}\sum_{k=0}^{\infty}\frac{x^k}{k!}\int_0^1 (1-y)^k y^{j-1}\,dy.
+$$
+
+The integral part of the equation gives
+
+$$
+\int_0^1 (1-y)^k y^{j-1}\,dy = \frac{(j-1)!\,k!}{(k+j)!},
+$$
+
+so
+
+$$
+\phi_j(x) = \sum_{k=0}^{\infty}\frac{x^k}{(k+j)!} = \frac{1}{j!}+\frac{x}{(j+1)!}+\frac{x^2}{(j+2)!}+\cdots
+$$
+
+The terms decay very fast so we can use this alternative when $|x|$ is
+below certain threshold and use the recursion for large $|x|$ where no
+cancellation occurs. The threshold can be set as a dependent to $j$.
+
+## Exercise 74
+
+The Euclidean norm of an n-dimensional vector x with components
+$x_{1},...,x_{n}$ is defined by:
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} x_i^2 \right)^{1/2}.
+$$
+
+How would you avoid overflow and harmful underflow in this computation?
+
+1.  Search for the element with the biggest absolute value:
+    $max[|x_1|,...,|x_n|]$
+
+2.  Divide every entry before taking the square with this entry.
+
+3.  Multiply the final Square root with the found entry.
+
+Why this holds:
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} x_i^2 \right)^{1/2}
+$$
+
+We multiply by $\frac{m^2}{m^2}$ which equals to 1.
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} \frac{m^2}{m^2} \cdot x_i^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} m^2\cdot \frac{x_i^2}{m^2} \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = \left( \sum_{i=1}^{n} m^2 \cdot \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = \left( m^2 \cdot\sum_{i=1}^{n} \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = (m^2)^{1/2} \cdot\left( \sum_{i=1}^{n} \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+$$
+\|x\|_2 = m \cdot\left( \sum_{i=1}^{n} \left( \frac{x_i}{m} \right)^2 \right)^{1/2}
+$$
+
+Further information for Implementing:
+
+When the maximum absolute value $m$ is exactly zero, it mathematically
+implies that every single component of your vector $x$ is exactly zero.
+
+If your algorithm does not explicitly check for this condition before
+proceeding, the scaling step $\frac{x_i}{m}$ will attempt to compute
+$\frac{0}{0}$. In floating-point arithmetic, this does not simply throw
+a standard error—it quietly produces a `NaN` (Not-a-Number). If this
+`NaN` goes unnoticed, it will propagate through your entire mathematical
+model, corrupting subsequent matrix operations, derivative checks, or
+regression outputs.
+
+It should be noted that scaling prevents overflow in the individual squares but the sum of the scaled squares can still overflow for an extremely large vector. For sufficiently small components it can also still underflow after scaling.
+
+## Exercise 77
+
+To calculate $\log(x)$ we use the expansion
+$$\log(1 + x) = x - \frac{x^2}{2} + \frac{x^3}{3} - \frac{x^4}{4} + \cdots$$
+Truncating to $n$ terms, the error is no greater in magnitude than the
+last term in the sum. How many terms in the expansion are required to
+calculate $\log(1.5)$ with an error of at most $10^{-16}$? How many
+terms are required to calculate $\log(2)$ with an error of at most
+$10^{-16}$? Use the fact that $\log(2) = 2\log(\sqrt{2})$ to suggest a
+better way of calculating $\log(2)$.
+
+We write $\log(1.5) = \log(1 + 0.5)$, so $x = 0.5$. After $n$ terms the
+error is at most the last term, $|x|^n / n$. So we need the smallest $n$
+with $|x|^n / n \le 10^{-16}$. The function `log_series()` adds up the
+first $n$ terms, and `terms_needed()` searches for the smallest such $n$
+(for $|x| < 1$).
+
+```{r}
+# first n terms of the series for log(1 + x)
+log_series <- function(x, n) {
+  k <- 1:n
+  sum((-1)^(k + 1) * x^k / k)
+}
+
+# smallest n satisfying the given error bound (for 0 < x < 1)
+terms_needed <- function(x, tol = 1e-16) {
+  n <- 1:500
+  min(which(abs(x)^n / n <= tol))
+}
+
+# log(1.5) = log(1 + 0.5)
+terms_needed(0.5)
+0.5^47 / 47  # bound for 47 terms: too large
+0.5^48 / 48  # bound for 48 terms: small enough
+
+log_series(0.5, 48)
+log(1.5)
+abs(log_series(0.5, 48) - log(1.5))
+```
+
+For $\log(1.5)$, **48 terms** are sufficient according to the given
+error bound: the bound is $1.5 \cdot 10^{-16}$ for 47 terms and
+$7.4 \cdot 10^{-17}$ for 48 terms. This is the truncation error of the
+series. The computed value differs from log(1.5) by $1.7 \cdot 10^{-16}$
+in our run (this may depend on the machine). The additional difference
+is rounding error: adding 48 terms in double precision adds a few
+rounding errors, and the doubles near 0.4 are $5.6 \cdot 10^{-17}$
+apart.
+
+For $\log(2) = \log(1 + 1)$ we have $x = 1$ and the series is the
+alternating harmonic series. The bound is $1/n$, so we would need
+$1/n \le 10^{-16}$, i.e. $n = 10^{16}$ terms. This is hopeless, since
+the series converges very slowly. With a million terms the error is
+still about $5 \cdot 10^{-7}$:
+
+```{r}
+1 / 1e-16 # number of terms needed
+
+log_series(1, 1e6)
+abs(log_series(1, 1e6) - log(2))
+```
+
+**A better way.** With
+$\log(2) = 2\log(\sqrt{2}) = 2\log(1 + (\sqrt{2} - 1))$ we can use
+$x = \sqrt{2} - 1 \approx 0.414$, which is much smaller than 1, so the
+terms $x^n / n$ decrease much faster. The result is multiplied by 2, so
+the error of the series has to be at most $0.5 \cdot 10^{-16}$.
+
+```{r}
+x <- sqrt(2) - 1
+x
+terms_needed(x, tol = 1e-16 / 2)
+
+2 * log_series(x, 39)
+log(2)
+abs(2 * log_series(x, 39) - log(2))
+```
+
+So **39 terms** are enough according to the given error bound instead of
+$10^{16}$. The computed value differs from log(2) by about
+$6.7 \cdot 10^{-16}$ in our run (this may depend on the machine). This
+is not the truncation error of the series, which is below $10^{-16}$,
+but rounding error: the doubles near 0.69 are only $1.1 \cdot 10^{-16}$
+apart, and the rounding errors of the 39 additions and of the powers add
+up to a few of these steps.
+
+It should be noted that the theoretical error bound only controls the truncation error, not the total numerical error. In particular, rounding errors from floating-point arithmetic and the approximation of $\sqrt{2}$ can affect the final result, even when the truncation error is below the required tolerance.
+
+## Exercise 78
+
+The sine of an angle (specified in radians) can be computed by making
+use of the approximation
+
+$$\sin(x)\approx x \qquad \text{for } x \text{ sufficiently close to zero,}$$
+
+and the trigonometric identity
+
+$$\sin(x)=3\sin\!\left(\frac{x}{3}\right)-4\left(\sin\!\left(\frac{x}{3}\right)\right)^{3}$$
+
+to reduce the size of the argument. Use these ideas to implement a
+function which approximates $\sin$, taking $x$ “sufficiently close to
+zero” if its absolute value is less than $0.1$ radians. What is the
+order of the number of different $x$ values and steps needed for
+computing the approximation?
+
+The idea: we need to compute $\sin(x)$ for any $x$, for example $x=1$ or
+$x=100$. For a big angle we have no easy formula, so we use two tricks.
+
+Trick 1: If the angle is very close to zero, the sine is almost the same
+number as the angle:
+
+$$|x|<0.1 \;\Longrightarrow\; \sin(x)\approx x$$
+
+This is the standard small-angle approximation
+([Wikipedia](https://en.wikipedia.org/wiki/Small-angle_approximation))
+
+For example, $\sin(0.037)=0.0369916\ldots$, which is almost $0.037$. The
+mistake is really small (about $x^3/6$), so we are fine with it.
+
+Why $\sin(x)\approx x$ for small? $x$
+
+The reason: the series. The sine can be written as a sum (Taylor
+series):
+
+$$\sin(x)=x-\frac{x^{3}}{6}+\frac{x^{5}}{120}-\cdots$$
+
+If $x$ is small, $x^3$ is much smaller than $x$, and $x^5$ is even
+smaller. For $|x|<0.1$ we can throw away everything after the first
+term, and what is left is $\sin(x)\approx x$. The first thing we throw
+away is $\dfrac{x^3}{6}$, so this is the size of our mistake ([John D.
+Cook](https://www.johndcook.com/blog/2010/07/27/sine-approximation-for-small-x/)).
+
+Circle reason: take an angle $x$ on the unit circle. The sine is the
+height of the point. The angle $x$ itself is the length of the arc. For
+a tiny angle the arc is almost a straight vertical line, so the height
+and the arc length are almost the same number.
+
+Trick 2: make the angle smaller. The identity says that $\sin(x)$ can be
+computed from the sine of an angle that is three times smaller. Let us
+call the right side $f$:
+
+$$f(s)=3s-4s^{3}, \qquad\text{so}\qquad \sin(x)=f\!\left(\sin\frac{x}{3}\right)$$
+
+The plan: go down, then come back up.
+
+Go down. If $x$ is big, we divide it by $3$. If it is still big, we
+divide again. We stop when the angle is smaller than $0.1$. After $k$
+divisions the angle is $\dfrac{x}{3^{k}}$. Bottom. The angle is small
+now, so we just say
+$\sin\!\left(\dfrac{x}{3^{k}}\right)\approx\dfrac{x}{3^{k}}$. Come back
+up. For every division we made, we use $f$ one time:
+$$\sin(x)\approx \underbrace{f\big(f(\cdots f}_{k\text{ times}}\big(\tfrac{x}{3^{k}}\big)\cdots\big)\big)$$
+
+It stops, because every step makes the angle 3 times smaller, so after
+some steps it must be below $0.1$.
+
+We look for the smallest $k$ with
+
+$$\frac{|x|}{3^{k}} < 0.1 \iff 3^{k} > 10\,|x| \iff k > \log_3\big(10\,|x|\big).$$
+
+The inequality is strict, because the loop only stops when the angle is
+*strictly* below $0.1$. If the angle is exactly $0.1$, we still have to
+divide once more. The smallest whole number that is strictly bigger than
+$\log_3(10|x|)$ is
+
+$$k=\left\lfloor\log_3\!\big(10\,|x|\big)\right\rfloor+1 \qquad \text{for } |x|\ge 0.1,$$
+
+and $k=0$ for $|x|<0.1$, since then no division is needed.
+
+The ceiling $\lceil\log_3(10|x|)\rceil$ would give the smallest $k$ with
+$3^k \ge 10|x|$, which is wrong when $10|x|$ is exactly a power of 3. For
+example, for $x=0.3$ we have $10|x|=3$. The ceiling gives $k=1$, but
+$0.3/3=0.1$ is not below $0.1$, so we need one more division. The correct
+answer is $k=\lfloor 1\rfloor+1=2$. When $\log_3(10|x|)$ is not a whole
+number, both formulas give the same result.
+
+The values we use are
+$x,\ \dfrac{x}{3},\ \dfrac{x}{9},\ \dots,\ \dfrac{x}{3^{k}}$. That is
+$k+1$ different values of $x$ and we use $f$ exactly $k$ times.
+
+Since $k$ grows like $\log|x|$, we get
+
+$$\boxed{\text{number of values and steps}=O(\log|x|)}$$
+
+Here $O$ shows how fast the number of steps grows when $x$ grows and we
+ignore constants. So $O(\log|x|)$ means very slow growth.
+
+So if $x$ is 10 times bigger, we need only about 2 more steps
+($\log_3 10\approx 2$). Example with $x=1$. Here
+$k=\lfloor\log_3 10\rfloor+1=\lfloor 2.0959\rfloor+1=3$:
+
+$$1\;\to\;\tfrac13\;\to\;\tfrac19\;\to\;\tfrac1{27}=0.037037 \quad(\text{when below }0.1\text{, stop})$$
+
+Now we go back up with $f$:
+
+$$0.037037\;\to\;0.1109079\;\to\;0.3272668\;\to\;0.8415946$$
+
+The true value is $\sin(1)=0.8414710$, so our answer is very close.
+
+```{r}
+my_sin <- function(x) {
+  if (abs(x) < 0.1) { #Base case: x is small, so sin(x) is about x
+    return(x)
+  }
+  s <- my_sin(x / 3) #make the argument 3 times smaller, that the function calls itself
+  return(3 * s - 4 * s^3) #Go back with the identity sin(x) = 3s - 4s^3
+}
+
+steps <- function(x) { #How many divisions by 3 we need for x, this is the number of steps
+  k <- 0
+  while (abs(x) >= 0.1) {
+    x <- x / 3
+    k <- k + 1
+  }
+  return(k)
+}
+
+my_sin(1)
+sin(1)
+
+# applies steps to every number in the vector and returns the 
+# results as a vector
+sapply(c(1, 10, 100, 1000, 10^6), steps)
+
+#formula gives the same k as steps()
+floor(log(10 * c(1, 10, 100, 1000, 10^6), base = 3)) + 1 
+```
+
+`0.8415946` is our approximation: $\text{my\_sin}(1)=0.8415946$.
+`0.841471` is the exact value from R: $\sin(1)=0.841471$. The difference
+is small, so they agree in the first three
+digits$$0.8415946-0.841471=0.0001236\approx 1.2\cdot 10^{-4}$$`3 5 7 9 15`
+is the number of steps $k$ for $x=1,\,10,\,100,\,1000,\,10^{6}$:
+
+$$k=\left\lfloor \log_3\bigl(10\,|x|\bigr)\right\rfloor+1$$
+
+| $x$ | $1$ | $10$ | $10^{2}$ | $10^{3}$ | $10^{6}$ |
+|-----|-----|------|----------|----------|----------|
+| $k$ | $3$ | $5$  | $7$      | $9$      | $15$     |
+
+## Exercise 79
+
+Determine $\sum_{n=1}^{\infty} \frac{1}{10^n}$ as accurately as
+possible.
+
+$\sum_{n=1}^{\infty} \frac{1}{10^n}$ is a geometric series with
+$q = \frac{1}{10}$. Since $|q| < 1$ it converges, and because it starts
+at $n = 1$,
+$$\sum_{n=1}^{\infty} q^n = \frac{q}{1-q} = \frac{1/10}{9/10} = \frac{1}{9}.$$
+So the exact answer is $\frac19 = 0.1111\ldots$
+
+On a computer $\frac19$ can't be stored exactly either, since it has
+infinitely many digits in binary too. The most accurate thing we can get
+is the double closest to $\frac19$, which is what `1/9` gives:
+
+```{r}
+1/9
+print(1/9, digits = 20)   # the closest double, not exactly 1/9
+```
+
+Adding up the terms numerically gets there too, but only up to rounding:
+
+```{r}
+partial_sum <- function(n) sum(10^-(1:n))
+
+n <- c(5, 10, 15, 16, 17, 20)
+data.frame(n, difference_to_1_9 = sapply(n, partial_sum) - 1/9)
+```
+
+After about 16 terms the new terms are smaller than the rounding error
+of the sum (around $10^{-17}$), so adding more doesn't help anymore.
+With 16 terms we happen to hit the closest double exactly, with more
+terms the rounding errors push it one step away. So the best answer is
+the exact value $\frac19$ from the formula, and numerically `1/9`.
+
+## Exercise 80
+
+Determine
+$1 - \frac{1}{2} + \frac{1}{3} - \frac{1}{4} + \cdots = \sum_{n=0}^{\infty} \frac{(-1)^n}{n+1}$
+as accurately as possible.
+
+The direct answer would be just $\log(2)$, which **R** can compute
+easily and correctly. The proof can be found
+[here](https://math.stackexchange.com/questions/3454007/what-is-1-1-2-1-3-1-4-1-5-1-6-1-7-1-8-1-9).
+
+```{r}
+log(2)
+```
+
+However, we will implement two functions to compute it numerically and
+see the error
+
+```{r}
+# Simple, straigth-forward implementation of the alternating sum
+plain_alternating_sum <- function(N) {
+  n <- 0:(N - 1)
+  sum((-1)^n / (n + 1))
+}
+
+# More sophisticated approach following the CVZ algorithm
+cvz_alternating_sum <- function(a, n) {
+  d <- (3 + sqrt(8))^n
+  d <- (d + 1 / d) / 2          # d = T_n(3), the Chebyshev normalisation
+  b <- -1
+  ck <- -d
+  s <- 0
+  for (k in 0:(n - 1)) {
+    ck <- b - ck                # optimal weight c_k
+    s  <- s + ck * a(k)         # weighted sum of the terms
+    b  <- (k + n) * (k - n) * b / ((k + 1 / 2) * (k + 1))
+  }
+  s / d
+}
+
+# The terms of our series: 1 / (k + 1)
+a <- function(k) 1 / (k + 1)
+
+# Compare the errors
+time_cvz <- system.time(
+  err_cvz <- cvz_alternating_sum(a, 20) - log(2)     # CVZ with only 20 terms
+)
+
+time_plain <- system.time(
+  err_plain <- plain_alternating_sum(1e6) - log(2)   # plain sum using one 
+)                                                    # million terms
+
+time_cvz
+time_plain
+c(cvz = err_cvz, plain = err_plain)
+```
+
+The simple implementation of the sum is slow because each additional
+term jumps around the true value $\log(2)$ by approximately the size of
+the next term. Its error is about $\frac{1}{2N}$, so every additional
+digit needs 10 times more terms.
+
+On the opposite side, the Cohen-Villegas-Zagier algorithm is an
+acceleration method for alternating series. It uses only the first $n$
+terms of the sum, but combines them in a smart way, so the result is far
+more accurate than the plain partial sum of the same length.
+
+The partial sums of an alternating series zigzag around the true value,
+so averaging neighbouring partial sums cancels most of the zigzag. CVZ
+does this averaging with optimal weights $c_k$, which are derived from
+Chebyshev polynomials and cancel the oscillation as well as possible for
+a fixed $n$. The approximation is then the weighted sum
+
+$$
+\sum_{k=0}^{\infty} (-1)^k a_k \approx \frac{1}{d_n} \sum_{k=0}^{n-1} c_k\, a_k, \qquad a_k = \frac{1}{k+1},
+$$
+
+where $d_n$ is a normalization constant.
+
+```{r}
+# Error of CVZ as a function of the number of terms
+n_terms <- c(5, 10, 15, 20)
+data.frame(
+  n     = n_terms,
+  error = sapply(n_terms, function(n) cvz_alternating_sum(a, n) - log(2))
+)
+```
+
+The error shrinks like $(3+2\sqrt{2})^{-n} \approx 5.83^{-n}$. Each
+additional term therefore gives about $0.77$ correct digits, whereas the
+plain sum needs $10$ times more terms for every additional digit. About
+$20$ terms already reach double precision.
+
+## Exercise 81
+
+Determine:
+
+$$
+ \frac{1}{1*3} + \frac{1}{5*7} + \frac{1}{9*11} + ...
+$$
+
+as accurately as possible.
+
+**Step 1: Construction of the general term**
+
+The sequence of the denominators consists of factors that form an
+arithmetic progression. The first factor of the products is
+$1, 5, 9, \dots$ and can be expressed as $4n-3$ for indices $n \ge 1$.
+The second factor is $3, 7, 11, \dots$ and corresponds to $4n-1$. The
+infinite series can thus be formally defined as:
+$$S = \sum_{n=1}^{\infty} \frac{1}{(4n-3)(4n-1)}$$
+
+**Step 2: Partial fraction decomposition**
+
+To transform the product in the denominator into an addition, we use
+partial fraction decomposition. The algebraic approach is:
+$$\frac{1}{(4n-3)(4n-1)} = \frac{A}{4n-3} + \frac{B}{4n-1}$$ Multiplying
+both sides by the common denominator $(4n-3)(4n-1)$ yields the identity:
+$$1 = A(4n-1) + B(4n-3)$$ To determine the constants $A$ and $B$, we
+systematically choose values for $n$ that eliminate one of the terms:
+
+Setting $4n = 1$ (which makes $4n-1 = 0$), we eliminate $A$:
+$1 = B(1-3) \implies 1 = -2B \implies B = -1/2$. Setting $4n = 3$ (which
+makes $4n-3 = 0$), we eliminate $B$:
+$1 = A(3-1) \implies 1 = 2A \implies A = 1/2$.
+
+The general term of the fraction can now be rewritten by factoring out
+the common term:
+$$a_n = \frac{1/2}{4n-3} - \frac{1/2}{4n-1} = \frac{1}{2} \left( \frac{1}{4n-3} - \frac{1}{4n-1} \right)$$
+
+**Step 3: Expansion of the infinite series**
+
+By sequentially substituting the first indices $n = 1, 2, 3, \dots$ into
+this new expression, we get:
+
+For $n=1$: $\frac{1}{2} \left(\frac{1}{1} - \frac{1}{3}\right)$
+
+For $n=2$: $\frac{1}{2} \left(\frac{1}{5} - \frac{1}{7}\right)$
+
+For $n=3$: $\frac{1}{2} \left(\frac{1}{9} - \frac{1}{11}\right)$
+
+When we assemble the infinite sum and pull the factor $\frac{1}{2}$ to
+the front, the pattern of the alternating harmonic series emerges:
+$$S = \frac{1}{2} \left( 1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + \frac{1}{9} - \frac{1}{11} + \dots \right)$$
+
+**Step 4: Analytical proof via Taylor series**
+
+The expression inside the large parentheses is the well-known
+Gregory-Leibniz series. It is derived from the Taylor series expansion
+of the arctangent function:
+$$\arctan(x) = \sum_{k=0}^{\infty} \frac{(-1)^k}{2k+1} x^{2k+1} = x - \frac{x^3}{3} + \frac{x^5}{5} - \frac{x^7}{7} + \dots$$
+Since the point $x = 1$ lies on the boundary of the radius of
+convergence and the series converges there according to the alternating
+series test (Leibniz criterion), we can directly substitute this value:
+$$\arctan(1) = 1 - \frac{1}{3} + \frac{1}{5} - \frac{1}{7} + \dots$$
+From trigonometry, we know that the tangent of $\frac{\pi}{4}$ (which
+corresponds to $45^\circ$) is exactly $1$. Conversely, this means
+$\arctan(1) = \frac{\pi}{4}$.
+
+**Step 5: Final calculation**
+
+Substituting the value for the infinite sum into the equation from Step
+3 yields the exact algebraic result of the original series:
+$$S = \frac{1}{2} \cdot \frac{\pi}{4} = \frac{\pi}{8}$$
+
+## Exercise 82
+
+The Wallis product for $\pi$ states that
+$$\frac{\pi}{2} = \frac{2 \cdot 2 \cdot 4 \cdot 4 \cdot 6 \cdot 6 \cdot 8 \cdots}{1 \cdot 3 \cdot 3 \cdot 5 \cdot 5 \cdot 7 \cdot 7 \cdots}$$
+(<http://en.wikipedia.org/wiki/Wallis_product>). Use this to compute
+approximations to $\pi$.
+
+We group the factors in pairs: the $k$-th factor is
+$\frac{2k \cdot 2k}{(2k-1)(2k+1)} = \frac{4k^2}{4k^2 - 1}$, so
+$$\frac{\pi}{2} = \prod_{k=1}^{\infty} \frac{(2k)^2}{(2k-1)(2k+1)}.$$
+Stopping after $n$ factors gives the approximation
+$\pi_n = 2 \prod_{k=1}^{n} \frac{(2k)^2}{(2k-1)(2k+1)}$. Since R works
+with vectors, we can compute all factors at once and multiply them with
+`prod()`.
+
+```{r}
+wallis <- function(n) {
+  k <- 1:n
+  2 * prod((2 * k)^2 / ((2 * k - 1) * (2 * k + 1)))
+}
+
+# the first approximations: 2 * 4/3, 2 * 4/3 * 16/15, ...
+wallis(1)
+wallis(2)
+wallis(3)
+
+n <- 10^(1:6)
+approximation <- vapply(n, wallis, numeric(1))
+print(data.frame(n = n, wallis = approximation, error = pi - approximation,
+                 ratio = (pi - approximation) * 4 * n / pi), digits = 10)
+```
+
+The approximations are always below $\pi$ and converge very slowly: even
+for $n = 10^6$ factors we only get about 6 correct digits
+($3.141591\ldots$). The last column shows that the error is very close
+to $\frac{\pi}{4n}$ (the ratio of the error and $\frac{\pi}{4n}$ tends
+to 1), i.e. to get one more digit we need 10 times as many factors. This
+is also visible in the plot, where the error follows the red dashed line
+$\frac{\pi}{4n}$:
+
+```{r, fig.height=4}
+plot(n, pi - approximation, log = "xy", type = "b", xlab = "n",
+     ylab = "error of the approximation", main = "Error of the Wallis product")
+lines(n, pi / (4 * n), col = "red", lty = 2)
+```
+
+Since the error is known to be about $\frac{\pi}{4n}$, we can improve
+the approximation by multiplying with $1 + \frac{1}{4n}$:
+
+```{r}
+corrected <- approximation * (1 + 1 / (4 * n))
+print(data.frame(n = n, wallis = approximation, corrected = corrected, 
+                 error = abs(pi - approximation),
+                 error_corrected = abs(pi - corrected)), digits = 10)
+```
+
+The corrected error (in absolute value) is much smaller, it decreases
+like $1/n^2$: it is reduced by a factor of about 100 whenever $n$ is
+multiplied by 10.
+
+## Exercise 83
+
+Write a function to compute how many elements of a given character
+vector contain more than one word. The standard data set state.name
+gives the names of the 50 US states: how many of these consist of
+several words?
+
+```{r}
+x<-state.name
+Spaces<- function(x){sum(grepl(" ",x))}  
+Spaces(x)
+```
+
+`x <- state.name` assigns the built-in R dataset `state.name` - a
+character vector containing the names of the 50 US states - to the
+variable `x`.
+
+`Spaces <- function(x) { ... }` defines a new custom function named
+`Spaces` that takes a vector `x` as its input parameter.
+
+**`grepl(" ", x)`** is the core logic for pattern recognition. The
+function performs a vectorized check on each element in `x` to see if
+the string `" "` (a space) is present. The result is a logical vector of
+the same length, consisting of `TRUE` (space found) and `FALSE` (no
+space found). Because it is vectorized, this step is highly efficient
+and avoids iterative loops entirely.
+
+`sum(...)` counts the positive matches. R automatically converts logical
+values into integers during arithmetic operations: `TRUE` becomes 1, and
+`FALSE` becomes 0. The sum of this vector directly provides the absolute
+number of elements containing a space.
+
+`Spaces(x)` calls the newly created function and passes the vector `x`
+(the US states) to it. The calculated value (10) is returned as the
+final output.
+
+## Exercise 84
+
+How many US states have names with more vowels than consonants?\
+
+```{r}
+x <- state.name
+names_clean <- gsub(" ", "", x)
+vowels <- nchar(gsub("[^aeiouAEIOU]", "", names_clean))
+consonants <- nchar(names_clean) - vowels
+sum(vowels > consonants)
+```
+
+`x <- state.name` assigns the built-in R dataset containing the 50 US
+state names to the variable `x`.
+
+`names_clean <- gsub(" ", "", x)` removes all spaces from the state
+names using pattern replacement (e.g., turning "New York" into
+"NewYork"). This is crucial to prevent spaces from being incorrectly
+counted as consonants when calculating the string length later.
+
+`gsub("[^aeiouAEIOU]", "", names_clean)` uses a regular expression to
+match anything that is *not* (`^`) a vowel and replaces it with an empty
+string `""`. This strips away all consonants, leaving only a string of
+vowels behind (e.g., "Alabama" becomes "aaaa").
+
+`vowels <- nchar(...)` counts the number of characters in a given
+string. By wrapping this around the filtered vowel strings, it
+calculates and stores the exact count of vowels for each state in a
+numeric vector.
+
+`consonants <- nchar(names_clean) - vowels` calculates the number of
+consonants by taking the total character length of the space-free state
+name and subtracting the calculated number of vowels.
+
+`sum(vowels > consonants)` evaluates the logical condition
+`vowels > consonants` for each state, resulting in a vector of `TRUE`
+and `FALSE` values. The `sum()` function then adds up the `TRUE` matches
+(which R treats as 1) to return the final count of 10.
+
+## Exercise 85
+
+How many US states have names with more than three ‘s’?
+
+```{r}
+x <- state.name
+s_only <- gsub("[^sS]", "", x)
+s_counts <- nchar(s_only)
+sum(s_counts > 3)
+```
+
+`x <- state.name` assigns the built-in R dataset containing the 50 US
+state names to the variable `x`.
+
+`s_only <- gsub("[^sS]", "", x)` uses a regular expression to match any
+character that is *not* a lowercase or uppercase 's' (`[^sS]`) and
+replaces it with an empty string `""`. This strips away all other
+letters and spaces, leaving only a string of 's' characters behind
+(e.g., "Massachusetts" becomes "ssss").
+
+`s_counts <- nchar(s_only)` counts the number of characters in each
+filtered string. By applying this to the `s_only` vector, it calculates
+and stores the exact count of 's' characters for each state in a numeric
+vector.
+
+`sum(s_counts > 3)` evaluates the logical condition `s_counts > 3` for
+each state, resulting in a vector of `TRUE` and `FALSE` values. The
+`sum()` function then adds up the `TRUE` matches (which R treats as 1)
+to return the final count of 2.
+
+## Exercise 86
+
+How many US states have names with a double vowel?
+
+```{r}
+x <- state.name
+has_double_vowel <- grepl("([aeiouAEIOU])\\1", x, ignore.case = TRUE)
+sum(has_double_vowel)
+
+#[aeiouAEIOU]{2} would look for 2 Adjecent vouls, regardless if they are identical.
+```
+
+`x <- state.name` assigns the built-in R dataset containing the 50 US
+state names to the variable `x`.
+
+`grepl("([aeiouAEIOU])\\1", x, ignore.case = TRUE)` uses a regular
+expression to search for identical consecutive vowels. The parentheses
+`([aeiouAEIOU])` create a capture group that matches any single vowel.
+The backreference `\\1` immediately after it tells R to look for the
+exact same character that was just captured. Setting
+`ignore.case = TRUE` ensures it catches both uppercase and lowercase
+matches, though for double vowels in state names, they are always
+lowercase. This results in a logical vector of `TRUE` and `FALSE`.
+
+`sum(has_double_vowel)` evaluates the logical vector and adds up all the
+`TRUE` matches (which R treats as 1) to return the final count of 2.
+
+## Exercise 87
+
+Function `colors()` gives the names of all available colors in R.
+Compute the number of different reds available.
+
+`colors()` returns a character vector with the names of the colors (657
+names). The names of the reds contain the string "red", so we search for
+it with `grep()` using `value = TRUE`, which returns the matching names
+rather than their positions.
+
+```{r}
+length(colors())
+
+reds <- grep("red", colors(), value = TRUE)
+length(reds)
+reds
+```
+
+There are **27** color names containing "red". However, some names refer
+to the same RGB color (e.g. `red` and `red1`). To count the distinct
+colors, we convert the names to RGB values using `col2rgb()`, transpose
+the resulting matrix so that each row represents one color, and remove
+duplicate rows with `unique()`.
+
+```{r}
+nrow(unique(t(col2rgb(reds))))
+```
+
+Thus, the 27 names correspond to **24 distinct RGB colors**. The names
+also include other hues containing "red", such as `orangered`,
+`violetred` and `palevioletred`. The following plot illustrates all 27
+named colors, including the duplicate shades.
+
+```{r, fig.height=3}
+barplot(rep(1, length(reds)), col = reds, border = NA, names.arg = reds,
+        las = 2, cex.names = 0.6, axes = FALSE)
+```
+
+## Exercise 88
+
+Write a function which finds the most frequent character in a given file
+(e.g., <http://statmath.wu.ac.at/~hornik/index.html>). (Hint: use
+readLines() for reading lines of text from a given file or URI, and
+table() for creating frequency tables.)
+
+```{r}
+#Idea to read the lines, cut them into single characters, count each character
+# and take the biggest count
+#n_c = number of times character c appears, answer = the c with the biggest n_c
+#"abracadabra" -> a b r a c a d a b r a -> a=5, b=2, r=2, c=1, d=1, 
+#so the frequent one is "a"
+
+most_frequent_char <- function(file, count_spaces = FALSE) {
+  lines <- readLines(file, warn = FALSE)   #read all lines
+  chars <- unlist(strsplit(lines, ""))#cut every line into characters and put them
+                                           #into one vector
+  if (count_spaces == FALSE) { #we do not count spaces
+    chars <- chars[chars != " "] 
+  }
+  freq <- table(chars) #how often every character appears
+  best <- which.max(freq) #position of the biggest count
+
+  cat("Most frequent character:", names(freq)[best], "\n")
+  cat("It appears", freq[[best]], "times\n")
+  return(freq[best])
+}
+
+most_frequent_char("http://statmath.wu.ac.at/~hornik/index.html")
+```
+
+## Exercise 89
+
+Write a function `wc` which computes the number of different words in a
+given file (note the existence of punctuation characters).
+
+The idea: read the file, put all lines together into one string, make
+everything lower case (so "The" and "the" count as the same word), split
+the text into words at spaces and punctuation, and count the different
+words with `unique()`.
+
+```{r}
+get_words <- function(filename, include_numbers = TRUE) {
+  text <- paste(readLines(filename, encoding = "UTF-8", warn = FALSE),
+                collapse = " ")
+  text <- tolower(text)
+  text <- gsub("'", "", text)   # didn't -> didnt, so it stays one word
+
+  # split at spaces and punctuation (and digits, if numbers shouldn't count)
+  if (include_numbers) {
+    separator <- "[[:space:][:punct:]]+"
+  } else {
+    separator <- "[[:space:][:punct:][:digit:]]+"
+  }
+  words <- unlist(strsplit(text, separator))
+  words[words != ""]   # remove empty strings, e.g. from a leading space
+}
+
+wc <- function(filename, include_numbers = TRUE) {
+  length(unique(get_words(filename, include_numbers)))
+}
+```
+
+We split with `[[:space:][:punct:]]` instead of "everything that isn't
+a-z": the second version would also split words with special letters,
+like "naïve" into "na" and "ve". Whether numbers count as words depends
+on the situation, so the function has an argument for it.
+
+To test it, we write a small sample file. It contains punctuation, upper
+and lower case, a special letter and numbers.
+
+```{r}
+sample_text <- c("The naïve cat sat on the mat.",
+                 "The cat didn't see the 2 dogs!",
+                 "Naïve dogs, naïve cats: 2 + 2 = 4.")
+writeLines(sample_text, "sample.txt", useBytes = TRUE)
+
+readLines("sample.txt", encoding = "UTF-8")
+
+unique(get_words("sample.txt"))
+wc("sample.txt")
+wc("sample.txt", include_numbers = FALSE)
+```
+
+There are 12 different words (the, naïve, cat, sat, on, mat, didnt, see,
+2, dogs, cats, 4), or 10 without the numbers 2 and 4.
+
+## Exercise 90
+
+**Write a function which counts how often a given word occurs in a given
+file, ignoring case.**
+
+We start by creating some small example text file. *Note: the text was
+generated using GenAI*
+
+```{r}
+# Some example LLM-generated text
+text <- "R is a language for statistical computing. 
+It is used by statisticians and data scientists.
+Is R hard to learn? Not really - R is easy, if you practice every day!
+
+The word \"is\" appears in lines one, two and three. 
+Isolated or Island do not count and neither does this. 
+But IS, Is and is all do."
+
+# Export as file
+cat(text, file = "my_text.txt")
+```
+
+We define the function below.
+
+```{r}
+word_counter <- function(file, word) {
+  # Read in the file
+  text <- readLines(file, warn = F)
+  
+  # Split the text into a vector of separate words, each lowercased
+  tokenized_text <- strsplit(text, "[^[:alpha:]']+") |> unlist() |> tolower()
+  
+  # Remove apostrophes at the start or end of a token ('is' -> is),
+  # but keep internal ones (don't stays don't)
+  tokenized_text <- gsub("^'+|'+$", "", tokenized_text)
+  
+  # Lowercase the word we are looking for
+  target_word <- word |> tolower()
+  
+  # Count how many times this word appears
+  count <- sum(tokenized_text == target_word)
+  
+  return(count)
+}
+```
+
+We will check the text for two words - "is" and "R". "is" should appear
+8 times, while "R" should appear 3 times.
+
+```{r}
+word_counter(file = "my_text.txt", word = "is")
+
+word_counter(file = "my_text.txt", word = "R")
+```
+
+## Exercise 91
+
+Write a function which computes the binary representation of a given
+natural number x, as a binary string. (I.e., for x = 6 the result should
+be the string "110".)
+
+```{r}
+dec2bin <- function(x) {
+  if (x == 0) {
+    return("0")
+  } else if (x == 1) {
+    return("1")
+  } else {
+    return(paste0(dec2bin(x %/% 2), x %% 2))
+  }
+}
+
+dec2bin(7)
+```
+
+`dec2bin <- function(x) { ... }` defines the custom recursive function
+named `dec2bin` that takes an integer `x` as its input parameter.
+
+`if (x == 0) return("0") else if (x == 1) return("1")` establishes the
+base cases for the recursion. If the number is 0 or 1, the function
+returns the corresponding string directly without making further
+recursive calls. This is the crucial stopping condition that prevents an
+infinite loop.
+
+`x %/% 2` performs integer division (e.g., `6 %/% 2` evaluates to 3).
+This mathematically shifts the binary representation one position to the
+right, stripping off the least significant bit so the remaining value
+can be passed into the next recursive call.
+
+`x %% 2` the modulo operator calculates the remainder of the division by
+2 (e.g., `6 %% 2` evaluates to 0). This extracts the current least
+significant bit (either 0 or 1) for the given level of the recursion.
+
+`paste0(...)` concatenates the result of the recursive call
+`dec2bin(x %/% 2)` with the current remainder `x %% 2` without any
+separating spaces. R automatically coerces the numeric remainder into a
+character string during this step, assembling the final binary sequence
+from left to right as the recursive stack unwinds.
+
+## Exercise 92
+
+Use the `state.name` data set to write a function that takes some
+letters as input and randomly selects a state of the data set and
+outputs a logical indicating whether all of the letters are contained in
+that state name. (Hint: use `?sample`.)
+
+`state.name` contains the names of the 50 US states. We select one with
+`sample(state.name, 1)`. To test the letters, we split the lower-case
+name into its single characters with `strsplit()`. For every different
+letter in the input, we count how often it is requested and how often it
+appears in the name, and check that the name contains it at least as many
+times. This way repeated letters are handled correctly: for example,
+`"aaaa"` is not contained in "Alaska", because "Alaska" has only three
+a's. A simple check with `%in%` would not see this, since it only tests
+whether a letter appears at all, not how often. We also turn the input
+into lower-case, so that upper-case letters work as well. Because
+`strsplit()` splits every string into characters, the input can be given
+as one string (`"ia"`) or as several letters (`c("I", "A", "W")`). The
+argument `verbose = TRUE` additionally prints the selected state, so
+that we can check the result.
+
+```{r}
+# are all letters (given as a string or vector of letters) in the name?
+has_all_letters <- function(input, name) {
+  letters_to_check <- unlist(strsplit(tolower(input), NULL))
+  name_characters  <- strsplit(tolower(name), NULL)[[1]]
+  # for every different letter: is it in the name at least as often as requested?
+  all(sapply(unique(letters_to_check), function(l)
+    sum(letters_to_check == l) <= sum(name_characters == l)))
+}
+
+# random state
+random_state_check <- function(input, verbose = FALSE) {
+  state <- sample(state.name, 1)
+  if (verbose) cat("selected state:", state, "\n")
+  has_all_letters(input, state)
+}
+
+# the check itself, for fixed states
+has_all_letters("ia", "Iowa")
+has_all_letters(c("I", "A", "W"), "Iowa")
+has_all_letters("asd", "Iowa")
+has_all_letters("aaa", "Alaska")  
+has_all_letters("aaaa", "Alaska")   
+
+# random states
+set.seed(1)
+random_state_check("ae", verbose = TRUE)
+random_state_check("ae", verbose = TRUE)
+random_state_check(c("A", "B", "L"), verbose = TRUE)
+random_state_check(c("A", "B", "L"), verbose = TRUE)
+```
+
+## Exercise 94
+
+Over the complex plane, every polynomial
+
+$$p(z)=z^{n}+\beta_n z^{n-1}+\cdots+\beta_2 z+\beta_1$$
+
+has $n$ roots $z_1,\dots,z_n$ and can be written as
+
+$$p(z)=\prod_{k=1}^{n}(z-z_k).$$
+
+Write a function which computes the coefficients
+$(\beta_1,\dots,\beta_n)$ from the roots. A polynomial with leading
+coefficient $1$ is fully determined by its roots:
+
+$$p(z)=z^{n}+\beta_n z^{n-1}+\cdots+\beta_2 z+\beta_1=\prod_{k=1}^{n}(z-z_k)$$
+
+If we know the roots $z_1, z_2, \dots, z_n$, the polynomial is the
+product of the brackets:
+
+$$p(z) = (z - z_1)(z - z_2) ... (z - z_n)$$
+
+We have to open the brackets and read the numbers in front of the powers
+of $z$. These numbers are $\beta_1, ..., \beta_n$ ($\beta_1$ is the
+number without $z$).
+
+So we multiply the brackets one by one. Multiplying by $(z - r)$ means
+two things: multiply by $z$ (the coefficients move one place) and
+subtract $r$ times the polynomial (the coefficients are multiplied by
+$-r$). Then we add both parts.
+
+**Example with roots 1, 2, 3:**
+
+$$1 \; to \; z - 1 \; to \; z^2 - 3z + 2 \; to \; z^3 - 6z^2 + 11z - 6$$
+
+So $\beta_1 = -6$, $\beta_2 = 11$, $\beta_3 = -6$.
+
+```{r}
+#p(z) = (z - z1)(z - z2)...(z - zn)
+
+poly_coef <- function(roots) {
+  a <- 1 # start with the polynomial 1
+  for (r in roots) { #multiply by (z - r) for every root r
+    a <- c(-r * a, 0) + c(0, a)
+  }
+  n <- length(roots) #the last number is the leading coefficient 1, we do not need it
+  return(a[1:n])
+}
+
+poly_coef(c(1, 2, 3))
+```
+
+The last number of the vector `a` is the coefficient of $z^n$. Since the
+polynomial is $p(z) = z^n + \beta_n z^{n-1} + ... + \beta_1$, this
+coefficient is always $1$ (the $z^n$ has no $\beta$ in front of it). For
+roots $1, 2, 3$ the vector is $(-6, 11, -6, 1)$, and the last number $1$
+belongs to $z^3$. The task asks only for $\beta_1, ..., \beta_n$, so we
+keep the first $n$ numbers and drop the last one.
+
+## Exercise 97
+
+Represent polynomials
+$p(z) = \beta_1 + \beta_2 z + \dots + \beta_n z^{n-1}$ by their
+coefficient vectors $(\beta_1, . . . , \beta_n)$. Write a function
+`polyderiv` which computes the coefficient vector of the derivative $p'$
+of $p$. Use this function in combination with `polyroot` to compute the
+inflection points of a given polynomial.
+
+A polynomial $p(z) = \beta_1 + \beta_2 z + \dots + \beta_n z^{n-1}$ is
+stored as the vector $(\beta_1, \dots, \beta_n)$. Its derivative is
+$$p'(z) = \beta_2 + 2\beta_3 z + \dots + (n-1)\beta_n z^{n-2},$$ so we
+drop $\beta_1$ (the constant disappears) and multiply the others by
+$1, 2, \dots, n-1$. A constant polynomial ($n = 1$) has derivative 0.
+
+```{r}
+polyderiv <- function(coeffs) {
+  n <- length(coeffs)
+  if (n == 1) {
+    return(0)   # derivative of a constant is 0
+  }
+  coeffs[-1] * (1:(n - 1))
+}
+
+polyderiv(c(1, 2, 3, 4))   # 1 + 2z + 3z^2 + 4z^3  ->  2 + 6z + 12z^2
+polyderiv(5)               # constant
+polyderiv(c(3, 7))         # 3 + 7z  ->  7
+```
+
+**Inflection points.** At an inflection point the second derivative is 0
+**and changes its sign**. So we compute $p''$ with `polyderiv` twice,
+find its roots with `polyroot`, keep only the real ones, and check the
+sign change. Without that check, $p(z) = z^4$ would count $z = 0$ as an
+inflection point, although $p''(z) = 12z^2$ doesn't change sign there.
+
+
+```{r}
+polyval <- function(coeffs, z) {
+  sum(coeffs * z^(0:(length(coeffs) - 1)))   # evaluate p at the point z
+}
+
+inflection_points <- function(coeffs) {
+  second <- polyderiv(polyderiv(coeffs))
+  if (all(second == 0)) {
+    return(numeric(0))   # degree <= 1: p'' = 0, no inflection points
+  }
+
+  roots <- polyroot(second)
+  real_roots <- Re(roots[abs(Im(roots)) < 1e-8])   # only real roots
+
+  # keep the roots where p'' changes its sign
+  h <- 1e-4
+  changes_sign <- sapply(real_roots, function(x) {
+    polyval(second, x - h) * polyval(second, x + h) < 0
+  })
+  sort(real_roots[changes_sign])
+}
+
+inflection_points(c(1, 2, 3, 4))     # p'' = 6 + 24z      ->  -0.25
+inflection_points(c(1, -3, 0, 1))    # 1 - 3z + z^3       ->  0
+inflection_points(c(0, 0, 0, 0, 1))  # z^4: no inflection point
+inflection_points(c(0, 0, 0, 0, -10, 0, 1))  # z^6 - 10z^4  ->  -2, 2
+inflection_points(5)                 # constant
+```
+
+```{r}
+p <- c(1, -3, 0, 1)   # p(z) = 1 - 3z + z^3
+z <- seq(-2.5, 2.5, by = 0.01)
+plot(z, sapply(z, function(x) polyval(p, x)), type = "l",
+     xlab = "z", ylab = "p(z)", main = "p(z) = 1 - 3z + z^3")
+abline(v = inflection_points(p), lty = 2, col = "red")
+```
+
+The red line marks the inflection point at $z = 0$, where the curve
+changes from curving down to curving up.
+
+
+# Homework 5
+
+## Exercise 99
+
+Write a function `count_chars_in_table` which, for a given character
+vector `x` and a vector of single characters `table`, returns a vector
+giving the number of characters in the respective elements of `x`
+contained in `table`. E.g.,
+`count_chars_in_table("Wien", letters[1:13])` $\implies$ 2, as only ‘e’
+and ‘i’ are in the first 13 lower-case letters of the Roman alphabet.
+
+First, we implement using the operator `%in%`, suggested in the R Help,
+that (in our opinion) is much easier to read and understand, since its
+more intuitive and directly returns logicals.
+
+```{r}
+count_chars_in_table_in <- function(x, table) {
+  # split every element of x into its individual chars
+  # strsplit returns a list: one vector of chars per element of x
+  x_split <- strsplit(x, split = NULL)
+
+  # empty vector for the results, one count per element of x
+  counts <- integer(length(x))
+
+  # go through the elements of x one by one
+  for (i in seq_along(x_split)) {
+    # chars of the i-th element
+    chars <- x_split[[i]]
+    # check which chars are in table; logical output
+    chars_in_table <- chars %in% table
+    # count the number of chars in table
+    counts[i] <- sum(chars_in_table)
+  }
+
+  return(counts)
+}
+
+count_chars_in_table_in("Wien", letters[1:13])
+
+count_chars_in_table_in(c("Wien", "Graz", "QFin"), letters[1:13])
+```
+
+We still implement a version with `match()`.
+
+```{r}
+count_chars_in_table_match <- function(x, table) {
+  # split every element of x into its individual chars
+  # strsplit returns a list: one vector of chars per element of x
+  x_split <- strsplit(x, split = NULL)
+
+  # empty vector for the results, one count per element of x
+  counts <- integer(length(x))
+
+  # go through the elements of x one by one
+  for (i in seq_along(x_split)) {
+    # chars of the i-th element
+    chars <- x_split[[i]]
+    # match gives the position in table, or 0 if not found; > 0 gives logicals
+    chars_in_table <- match(chars, table, nomatch = 0) > 0
+    # count the number of chars in table
+    counts[i] <- sum(chars_in_table)
+  }
+
+  return(counts)
+}
+
+count_chars_in_table_match("Wien", letters[1:13])
+
+count_chars_in_table_match(c("Wien", "Graz", "QFin"), letters[1:13])
+```
+
+## Exercise 100
+
+Write a function which, for a given character vector `x`, returns a vector
+with the number of upper case letters in the elements of `x`.
+
+```{r}
+# Define a function named count_uppercase that takes a character vector 'x' as input
+count_uppercase <- function(x) {
+  
+  # Check if the input 'x' is actually a character vector
+  # This is good practice to ensure the function works as expected
+  if (!is.character(x)) {
+    warning("Input 'x' is not a character vector. Coercing to character.")
+    x <- as.character(x) # Coerce to character if it's not
+  }
+  
+  # Use gregexpr to find all matches of uppercase letters (A-Z) in each element of x
+  # The pattern "[A-Z]" regular expression matches any single uppercase English letter.
+  # gregexpr returns a list of integer vectors indicating the starting positions of matches.
+  # If no match is found, it returns -1.
+  match_info <- gregexpr("[A-Z]", x)
+  
+  # The sapply function applies a function to each element of a list or vector and 
+  # simplifies the result. Here we apply a custom function to each element of 'match_info'.
+  counts <- sapply(match_info, function(match_vector) {
+    
+    # If the first element of match_vector is -1, it means no match was found.
+    # The attribute "match.length" will also be -1 in this case.
+    if (match_vector[1] == -1) {
+      return(0) # Return 0 because there are no uppercase letters
+    } else {
+      # If matches were found, the length of the match_vector is the number of matches.
+      return(length(match_vector)) 
+    }
+  })
+  
+  return(counts)
+}
+
+# --- Examples to test the function ---
+
+
+count_uppercase(c("Hallo", "Toll", "Sehr GUT"))
+```
+
+## Exercise 101
+
+Write a function `strrev` which reverses a given character string (so
+that e.g. `strrev("ABC")` $\Rightarrow$ `"CBA"`).
+
+We split the string into its single characters with `strsplit(s, NULL)`,
+reverse the vector of characters with `rev()` and glue the characters
+together again with `paste(..., collapse = "")`. `strsplit()` returns a
+list with one vector of characters per string, so we use `vapply()` to
+treat every string of a character vector in the same way. The function
+therefore works for a single string and for a whole vector of strings.
+
+```{r}
+strrev <- function(s) {
+  chars <- strsplit(s, NULL) # list: one vector of single characters per string
+  vapply(chars, function(ch) paste(rev(ch), collapse = ""), character(1))
+}
+
+strrev("ABC")
+strrev(c("R", "QFin"))
+strrev("") # the empty string stays empty
+strrev(strrev("ABC")) # reversing twice gives the original
+strrev("racecar") # a palindrome
+strrev("naïve") # special characters work
+```
+
+The empty string has no characters, so `paste()` of an empty vector with
+`collapse = ""` gives `""` again. Another way to reverse a single string
+is `intToUtf8(rev(utf8ToInt(s)))`, which reverses the code numbers of
+the characters.
+
+## Exercise 102
+
+Write a function which, for each element of a given character vector,
+counts the number of words in the element, as obtained by splitting
+according to white space. (Hint: use `strsplit()` and `lapply()`.)
+
+**Idea**
+
+We get a character vector, for example
+`c("Quantitative Finance", "Wien")`. For every element we want one
+number, the number of words in it. So the answer is a vector with the
+same length as the input. A word is a piece of text between white
+spaces. If we cut the text at every white space, then the number of
+pieces is the number of words.
+
+At first we need to cut every element at white space. We use
+`strsplit(char_vec, "\\s+")`. The sign `\\s` means any white space
+(space, tab, new line). The sign `+` means one or more of them, so
+`"one   two"` with three spaces is cut only once. The result is a list,
+and every element of the list is a vector with the words of one element
+of `char_vec`.
+
+For example, `"Quantitative Finance"` becomes
+`"Quantitative" "Finance"`.
+
+Then we count words in each vector. We use `lapply()`, it goes through
+the list and applies a small function to every vector. The small
+function counts only the pieces which are not empty.
+
+We use `p != ""`: if the text starts with a space, `strsplit` makes an
+empty first piece `""`. For example, `"  one   two  three "` becomes
+`""  "one"  "two"  "three"`. The empty piece is not a word, so we throw
+it away. The text `" "` gives only one piece `""`, so the answer is 0
+words.
+
+Example: for `"  one   two  three "` the pieces are `""`, `"one"`,
+`"two"`, `"three"`. Then `p != ""` is `FALSE TRUE TRUE TRUE`, we keep
+three pieces and `length` is 3.
+
+```{r}
+count_words <- function(char_vec) {
+  split_list <- strsplit(char_vec, "\\s+")#cut every element at white space
+  #in every vector count the pieces which are not empty
+  word_counts <- lapply(split_list, function(p) length(p[p != ""])) 
+  unlist(word_counts) #list to normal vector
+}
+
+x <- c("Quantitative Finance", "  one   two  three ", " ", "", "Wien", "Computing")
+count_words(x)
+
+```
+
+## Exercise 103
+
+In each of the following, determine the final value of `answer`. Check your
+result by running the code in R.
+(a) `answer <- 0; for(j in 1:5) answer <- answer + j`
+(b) `answer <- NULL; for(j in 1:5) answer <- c(answer, j)`
+(c) `answer <- 0; for(j in 1:5) answer <- c(answer, j)`
+(d) `answer <- 1; for(j in 1:5) answer <- answer * j`
+(e) `answer <- 3; for(j in 1:15) answer <- c(answer, (7 * answer[j]) %% 31)`
+
+Inspect the last sequence of numbers. If you did not know the rule used to
+determine this sequence, would you be able to predict successive elements?
+
+**(a)** $0 + 1 + 2 + 3 + 4 + 5 = 15$
+
+```{r}
+answer <- 0; for (j in 1:5) answer <- answer + j
+answer
+```
+
+**(b)** Starting from `NULL`, each step appends $j$, so we get
+$(1, 2, 3, 4, 5)$.
+
+```{r}
+answer <- NULL; for (j in 1:5) answer <- c(answer, j)
+answer
+```
+
+**(c)** Same as (b), but starting from 0: $(0, 1, 2, 3, 4, 5)$.
+
+```{r}
+answer <- 0; for (j in 1:5) answer <- c(answer, j)
+answer
+```
+
+**(d)** $1 \cdot 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 = 5! = 120$
+
+```{r}
+answer <- 1; for (j in 1:5) answer <- answer * j
+answer
+```
+
+**(e)** Each new element is $a_{j+1} = 7 a_j \bmod 31$. Starting with
+$a_1 = 3$: $7 \cdot 3 = 21$, $7 \cdot 21 = 147 = 4 \cdot 31 + 23$, so
+the sequence starts $3, 21, 23, 6, \ldots$
+
+The brackets matter here: `%%` binds more strongly than `*` in R, so
+`7 * answer[j] %% 31` would compute $7 \cdot (a_j \bmod 31)$ and give
+$3, 21, 147, \ldots$ instead. That's why we put `7 * answer[j]` in
+brackets.
+
+```{r}
+answer <- 3
+for (j in 1:15) answer <- c(answer, (7 * answer[j]) %% 31)
+answer
+```
+
+The numbers jump around without a visible pattern, so without knowing
+the rule we couldn't really predict the next element. But the sequence
+is completely determined by the rule: after 15 steps it is back at 3
+(since $7^{15} \equiv 1 \pmod{31}$) and from there it repeats. This is
+exactly how simple random number generators work, they produce numbers
+that look random but come from a fixed formula.
+
+## Exercise 104
+
+A simple continued fraction built from integers $a_0, a_1, \dots, a_n$
+is
+
+$$
+\mathrm{cfrac}(a_0,\dots,a_n)
+= a_0 + \cfrac{1}{a_1 + \cfrac{1}{a_2 + \cfrac{1}{\ddots + \cfrac{1}{a_{n-1} + \cfrac{1}{a_n}}}}}
+$$
+
+The structure is obvious - everything after $a_0$ is itself a continued
+fraction, namely $\mathrm{cfrac}(a_1,\dots,a_n)$. That gives the
+recursion
+
+$$
+\mathrm{cfrac}(a_0,\dots,a_n) = a_0 + \frac{1}{\mathrm{cfrac}(a_1,\dots,a_n)},
+\qquad \mathrm{cfrac}(a_n) = a_n .
+$$
+
+```{r}
+cfrac <- function(seq) {
+  if (length(seq) == 1) return(seq)          # base case - single integer
+
+  # remove the first element and call the function on the remaining elements
+  seq[1] + 1 / Recall(seq[-1])
+}
+
+pi_terms <- c(3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 2, 1, 1)
+
+for (n in 1:length(pi_terms)) {
+  approx <- cfrac(pi_terms[1:n])
+  cat("n =", n - 1, " Approx =", sprintf("%.16f", approx),
+      " Error =", format(abs(approx - pi), digits = 3), "\n")
+}
+```
+
+The approximations get closer to $\pi$ with every additional
+coefficient: the error goes from $0.14$ for $n=0$ down to $0$ for
+$n = 14$. The approximations alternate around $\pi$: $3$ is below
+$\pi$, $22/7$ is above, $333/106$ is below, $355/113$ is above, and so
+on. So $\pi$ always lies between two neighbouring approximations.
+
+The improvement is not the same in every step. It depends on the size
+of the next coefficients. A large coefficient means that the remainder
+at this point of the expansion was very small (for 292, about $1/292$),
+so the approximation just before it is already very good. This is why
+$355/113 = 3.1415929\ldots$ is correct to 6 decimal places with only a
+3-digit denominator (error $2.7\cdot 10^{-7}$). Including the 292 then
+makes the denominator about 293 times larger ($113 \to 33102$), and the
+error drops by a factor of about 460 in one step, to
+$5.8\cdot 10^{-10}$. In general the error is roughly
+$1/(q_n q_{n+1})$, where $q_n$ is the denominator of the $n$-th
+approximation, so large coefficients give large denominators and small
+errors. Small coefficients like 1 give much smaller improvements: the
+next step ($n=5$) only reduces the error from $5.8\cdot 10^{-10}$ to
+$3.3\cdot 10^{-10}$.
+
+At $n = 12$ the error is $4.4\cdot 10^{-16}$, which is the distance
+between two neighbouring doubles near 3.14. From $n = 14$ on the error
+is exactly 0: the result is the same double as R's `pi`. Further
+coefficients cannot improve the result anymore, because they change the
+value by less than the smallest possible step between two doubles. Note
+that an error of 0 does not mean the result is exactly $\pi$: R's `pi`
+is only the double closest to $\pi$, so the comparison is limited by
+double precision itself.
+
+## Exercise 105
+
+Write a function which computes continued fractions in rational arithmetic,
+i.e., returns the numerator and denominator of the rational number represented
+by the continued fraction. Which rational approximations does this yield for
+the continued fraction expansion $(3, 7, 15, 1, 292, \dots)$ of $\pi$?
+
+A **continued fraction** is a way to represent any real number as a
+sequence of nested fractions, expressed as an integer plus the
+reciprocal of another integer, and so on.
+
+Mathematically, it takes this descending stair-step form:
+
+$$
+x = a_0 + \frac{1}{a_1 + \frac{1}{a_2 + \frac{1}{a_3 + \dots}}}
+$$
+
+Here, $a_0$ is an integer, and all subsequent terms
+($a_1, a_2, a_3, \dots$) are positive integers known as the
+**coefficients** or **partial quotients**. To save space, this is often
+written in a flat bracket notation like $[a_0; a_1, a_2, a_3, \dots]$.
+
+**How It Works (The Algorithm)**
+
+To convert a standard decimal number into a continued fraction, you
+repeatedly extract the whole number part and invert the leftover decimal
+part.
+
+Using $\pi$ (approximately 3.14159) as an example:
+
+1.  **Extract the integer:** The whole number part is **3**. The
+    remainder is 0.14159...
+
+2.  **Invert the remainder:** Take the reciprocal of the remainder:
+    $1 / 0.14159... = 7.0625...$
+
+3.  **Extract the integer again:** The whole number part of this new
+    value is **7**. The remainder is 0.0625...
+
+4.  **Invert again:** $1 / 0.0625... = 15.996...$ (Integer part: **15**)
+
+Please see below the code for the algorithm of this example. In short it
+is the reverse Order of the example above.
+
+```{r}
+# Function to compute the rational representation (numerator and denominator) 
+# of a continued fraction given as a vector of coefficients
+continued_fraction <- function(a) {
+  # Initialize the variables for the recurrence relation.
+  # h represents numerators, k represents denominators.
+  # We use numeric (double) instead of integer to avoid overflow for larger numbers.
+  h_prev2 <- 0
+  h_prev1 <- 1
+  k_prev2 <- 1
+  k_prev1 <- 0
+  
+  # Vectors to store the convergents (approximations) at each step
+  numerators <- numeric(length(a))
+  denominators <- numeric(length(a))
+  
+  # Iterate through the coefficients to calculate numerators and denominators
+  for (i in seq_along(a)) {
+    # Calculate current numerator and denominator using the recurrence formula:
+    # h_i = a_i * h_{i-1} + h_{i-2}
+    # k_i = a_i * k_{i-1} + k_{i-2}
+    h_curr <- a[i] * h_prev1 + h_prev2
+    k_curr <- a[i] * k_prev1 + k_prev2
+    
+    # Store the current numerator and denominator
+    numerators[i] <- h_curr
+    denominators[i] <- k_curr
+    
+    # Update previous values for the next iteration
+    h_prev2 <- h_prev1
+    h_prev1 <- h_curr
+    k_prev2 <- k_prev1
+    k_prev1 <- k_curr
+  }
+  
+  # Return a data frame containing all intermediate rational approximations
+  return(data.frame(
+    term = a,
+    numerator = numerators,
+    denominator = denominators,
+    approximation = numerators / denominators
+  ))
+}
+
+# --- Testing the function with the continued fraction of Pi ---
+
+# The sequence given in the task is (3, 7, 15, 1, 292)
+pi_expansion <- c(3, 7, 15, 1, 292)
+
+# Calculate the rational approximations
+pi_approximations <- continued_fraction(pi_expansion)
+
+# Print the resulting convergents
+print(pi_approximations)
+```
+
+The R program calculates the rational approximations using the
+fundamental recurrence relation for the convergents of a continued
+fraction.
+
+Given the sequence of coefficients $a = (3, 7, 15, 1, 292)$, the program
+computes the numerators ($h_i$) and denominators ($k_i$) iteratively
+using these formulas:
+
+$$
+h_i = a_i \cdot h_{i-1} + h_{i-2}
+$$
+
+$$
+k_i = a_i \cdot k_{i-1} + k_{i-2}
+$$
+
+The script initializes the base cases (the "prev1" and "prev2"
+variables) as follows to make the loop work from the very first term:
+
+- $h_{-1} = 0$, $h_0 = 1$
+
+- $k_{-1} = 1$, $k_0 = 0$
+
+Here is the exact step-by-step arithmetic the `for` loop executes:
+
+**Step 1:** $i = 1, a_1 = 3$
+
+- $h_1 = 3 \cdot 1 + 0 = 3$
+
+- $k_1 = 3 \cdot 0 + 1 = 1$
+
+- **Convergent 1:** $\frac{3}{1} = 3$
+
+**Step 2:** $i = 2, a_2 = 7$
+
+- $h_2 = 7 \cdot 3 + 1 = 22$
+
+- $k_2 = 7 \cdot 1 + 0 = 7$
+
+- **Convergent 2:** $\frac{22}{7} \approx 3.142857$
+
+**Step 3:** $i = 3, a_3 = 15$
+
+- $h_3 = 15 \cdot 22 + 3 = 330 + 3 = 333$
+
+- $k_3 = 15 \cdot 7 + 1 = 105 + 1 = 106$
+
+- **Convergent 3:** $\frac{333}{106} \approx 3.141509$
+
+**Step 4:** $i = 4, a_4 = 1$
+
+- $h_4 = 1 \cdot 333 + 22 = 355$
+
+- $k_4 = 1 \cdot 106 + 7 = 113$
+
+- **Convergent 4:** $\frac{355}{113} \approx 3.1415929$
+
+**Step 5:** $i = 5, a_5 = 292$
+
+- $h_5 = 292 \cdot 355 + 333 = 103660 + 333 = 103993$
+
+- $k_5 = 292 \cdot 113 + 106 = 32996 + 106 = 33102$
+
+- **Convergent 5:** $\frac{103993}{33102} \approx 3.141592653$
+
+## Exercise 109
+
+A finite generalized continued fraction is an expression of the form
+$$\text{gcfrac}(a, b) = a_0 + \cfrac{b_1}{a_1 + \cfrac{b_2}{a_2 + \cdots + \cfrac{b_n}{a_n}}}$$
+Write a function to compute the value of such expressions, and use it to
+implement an approximation to the tangent function at given $x$ using
+$k$ terms of the Lambert continued fraction representation
+$$\tan(x) = \cfrac{x}{1 - \cfrac{x^2}{3 - \cfrac{x^2}{5 - \cfrac{x^2}{7 - \cdots}}}}$$
+What does the approximation give for $x = \pi/4$ and $k = 5$?
+
+**The function `gcfrac`.** We compute the value from the inside out: we
+start with the innermost value $v = a_n$ and then go backwards for
+$i = n-1, \dots, 0$ and set $v \leftarrow a_i + b_{i+1} / v$. At the end
+$v$ is the value of the whole fraction. The vector `a` has the $n+1$
+entries $a_0, \dots, a_n$ and the vector `b` the $n$ entries
+$b_1, \dots, b_n$. Since R starts counting at 1, $a_i$ is `a[i + 1]` and
+$b_i$ is `b[i]`.
+
+```{r}
+gcfrac <- function(a, b) {
+  n <- length(b) # a has n + 1 entries: a_0, ..., a_n
+  value <- a[n + 1] # innermost value a_n
+  for (i in seq_len(n)) {
+    # i = 1: a_(n-1) + b_n / a_n, i = 2: a_(n-2) + b_(n-1) / (...), ...
+    value <- a[n + 1 - i] + b[n + 1 - i] / value
+  }
+  return(value)
+}
+
+# example: 1 + 4 / (2 + 5 / 3)
+gcfrac(c(1, 2, 3), c(4, 5))
+1 + 4 / (2 + 5 / 3)
+
+# n = 0: only a_0 is left
+gcfrac(5, numeric(0))
+
+# sqrt(2) = 1 + 1/(2 + 1/(2 + ...))
+gcfrac(c(1, rep(2, 30)), rep(1, 30))
+sqrt(2)
+```
+
+**The Lambert continued fraction.** To write
+$\cfrac{x}{1 - \cfrac{x^2}{3 - \cfrac{x^2}{5 - \cdots}}}$ in the form of
+`gcfrac` we use $a_0 = 0$, $b_1 = x$, $a_1 = 1$ and then
+$b_2 = b_3 = \dots = -x^2$ together with the odd numbers
+$a_2 = 3, a_3 = 5, \dots$ (as a minus sign in front of the fraction is
+the same as a plus sign with the numerator $-x^2$). With $k$ terms (i.e.
+the denominators $1, 3, \dots, 2k-1$) we get
+$$a = (0, 1, 3, 5, \dots, 2k-1), \qquad b = (x, -x^2, \dots, -x^2).$$
+For $k = 1$ this is $\tan(x) \approx x$, and for $k = 2$ it is
+$\frac{x}{1 - x^2/3}$.
+
+```{r}
+tan_cf <- function(x, k) {
+  a <- c(0, seq(1, by = 2, length.out = k)) # 0, 1, 3, ..., 2k - 1
+  vapply(x, function(xi) gcfrac(a, c(xi, rep(-xi^2, k - 1))), numeric(1))
+}
+
+# x = pi / 4 and k = 5
+print(tan_cf(pi / 4, 5), digits = 12)
+tan(pi / 4)
+abs(tan_cf(pi / 4, 5) - tan(pi / 4))
+
+# check: the continued fraction with 5 terms written out by hand
+x <- pi / 4
+print(x / (1 - x^2 / (3 - x^2 / (5 - x^2 / (7 - x^2 / 9)))), digits = 12)
+```
+
+```{r}
+# how fast does the approximation converge? (x = pi / 4)
+k <- 1:8
+approximation <- vapply(k, function(k) tan_cf(pi / 4, k), numeric(1))
+print(data.frame(k = k, approximation = approximation,
+                 error = abs(approximation - 1)), digits = 12)
+```
+
+For $x = \pi/4$ and $k = 5$ the approximation gives
+$\tan(\pi/4) \approx 0.9999999865$. The exact value is 1, so the error
+is only about $1.3 \cdot 10^{-8}$ (`tan(pi / 4)` in R is 1 up to
+rounding). The continued fraction converges very fast for $x = \pi/4$:
+every additional term gains about two decimal digits, and with 8 terms
+the error is already at the level of rounding errors.
+
+## Exercise 112
+
+Every natural number $n$ has a prime factorization
+
+$$n = \prod_k p_k^{e_k}$$
+
+where the primes $p_k$ divide $n$ exactly $e_k$ times. Write a function
+`factorize` which returns the sequence of prime factors $p_k$ with the
+corresponding multiplicities $e_k$ for a given $n$. (E.g.,
+`factorize(120)` $\Rightarrow$ `c(2, 2, 2, 3, 5)`.)
+
+**Idea**
+
+We want to write $n$ as a product of primes. For example
+$120 = 2 \cdot 2 \cdot 2 \cdot 3 \cdot 5$. The answer is a vector where
+every prime is written as many times as it divides $n$.
+
+We try the divisors $d = 2, 3, 4, ...$ one by one. If $d$ divides $n$,
+we save $d$ and divide $n$ by $d$. We do it again and again, while $d$
+still divides $n$. And then we go to the next $d$.
+
+Example: Let $n = 120$
+
+Start: $d = 2$, $n = 120$. Then $120 \to 60 \to 30 \to 15$, and we save
+$2, 2, 2$. Next $d = 3$. Check: $9 > 15$? No.
+
+Next: $d = 3$, $n = 15$. Then $15 \to 5$ and we save $3$. Next $d = 4$.
+Check: $16 > 5$ and $n > 1$? Yes. So we add $5$ and stop.
+
+```{r}
+factorize <- function(n) {
+  primes <- c() #empty vector for the prime factors
+  d <- 2
+  #go on while there is something to divide
+  while (n > 1) {
+    while (n %% d == 0) {   #divide by d as long as it fits and save d every time
+      primes <- c(primes, d)
+      n <- n / d
+    }
+    d <- d + 1
+    if (d * d > n && n > 1) { #if d*d > n, then n itself is the last prime
+      primes <- c(primes, n)
+      break
+    }
+  }
+  primes
+}
+
+factorize(120)
+
+```
+
+## Exercise 113
+
+A twin prime is a pair of primes $(x, y)$ such that $y = x + 2$. Construct a
+list of all twin primes below 1000.
+
+First we need a function that checks whether a number is prime. It's
+enough to try divisors up to $\sqrt{n}$: if $n = a \cdot b$ with
+$a \le b$, then $a \le \sqrt{n}$.
+
+```{r}
+is_prime <- function(n) {
+  if (n < 2) return(FALSE)
+  if (n < 4) return(TRUE)   # 2 and 3
+  for (k in 2:floor(sqrt(n))) {
+    if (n %% k == 0) return(FALSE)
+  }
+  TRUE
+}
+
+sapply(1:10, is_prime)
+```
+
+The case $n = 3$ needs its own line: `2:floor(sqrt(3))` is `2:1`, which
+in R counts backwards and is `c(2, 1)`. Since every number is divisible
+by 1, 3 would be wrongly classified as not prime and the pair $(3, 5)$
+would be missing.
+
+Now we go through all $x$ and keep the pairs where both $x$ and $x + 2$
+are prime. We only go up to 997 so that $x + 2$ is still below 1000.
+
+```{r}
+twin_primes <- function(limit = 1000) {
+  x <- 1:(limit - 3)
+  is_twin <- sapply(x, is_prime) & sapply(x + 2, is_prime)
+  lapply(x[is_twin], function(p) c(p, p + 2))
+}
+
+twins <- twin_primes()
+length(twins)
+head(twins, 5)
+tail(twins, 3)
+```
+
+The output is a list where each element is one twin prime pair. There
+are 35 pairs below 1000, starting with $(3, 5)$, $(5, 7)$, $(11, 13)$
+and ending with $(881, 883)$.
+
+## Exercise 114
+
+Let $f_n$ denote the n-th Fibonacci number.
+
+- Construct a sequence of ratios of the form
+  $f_{n+1}/f_n, \quad n = 1,2,...,30$. Does the sequence appear to be
+  converging?
+- Compute the golden ratio (1 + $\sqrt{5}$)/2. Is the sequence
+  converging to this ratio? Can you prove this?
+
+```{r}
+fibonacci <- function(n) {
+  # hardcode the first 2 fibonacci numbers
+  if(n == 0) return(0)
+  if(n %in% c(1,2)) return(1)
+
+  # use recursion to find the n-th fibonacci number
+  return(Recall(n-1) + Recall(n-2))
+}
+
+fibonacci_seq <- sapply(2:31, fibonacci) / sapply(1:30, fibonacci)
+
+golden_ratio  <- (1+sqrt(5))/2
+
+# plot results
+plot(1:30, fibonacci_seq,
+     main = "Fibonaci Sequence of Ratios",
+     xlab = "n", ylab = "ratio")
+abline(h = golden_ratio, col = "darkred")
+```
+
+The sequence appears to be converging exactly to the so called golden
+ratio $\approx 1.618$. To prove this, we start by denoting the sequence
+elements as $r_n = f_{n+1}/f_n$. Dividing the recursion
+$f_{n+1} = f_n + f_{n-1}$ by $f_n$ gives the key relation
+
+$$
+r_n = 1 + \frac{1}{r_{n-1}} \quad \text{and} \quad r_1 = 1
+$$
+
+Let $\varphi$ is the fixed point of a function in the form
+$g(x) = 1 + \frac{1}{x}$. Solving $L = 1 + \frac{1}{L}$ gives
+$L^2 - L - 1 = 0$, whose positive root is
+$L =\frac{1 + \sqrt{5}}{2} = \varphi$. So if the sequence converges, it
+must converge to exactly $\varphi$.
+
+We subtract $\varphi = 1 + \frac{1}{\varphi}$ from
+$r_n = 1 + \frac{1}{r_{n-1}}$ to get
+
+$$
+r_n - \varphi \;=\; \frac{1}{r_{n-1}} - \frac{1}{\varphi}
+\;=\; \frac{\varphi - r_{n-1}}{\varphi\, r_{n-1}}
+\quad\text{hence}\quad
+|r_n - \varphi| = \frac{|r_{n-1} - \varphi|}{\varphi\, r_{n-1}}
+$$
+
+Since $f_{n+1} \ge f_n$ for all $n \ge 1$, we have $r_{n-1} \ge 1$, so
+the denominator satisfies $\varphi\, r_{n-1} \ge \varphi > 1$. Therefore
+
+$$
+|r_n - \varphi| \;\le\; \frac{1}{\varphi}\,|r_{n-1} - \varphi|
+\;\le\; \left(\tfrac{1}{\varphi}\right)^{n-1} |r_1 - \varphi| \;\longrightarrow\; 0
+$$
+
+because $\frac{1}{\varphi} \approx 0.618 < 1$.
+
+The map is a contraction, so the sequence converges. Consequently, the
+limit is $\varphi \approx 1.618$ (the so called Golden Ratio). $\square$
+
+## Exercise 115
+
+Determine the number of Fibonacci numbers less than 1 000 000.
+
+```{r}
+# Define a function to generate and count Fibonacci numbers up to a maximum value
+count_fibonacci_up_to <- function(max_val) {
+  
+  # Initialize the sequence with the first two standard Fibonacci numbers
+  # F_1 = 1, F_2 = 1
+  fib_sequence <- c(1, 1)
+  
+  # Start an infinite loop that we will manually break when the limit is reached
+  while (TRUE) {
+    
+    # Calculate the next Fibonacci number by summing the last two numbers in the sequence
+    # length(fib_sequence) points to the very last element
+    # length(fib_sequence) - 1 points to the second-to-last element
+    current_length <- length(fib_sequence)
+    next_fib <- fib_sequence[current_length] + fib_sequence[current_length - 1]
+    
+    # Check if the newly calculated number is strictly less than our maximum value
+    if (next_fib < max_val) {
+      # If it is smaller, append it to the end of our sequence vector
+      fib_sequence <- c(fib_sequence, next_fib)
+    } else {
+      # If it is equal to or greater than the maximum, stop generating numbers
+      break 
+    }
+  }
+  
+  # Calculate the number of distinct values
+  # The unique() function removes duplicate entries (like the starting 1, 1)
+  distinct_fibs <- unique(fib_sequence)
+  
+  # Return a list containing the total count, distinct count, and the sequence itself
+  return(list(
+    total_count = length(fib_sequence),
+    distinct_count = length(distinct_fibs),
+    sequence = fib_sequence
+  ))
+}
+
+# --- Execute the function ---
+
+# Set our upper limit to 1,000,000
+threshold <- 1000000
+
+# Call the function and store the result
+result <- count_fibonacci_up_to(threshold)
+
+# Print the results to the console using cat() for formatted text
+cat("Total standard Fibonacci numbers (starting 1, 1) less than", threshold, "is:", result$total_count, "\n")
+cat("Total DISTINCT positive Fibonacci numbers less than", threshold, "is:", result$distinct_count, "\n\n")
+
+# Print the full generated sequence to verify
+print("The generated sequence:")
+print(result$sequence)
+```
+
+There are **30** Fibonacci numbers below 1,000,000 ($1, 1, 2, 3, \dots, 832040$),
+or **29** different ones, since $1$ appears twice. The next Fibonacci number,
+1,346,269, is already above the limit.
+
+## Exercise 116
+
+The Fibonacci recursion can be seen as the application of the
+transformation $x = (a, b) \mapsto Tx = (a + b, a)$ with initial value
+$x = (1, 0)$ (using the modern convention to begin with $F_0 = 0$)
+giving $(F_n, F_{n-1}) = T^n(F_1, F_0) = T^n(1, 0)$. Consider $T$ to be
+the special case of $p = 0$ and $q = 1$ in the family of transformations
+$T_{pq}$ defined by $$T_{pq}(a, b) = ((p + q)a + qb, qa + pb).$$ Show
+that applying such a transformation $T_{pq}$ twice has the same effect
+as applying a transformation $T_{p'q'}$ of the same form, and determine
+$p'$ and $q'$ in terms of $p$ and $q$. Use this to implement a function
+which computes $T_{pq}^n x$ in a logarithmic number of steps, by using
+$T_{pq}^0 x = x$, $T_{pq}^{2k} x = T_{p'q'}^k x$ if $n = 2k$ is even and
+$T_{pq}^n x = T_{pq}(T_{pq}^{n-1} x)$ otherwise. Use this function to
+provide a function which computes the $n$-th Fibonacci number in a
+logarithmic number of steps.
+
+**Remark on indexing.** Unlike Exercise 115, which starts the Fibonacci
+sequence with $F_1=F_2=1$, we now use the convention $F_0=0$, $F_1=1$,
+as specified in the problem statement. This does not change the
+Fibonacci numbers themselves, only their indexing and the inclusion of
+the initial zero.
+
+**Applying** $T_{pq}$ **twice.** Let $(a, b)$ be given and
+$(a_1, b_1) = T_{pq}(a, b) = ((p+q)a + qb,\; qa + pb)$. Then
+$$\begin{aligned}
+T_{pq}(a_1, b_1) &= \big((p+q)a_1 + qb_1,\; qa_1 + pb_1\big) \\
+&= \big((p+q)[(p+q)a + qb] + q[qa + pb],\;\; q[(p+q)a + qb] + p[qa + pb]\big).
+\end{aligned}$$ Collecting the terms with $a$ and $b$ in both components
+gives the first component
+$$\big((p+q)^2 + q^2\big)a + \big((p+q)q + pq\big)b = (p^2 + 2pq + 2q^2)\,a + (2pq + q^2)\,b$$
+and the second component
+$$\big(q(p+q) + pq\big)a + (q^2 + p^2)b = (2pq + q^2)\,a + (p^2 + q^2)\,b.$$
+Now we compare this with
+$T_{p'q'}(a, b) = ((p'+q')a + q'b,\; q'a + p'b)$. The coefficient of $b$
+in the first and of $a$ in the second component is $q'$, and the
+coefficient of $b$ in the second component is $p'$, so
+$$\boxed{p' = p^2 + q^2, \qquad q' = 2pq + q^2.}$$ Then also
+$p' + q' = p^2 + 2pq + 2q^2$, which is the coefficient of $a$ in the
+first component. So $T_{pq}$ applied twice is the same as $T_{p'q'}$
+applied once. For the Fibonacci case $p = 0$, $q = 1$ we get
+$p' = q' = 1$, i.e. $T^2(a, b) = (2a + b, a + b)$.
+
+```{r}
+T_pq <- function(x, p, q) {
+  c((p + q) * x[1] + q * x[2], q * x[1] + p * x[2])
+}
+
+# numerical check of the formulas for random p, q and x = (a, b)
+set.seed(1)
+p <- runif(1, -2, 2)
+q <- runif(1, -2, 2)
+x <- runif(2, -3, 3)
+
+T_pq(T_pq(x, p, q), p, q) # apply T_pq twice
+T_pq(x, p^2 + q^2, 2 * p * q + q^2) # apply T_p'q' once
+all.equal(T_pq(T_pq(x, p, q), p, q), T_pq(x, p^2 + q^2, 2 * p * q + q^2))
+```
+
+**Computing** $T_{pq}^n x$. With the formulas above we get a recursive
+function. If $n = 0$ nothing is done. If $n$ is even we use
+$T_{pq}^{n} = T_{p'q'}^{n/2}$, which halves $n$ with one step. If $n$ is
+odd we apply $T_{pq}$ once to $T_{pq}^{n-1}x$, and $n - 1$ is even.
+After at most two steps $n$ is halved, so we need about $\log_2(n)$
+halvings and at most $2\lfloor\log_2(n)\rfloor + 1$ steps in total,
+instead of $n$ steps.
+
+```{r}
+T_power <- function(n, x, p, q) {
+  if (n == 0) {
+    return(x)
+  } else if (n %% 2 == 0) {
+    # T_pq^(2k) x = T_p'q'^k x
+    return(T_power(n / 2, x, p^2 + q^2, 2 * p * q + q^2))
+  } else {
+    # T_pq^n x = T_pq(T_pq^(n-1) x)
+    return(T_pq(T_power(n - 1, x, p, q), p, q))
+  }
+}
+
+T_power(10, c(1, 0), 0, 1)
+```
+
+**Fibonacci numbers.** For $p = 0$, $q = 1$ and $x = (1, 0)$ we have
+$T(1, 0) = (1, 1) = (F_2, F_1)$ and in general
+$T^n(1, 0) = (F_{n+1}, F_n)$ (the indices in the exercise are shifted by
+one: the pair $(F_n, F_{n-1})$ is $T^{n-1}(1, 0)$). So $F_n$ is the
+second component of $T^n(1, 0)$.
+
+```{r}
+fib <- function(n) {
+  T_power(n, c(1, 0), 0, 1)[2]
+}
+
+vapply(0:15, fib, numeric(1))
+
+# comparison with the simple loop which needs n steps
+fib_loop <- function(n) {
+  if (n == 0) return(0)
+  a <- 0
+  b <- 1
+  for (i in seq_len(n - 1)) {
+    t <- a + b
+    a <- b
+    b <- t
+  }
+  return(b)
+}
+all(vapply(0:70, fib, numeric(1)) == vapply(0:70, fib_loop, numeric(1)))
+
+format(fib(50), scientific = FALSE)
+format(fib(78), scientific = FALSE) # largest Fibonacci number a double stores exactly
+format(fib(79), scientific = FALSE) # the exact value is 14472334024676221
+fib(1476)
+fib(1477) # larger than the largest double
+```
+
+The two functions produce the same outputs. Since the Fibonacci numbers
+grow exponentially, $F_{78} = 8944394323791464 < 2^{53}$ is the last
+Fibonacci number representable exactly in double precision. From
+$n = 79$ on they are rounded (the last digit of `fib(79)` above is
+wrong), and from $n = 1477$ on they are larger than the largest double
+and R returns `Inf`. So we cannot use very large $n$ to see the speed
+advantage with the Fibonacci numbers themselves. But we can count the
+number of steps, i.e. the number of recursive calls, which does not
+depend on the size of the numbers:
+
+```{r}
+# number of recursive calls of T_power for a given n (same case distinction)
+steps <- function(n) {
+  if (n == 0) {
+    return(0)
+  } else if (n %% 2 == 0) {
+    return(1 + steps(n / 2))
+  } else {
+    return(1 + steps(n - 1))
+  }
+}
+
+n <- c(10, 100, 1000, 10^6, 10^9, 10^12)
+data.frame(n = n, steps = vapply(n, steps, numeric(1)), log2_n = log2(n))
+```
+
+Even for $n = 10^{12}$ we need only 52 steps (the simple loop would need
+$10^{12}$), and the number of steps grows like $\log_2(n)$.
+
+## Exercise 117
+
+Implement a function which computes, for a given positive integer $n$,
+all pairs $(i, j)$ with $1 \le i < j \le n$.
+
+**Idea**
+
+We want all pairs of two different numbers from $1, ..., n$, where the
+first number is smaller than the second one. The order does not matter,
+so $(1, 2)$ and $(2, 1)$ are the same pair and we write it only once, as
+$(1, 2)$.
+
+Example: let $n = 4$
+
+For $i = 1$ we take $j = 2, 3, 4$, we get $(1,2), (1,3), (1,4)$
+
+For $i = 2$ we take $j = 3, 4$, we get $(2,3), (2,4)$
+
+For $i = 3$ we take $j = 4$, we get $(3,4)$
+
+Together it gives $3 + 2 + 1 = 6$ pairs.
+
+```{r}
+all_pairs <- function(n) {
+  pairs <- matrix(integer(0), ncol = 2)  #empty matrix with 2 columns
+  for (i in seq_len(n - 1)) {   #i goes from 1 to n-1 (no steps for n = 1)
+    for (j in (i + 1):n) {  #j goes from i+1 to n, so always i < j
+      pairs <- rbind(pairs, c(i, j))
+    }
+  }
+  colnames(pairs) <- c("i", "j")
+  pairs
+}
+
+all_pairs(4)
+cat("Number of pairs:", nrow(all_pairs(4)), "\n")
+
+all_pairs(1)
+```
+
+## Exercise 118
+
+We want all $k$-tuples $(i_1, \ldots, i_k)$ with
+$1 \le i_1 < \cdots < i_k \le n$, i.e. all subsets of $\{1, \ldots, n\}$
+with $k$ elements, written in increasing order. We split them into two
+groups:
+
+- tuples that contain $n$: since $n$ is the largest number it is always
+  last, so we take all $(k-1)$-tuples from $\{1, \ldots, n-1\}$ and add
+  $n$ at the end,
+- tuples that don't contain $n$: these are just all $k$-tuples from
+  $\{1, \ldots, n-1\}$.
+
+This gives a recursion, which stops when $k = 1$ (every number on its
+own) or $k = n$ (only $(1, \ldots, n)$).
+
+If $k > n$ there are no such tuples, since we can't pick $k$ different
+numbers out of only $n$. Without a check the recursion would keep
+reducing $n$ and never reach one of the two stopping cases, so we stop
+with an error message instead. The same holds for $k < 1$ or $n < 1$,
+since the exercise asks for positive integers.
+
+```{r}
+k_tuples <- function(n, k) {
+  if (n < 1 || k < 1) stop("n and k have to be positive integers")
+  if (k > n) stop("k can't be bigger than n: there are no such tuples")
+
+  if (k == n) return(matrix(1:n, nrow = 1))   # only (1, ..., n)
+  if (k == 1) return(matrix(1:n, ncol = 1))   # (1), (2), ..., (n)
+
+  with_n    <- cbind(k_tuples(n - 1, k - 1), n)   # n is always the last entry
+  without_n <- k_tuples(n - 1, k)
+
+  result <- rbind(with_n, without_n)
+  colnames(result) <- NULL
+  result
+}
+
+k_tuples(5, 3)
+k_tuples(4, 1)
+k_tuples(3, 3)
+try(k_tuples(3, 5))
+```
+
+Each row is one tuple. For $n = 5$, $k = 3$ we get $\binom{5}{3} = 10$
+rows, as expected.
+
+## Exercise 119
+
+In the Josephus problem, n soldiers are standing in a circle being
+surrounded by members of the enemy army, so they come up with a system
+to execute each other to avoid being captured. The first soldier kills
+the second, the third kills the fourth and so on until the end of the
+circle is reached (at the end of the circle, either the $n$-th soldier
+kills the first or the $(n-1)$-th kills the $n$-th, depending on whether
+$n$ is even or odd). This procedure is repeated with the remaining
+soldiers, starting with the next soldier and going in the same direction
+until only one person remains. Let’s suppose soldier Josephus secretly
+prefers capture to being killed by a fellow soldier. In which position
+in the circle does he have to stand in order to be the last one
+standing?
+
+Write a function that takes $n$ as an input and outputs the
+corresponding position in the circle $W(n)$ that will make sure he is
+the last soldier remaining. Can you come up with an explicit formula for
+$W(n)$?
+
+First, we start by writing a verbose function that will help us
+understand how the problem works.
+
+```{r}
+josephus_verbose <- function(n) {
+
+  circle <- seq_len(n) # sequence of the solders
+  k <- 1               # the first solder kills first
+  round <- 1           # counter
+
+  cat("start:", paste(circle, collapse = " "), "\n\n")
+
+  while (length(circle) > 1) {
+    m <- length(circle) # how many are alive at beginning of round
+    v <- k %% m + 1     # position of the killed solder (1 after the killer)
+
+    killer <- circle[k]   # position of the killer
+    victim <- circle[v]   # position of the killed solder
+
+    circle <- circle[-v]  # remove the dead solder
+    k <- if (v <= m - 1) v else 1 # update the index to the next killer,
+    # if the killed solder was not the last one, the killer is the new one
+    # at his position
+
+    cat("round", round, ": soldier", killer, "kills soldier", victim, "\n")
+    cat("    alive:", paste(circle, collapse = " "), "\n")
+    cat("    the killer is now soldier", circle[k], "\n\n")
+
+    round <- round + 1 # update counter
+  }
+
+  cat("survivor: soldier", circle, "\n")
+  invisible(circle)
+}
+
+josephus_verbose(7)
+
+```
+
+The kills in the first pass are 2, 4, 6, ... (exactly the EVEN
+positions). So after one lap, all even-numbered solders are gone and
+only the odd ones are left.
+
+The survivors still stand in a circle. The only difference is the labels
+of the solders left (instead of 1,2,3, ... they are 1,3,5, ...) So if I
+already knew the answer for a circle of half the size, I could just
+translate that answer back into the original labels.
+
+Split the problem into 2 cases:
+
+- Case A: $n$ even In the first pass we kill $2,4,\dots,2m$. The last
+  kill is 2m-1 killing 2m, so the new killer is again solder 1.
+  Survivors in order: $1, 3, 5, \dots, 2m-1$ ($m$ soldiers, starter =
+  1st) New index j $\implies$ original label $2j - 1$ The new game is
+  exactly a game with $m$ soldiers, so its winner has new index $W(m)$
+  and therefore $$
+  W(2m) = 2  W(m) - 1
+  $$
+
+- Case B: $n$ odd In the first pass we kill $2,4,\dots,2m$ and then
+  solder $2m+1$ is still alive when his turn comes, so he kills soldier
+  1, i.e. soldier 1 dies in the first pass too. Survivors in order:
+  $3, 5, \dots, 2m+1$ ($m$ soldiers, starter = 3) New index j $\implies$
+  original label 2j + 1 Again a game with $m$ soldiers, winner has new
+  index $W(m)$ so $$
+  W(2m+1) = 2  W(m) + 1
+  $$
+
+Putting both cases together, we end up with a recursive formula
+
+```{r}
+josephus_recursive <- function(n) {
+  if (n == 1) return(1)
+  if (n %% 2 == 0) 2 * josephus_recursive(n %/% 2) - 1
+  else             2 * josephus_recursive(n %/% 2) + 1
+}
+josephus_recursive(7)
+```
+
+To derive the explicit formula, we can look at the winning solder for a
+couple values of n
+
+```{r}
+data.frame(W = sapply(1:16, josephus_recursive))
+```
+
+W jumps back to 1 exactly at n = 1,2,4,8,16 (powers of two) and then
+climbs 1,3,5,7, ... in steps of 2. If $n = 2^m$ every pass halves the
+circle perfectly and solder 1 is again the killer. So solder 1 is always
+the killer and never the victim.
+
+Hence, we get 
+$$
+W(n) = 2\ell + 1 = 2\left(n - 2^{\lfloor \log_2 n \rfloor}\right) + 1
+$$
+
+where $\ell$ is the difference between $n$ and the $2^m$ with $m$ being
+the largest power such that $2^m \le n$.
+
+In R this is implemented as
+
+```{r}
+josephus_explicit <- function(n) {
+  p <- 1
+
+  # we look for the largest power of 2 that does not lead to exceeding n
+  while (p * 2 <= n) {
+    p <- p * 2
+  }
+  2 * (n - p) + 1                 # l = n - p
+}
+```
+
+We use a while loop instead of `log2` because for large numbers the
+loop, although slower, will give us more accurate results.
+
+```{r}
+# the explicit formula agrees with the recursion
+all(sapply(1:1000, josephus_explicit) == sapply(1:1000, josephus_recursive))
+sapply(c(7, 8, 41), josephus_explicit)   # 7, 1, 19
+```
+
+## Exercise 120
+
+Write a function `directpoly` which will evaluate polynomials of the form
+$$p(x) = a_n x^{n-1} + a_{n-1} x^{n-2} + \cdots + a_2 x + a_1.$$
+Your function should take $x$ and the vector of polynomial coefficients as
+arguments and return the value of the evaluated polynomial. Ensure that your
+function returns an appropriate vector of values when $x$ is a vector.
+
+```{r}
+# Define the function 'directpoly' that takes 'x' (a scalar or vector) 
+# and 'a' (a vector of polynomial coefficients)
+directpoly <- function(x, a) {
+  
+  # Initialize a result vector with zeros, having the same length as 'x'.
+  # This ensures that if 'x' is a vector, the output will be a vector of the same size.
+  result <- numeric(length(x))
+  
+  # Loop through each coefficient in the vector 'a'
+  # seq_along(a) generates a sequence from 1 to the length of 'a'
+  for (i in seq_along(a)) {
+    
+    # In the given polynomial formula, the coefficient a[i] is multiplied 
+    # by x raised to the power of (i - 1).
+    # For example, a[1] is multiplied by x^0 (which is 1, the constant term), 
+    # a[2] is multiplied by x^1 (which is x), and so on.
+    power <- i - 1
+    
+    # Add the current term's evaluated value to the accumulated result.
+    # This operation is vectorized in R, meaning it works element-wise 
+    # for every value in 'x' simultaneously.
+    result <- result + a[i] * (x^power)
+  }
+  
+  # Return the final evaluated polynomial values
+  return(result)
+}
+
+# --- Examples to test the function ---
+
+# Define a vector of coefficients: a_1 = 2, a_2 = -3, a_3 = 1
+# This represents the polynomial: p(x) = 1*x^2 - 3*x + 2
+coefficients <- c(2, -3, 1)
+
+# Test with a single scalar value for x
+x_scalar <- 3
+# p(3) = 1*(3^2) - 3*(3) + 2 = 9 - 9 + 2 = 2
+cat("Evaluating at x =", x_scalar, "-> Result:", directpoly(x_scalar, coefficients), "\n")
+
+# Testing with a vector of values for x (as specifically requested in the prompt)
+x_vector <- c(0, 1, 2, 3, 4)
+# p(0) = 2
+# p(1) = 1 - 3 + 2 = 0
+# p(2) = 4 - 6 + 2 = 0
+# p(3) = 2
+# p(4) = 16 - 12 + 2 = 6
+cat("Evaluating at x =", paste(x_vector, collapse=", "), "-> Result:\n")
+print(directpoly(x_vector, coefficients))
+```
+
+## Exercise 121
+
+Write a function `hornerpoly` to evaluate polynomials of the form
+$$p(x) = a_n x^{n-1} + a_{n-1} x^{n-2} + \cdots + a_2 x + a_1$$ using
+Horner's scheme:
+
+(a) Set $v_n \leftarrow a_n$.
+(b) For $i = n - 1, \dots, 1$ set $v_i \leftarrow v_{i+1} x + a_i$.
+(c) Return $v_1$.
+
+Ensure that your function returns an appropriate vector of values when
+$x$ is a vector.
+
+Horner's scheme comes from writing the polynomial as nested brackets,
+e.g. for $n = 3$ $$a_3 x^2 + a_2 x + a_1 = (a_3 x + a_2)\,x + a_1.$$ So
+we only need $n - 1$ multiplications and additions and no powers of $x$.
+The coefficients are given as the vector `a` = $(a_1, \dots, a_n)$ (the
+coefficient of the lowest power first). If $x$ is a vector, we make $v$
+a vector of the same length, with one value for every $x$. The
+multiplication and addition in step (b) then work for all values of $x$
+at once.
+
+```{r}
+hornerpoly <- function(x, a) {
+  n <- length(a)
+  v <- rep(a[n], length(x)) # (a) v_n = a_n for every x
+  for (i in rev(seq_len(n - 1))) { # (b) i = n - 1,..., 1
+    v <- v * x + a[i]
+  }
+  return(v) # (c) v_1
+}
+
+# example: p(x) = 2x^2 + 17x - 3, i.e. a = (-3, 17, 2), at x = 2
+hornerpoly(2, c(-3, 17, 2))
+2 * 2^2 + 17 * 2 - 3
+```
+
+We test the function for a vector $x$ and compare it with the direct
+evaluation of the polynomial using `directpoly()` from Exercise 120:
+
+```{r}
+a <- c(1, -2, 2, 3, 4, 6, 7) # p(x) = 1 - 2x + 2x^2 + 3x^3 + 4x^4 + 6x^5 + 7x^6
+x <- seq(-2, 2, by = 0.5)
+
+hornerpoly(x, a)
+all.equal(hornerpoly(x, a), directpoly(x, a))
+
+# many random x: relative differences are at the level of rounding errors
+x <- runif(1000, -3, 3)
+max(abs(hornerpoly(x, a) - directpoly(x, a)) / pmax(1, abs(directpoly(x, a))))
+
+# special cases
+hornerpoly(numeric(0), a)    # no x gives no values
+hornerpoly(3, 5)             # constant polynomial p(x) = 5
+hornerpoly(c(1, 2, 3), 5)    # one value for every x
+```
+
+The function returns one value for every entry of $x$ (for an empty
+vector `numeric(0)` it returns an empty vector). It agrees with the
+direct evaluation up to rounding errors (about $10^{-16}$). For a
+constant polynomial ($n = 1$) the loop is not entered, because
+`seq_len(0)` is empty, so only $v_1 = a_1$ is returned.
+
+## Exercise 122
+
+Do some timings to compare the algorithms implemented by functions
+`directpoly()` and `hornerpoly()`.
+
+(a) In particular, compare the `system.time()` measurements for
+    `directpoly(x, a)` and `hornerpoly(x, a)` with `x` values
+    `seq(-10, 10, length.out = 5000000)` and `a` coefficients
+    `c(1, -2, 2, 3, 4, 6, 7)`.
+
+(b) What happens to the comparison when the number of polynomial
+    coefficients is smaller? Try the polynomial
+
+$$p(x) = 2x^2 + 17x - 3$$
+
+**Idea**
+
+Both functions compute the same polynomial
+
+$$p(x) = a_n x^{n-1} + a_{n-1} x^{n-2} + ... + a_2 x + a_1$$
+
+but in a different way. We want to see which way is faster.
+
+**The direct way**
+
+`directpoly` computes every term $a_i x^{i-1}$ alone and adds them. So
+for every term it must compute a power of $x$.
+
+**Horner's way**
+
+`hornerpoly` writes the polynomial with brackets, for example
+
+$$2x^2 + 17x - 3 = (2x + 17)x - 3$$
+
+start with $v = a_n$ and then do $v = v \cdot x + a_i$ for
+$i = n-1, .., 1$. So in every step there is only one multiplication and
+one addition, and no powers.
+
+`system.time()` - it runs the code and tells how many seconds it took.
+
+We use the functions `directpoly()` and `hornerpoly()` already defined
+in Exercises 120 and 121.
+
+```{r}
+x <- seq(-10, 10, length.out = 5000000)
+
+#a
+a <- c(1, -2, 2, 3, 4, 6, 7)
+t_direct <- system.time(d1 <- directpoly(x, a))
+t_horner <- system.time(h1 <- hornerpoly(x, a))
+cat("(a) direct:", t_direct["elapsed"], "sec, horner:", t_horner["elapsed"], "sec \n")
+cat("same results:", all.equal(d1, h1), "\n")
+
+#b p(x) = 2x^2 + 17x - 3
+b <- c(-3, 17, 2)
+t_direct2 <- system.time(d2 <- directpoly(x, b))
+t_horner2 <- system.time(h2 <- hornerpoly(x, b))
+cat("(b) direct:", t_direct2["elapsed"], "sec, horner:", t_horner2["elapsed"], "sec \n")
+cat("same results:", all.equal(d2, h2), "\n")
+```
+
+(a) Both functions give the same values up to floating-point rounding
+    errors. `directpoly` needs `r round(t_direct["elapsed"], 3)` sec and
+    `hornerpoly` needs `r round(t_horner["elapsed"], 3)` sec. The ratio
+    of direct evaluation time to Horner evaluation time is
+    `r round(t_direct["elapsed"] / t_horner["elapsed"], 2)`. The reason
+    Horner's method is generally more efficient is that `directpoly`
+    computes the powers $x^0, x^1, ..., x^6$ for 5 million values,
+    whereas Horner's scheme needs only 6 multiplications and 6 additions
+    per value.
+
+(b) With only 3 coefficients both functions have fewer terms to
+    evaluate. `directpoly` takes `r round(t_direct2["elapsed"], 3)` sec
+    and `hornerpoly` takes `r round(t_horner2["elapsed"], 3)` sec. The
+    ratio of direct evaluation time to Horner evaluation time is
+    `r round(t_direct2["elapsed"] / t_horner2["elapsed"], 2)`. Since the
+    polynomial has fewer terms, the computational work is reduced. The
+    absolute time difference between the two methods is generally
+    smaller than for the higher-degree polynomial.
+
+The times are different in every run, so the exact numbers change.
+Horner's method generally has a computational advantage because it
+avoids explicit exponentiation. The measured difference depends on the
+polynomial degree and the execution environment.
+
+## Exercise 123
+
+(a) 
+
+The Lagrange basis polynomial $L_i$ is a product over all interpolation
+points except the $i$-th one:
+$$L_i(x) = \prod_{j \ne i} \frac{x - x_j}{x_i - x_j}.$$ R starts
+counting at 1, so $x_0$ is `x_points[1]`, $x_1$ is `x_points[2]` and so
+on. Since we only use vector operations, `x` can be a whole vector of
+values, which we need for plotting.
+
+```{r}
+lagrange_basis <- function(i, x_points, x) {
+  result <- 1
+  for (j in seq_along(x_points)) {
+    if (j != i) {
+      result <- result * (x - x_points[j]) / (x_points[i] - x_points[j])
+    }
+  }
+  result
+}
+```
+
+```{r}
+x_points_a <- c(-1, 2, 3)
+x_vals <- seq(-2, 4, length.out = 1000)   # many points so the curves look smooth
+cols <- c("red", "blue", "darkgreen")
+
+plot(x_vals, lagrange_basis(1, x_points_a, x_vals), type = "l", col = cols[1],
+     ylim = c(-1, 2), xlab = "x", ylab = expression(L[i](x)),
+     main = "Lagrange basis polynomials for the points -1, 2, 3")
+lines(x_vals, lagrange_basis(2, x_points_a, x_vals), col = cols[2])
+lines(x_vals, lagrange_basis(3, x_points_a, x_vals), col = cols[3])
+abline(h = c(0, 1), lty = 2, col = "gray")
+points(x_points_a, rep(1, 3), pch = 19, col = cols)   # L_i(x_i) = 1
+points(x_points_a, rep(0, 3), pch = 19)               # L_i(x_j) = 0
+legend("topright", legend = c(expression(L[0]), expression(L[1]), expression(L[2])),
+       col = cols, lty = 1)
+```
+
+Each $L_i$ is 1 at its own point $x_i$ (coloured dots) and 0 at the
+other two points (black dots).
+
+(b) 
+
+The interpolation polynomial is $L(x) = \sum_{i} f(x_i) L_i(x)$. At a
+point $x_k$ all basis polynomials are 0 except $L_k$, which is 1, so
+$L(x_k) = f(x_k)$: the polynomial goes through all the given points.
+
+```{r}
+f <- function(x) x^5
+x_points <- c(-1, 0, 1, 2)
+y_points <- f(x_points)
+
+interpolation <- function(x) {
+  terms <- sapply(seq_along(x_points),
+                  function(i) y_points[i] * lagrange_basis(i, x_points, x))
+  rowSums(matrix(terms, nrow = length(x)))   # sum of f(x_i) * L_i(x)
+}
+
+x <- seq(-1.5, 2.2, length.out = 400)
+
+plot(x, f(x), type = "l", lwd = 2, col = "red", lty = 2,
+     xlab = "x", ylab = "y", main = expression("Interpolation of " * f(x) == x^5))
+lines(x, interpolation(x), lwd = 2, col = "blue")
+points(x_points, y_points, pch = 19)
+legend("topleft", legend = c(expression(f(x) == x^5), "interpolation polynomial"),
+       col = c("red", "blue"), lty = c(2, 1), lwd = 2)
+```
+
+**The four basis polynomials.** We have the points $x_0 = -1$,
+$x_1 = 0$, $x_2 = 1$, $x_3 = 2$. For each $L_i$ the numerator is the
+product of $(x - x_j)$ over all other points, and the denominator is the
+same product with $x$ replaced by $x_i$. This makes $L_i(x_i) = 1$ and
+$L_i(x_j) = 0$ for $j \ne i$. Multiplying out the brackets gives
+
+$$L_0(x) = \frac{(x-0)(x-1)(x-2)}{(-1-0)(-1-1)(-1-2)} = \frac{x(x-1)(x-2)}{-6} = -\frac{x^3 - 3x^2 + 2x}{6}$$
+
+$$L_1(x) = \frac{(x+1)(x-1)(x-2)}{(0+1)(0-1)(0-2)} = \frac{(x+1)(x-1)(x-2)}{2} = \frac{x^3 - 2x^2 - x + 2}{2}$$
+
+$$L_2(x) = \frac{(x+1)(x-0)(x-2)}{(1+1)(1-0)(1-2)} = \frac{(x+1)\,x\,(x-2)}{-2} = -\frac{x^3 - x^2 - 2x}{2}$$
+
+$$L_3(x) = \frac{(x+1)(x-0)(x-1)}{(2+1)(2-0)(2-1)} = \frac{(x+1)\,x\,(x-1)}{6} = \frac{x^3 - x}{6}$$
+
+**The interpolation polynomial.** With the values
+$f(-1) = -1$, $f(0) = 0$, $f(1) = 1$, $f(2) = 32$ we get
+
+$$L(x) = -1 \cdot L_0(x) + 0 \cdot L_1(x) + 1 \cdot L_2(x) + 32 \cdot L_3(x)$$
+
+$$= \frac{x^3 - 3x^2 + 2x}{6} - \frac{3x^3 - 3x^2 - 6x}{6} + \frac{32x^3 - 32x}{6} = \frac{30x^3 - 24x}{6} = 5x^3 - 4x.$$
+
+We check that the formulas agree with our function `lagrange_basis()`
+and that the sum is $5x^3 - 4x$:
+
+```{r}
+L0 <- function(x) -(x^3 - 3 * x^2 + 2 * x) / 6
+L1 <- function(x)  (x^3 - 2 * x^2 - x + 2) / 2
+L2 <- function(x) -(x^3 - x^2 - 2 * x) / 2
+L3 <- function(x)  (x^3 - x) / 6
+
+# basis polynomials: function vs. explicit formulas
+max(abs(sapply(1:4, function(i) lagrange_basis(i, x_points, x)) -
+          cbind(L0(x), L1(x), L2(x), L3(x))))
+
+# interpolation polynomial vs. 5x^3 - 4x
+max(abs(interpolation(x) - (5 * x^3 - 4 * x)))
+```
+
+Both differences are only rounding errors (about $10^{-15}$).
+
+The plot below shows the four basis polynomials together with the
+interpolation polynomial $L(x)$ and $f(x) = x^5$. The basis polynomials
+stay between about $-0.7$ and $1.4$, while $L(x)$ and $f(x)$ go up to
+about 50, so we use two y-axes: the left axis for the $L_i$ and the
+right axis for $L(x)$ and $f(x)$.
+
+```{r, fig.height=5}
+x_plot <- seq(-1.2, 2.2, length.out = 400)
+basis <- sapply(1:4, function(i) lagrange_basis(i, x_points, x_plot))
+basis_cols <- c("orange", "purple", "darkgreen", "brown")
+
+par(mar = c(5, 4, 4, 5))   # space for the right axis
+matplot(x_plot, basis, type = "l", lty = 1, lwd = 1.5, col = basis_cols,
+        xlab = "x", ylab = expression(L[i](x)), ylim = c(-0.8, 1.9),
+        main = "Lagrange basis polynomials and interpolation polynomial")
+abline(h = c(0, 1), lty = 3, col = "gray")
+points(x_points, rep(1, 4), pch = 19, col = basis_cols)   # L_i(x_i) = 1
+
+# interpolation polynomial and f on a second (right) axis
+par(new = TRUE)
+plot(x_plot, interpolation(x_plot), type = "l", lwd = 2.5, col = "blue",
+     axes = FALSE, xlab = "", ylab = "", ylim = c(-5, 75))
+lines(x_plot, f(x_plot), lwd = 2, lty = 2, col = "red")
+points(x_points, y_points, pch = 19)
+axis(4)
+mtext("L(x) and f(x)", side = 4, line = 3)
+
+legend("top", ncol = 3, bty = "n", cex = 0.9,
+       legend = c(expression(L[0]), expression(L[1]), expression(L[2]),
+                  expression(L[3]), "L(x) (right axis)",
+                  expression(f(x) == x^5 ~ "(right axis)")),
+       col = c(basis_cols, "blue", "red"), lty = c(1, 1, 1, 1, 1, 2),
+       lwd = c(1.5, 1.5, 1.5, 1.5, 2.5, 2))
+```
+
+Each $L_i$ is 1 at its own point (coloured dots) and 0 at the other
+three points. The interpolation polynomial (blue) goes through the four
+black points, which lie on $f(x) = x^5$ (red).
+
+**Why is the interpolation polynomial cubic, although $f(x) = x^5$?**
+Every basis polynomial $L_i$ is a product of 3 brackets $(x - x_j)$, so
+it has degree 3. $L(x)$ is a sum of these polynomials, multiplied by
+numbers, so its degree is at most 3. In general, $n+1$ points give a
+polynomial of degree at most $n$. A cubic has 4 coefficients, and the 4
+points give exactly 4 conditions, so there is exactly one cubic through
+the points.
+
+The interpolation only uses the 4 values $f(x_i)$, not the formula of
+$f$. It cannot "see" that $f$ is $x^5$: the cubic $5x^3 - 4x$ goes
+through the same 4 points. Only if $f$ itself were a polynomial of
+degree at most 3 would the interpolation give back $f$ exactly. Here the
+difference is
+
+$$x^5 - (5x^3 - 4x) = x(x^4 - 5x^2 + 4) = x(x^2 - 1)(x^2 - 4) = (x+2)(x+1)\,x\,(x-1)(x-2),$$
+
+which is 0 at the four interpolation points $-1, 0, 1, 2$ (and also at
+$-2$), but not in between.
+
+At the four points the two curves match exactly, in between they differ,
+because a cubic can't follow $x^5$ exactly. For example, at $x = 1.5$ we
+have $1.5^5 \approx 7.59$, but $L(1.5) = 10.875$. This agrees with the
+formula above: $(3.5)(2.5)(1.5)(0.5)(-0.5) \approx -3.28 = 7.59 - 10.875$.
+Outside the interval $[-1, 2]$ the difference grows quickly, since the
+product $(x+2)(x+1)\,x\,(x-1)(x-2)$ grows like $x^5$.
+
+
+## Exercise 124
+
+Write a (recursive) function `count(pat, str)` which counts how many
+times string `pat` occurs in string `str`. E.g.,
+`count("ab", "abab cd cdab")` $\implies$ 3.
+
+After finding a match, we do not continue after the end of the match,
+but one character after its start. Every occurrence of `pat` is
+determined by its starting position, and `regexpr()` returns exactly
+this starting position $m$ of the first match. If we continue the search
+from position $m + 1$, the next search can still find an occurrence
+which starts inside the current match (an overlapping occurrence). But
+it cannot find the current occurrence again, because its first character
+is cut off. So every starting position is checked only once, and no
+occurrence is counted twice.
+
+If we continued after the end of the match (position
+$m + \text{match length}$), as in the non-overlapping version, an
+occurrence starting inside the current match would be skipped. For
+example, in `"ababa"` the second `"aba"` starts at position 3, inside
+the first one (positions 1 to 3). We keep both versions with the
+argument `overlapping`.
+
+```{r}
+count <- function(pat, str, overlapping = TRUE) {
+  # an empty pattern matches everywhere, the recursion would never stop
+  if (nchar(pat) == 0) stop("pat must not be empty")
+
+  # find the first appearance of pat in str (fixed = TRUE treats pat
+  # as plain text and not as a regular expression)
+  m <- regexpr(pat, str, fixed = TRUE) # start position of pat in str
+
+  # if pat is not in str, the position is -1 (base case)
+  if (m == -1) {
+    return(0) # nothing left to count, stop the recursion
+  }
+
+  if (overlapping) {
+    # continue one character after the START of the match:
+    # a match starting inside the current one can still be found,
+    # but the current match itself cannot be found again
+    rest <- substring(str, m + 1)
+  } else {
+    # continue after the END of the match: overlaps are skipped
+    rest <- substring(str, m + attr(m, "match.length"))
+  }
+
+  # count the match just found and search the rest recursively
+  1 + count(pat, rest, overlapping)
+}
+
+count("ab", "abab cd cdab")                      # 3
+count("aba", "ababa")                            # 2 (overlapping)
+count("aba", "ababa", overlapping = FALSE)       # 1
+count("aa", "aaaa")                              # 3: positions 1, 2, 3
+count("aa", "aaaa", overlapping = FALSE)         # 2: positions 1, 3
+count("xyz", "abc")                              # 0
+```
+
+For `count("aba", "ababa")` the recursion works like this: the first
+match starts at position 1, so we continue with `"baba"`. There the
+next match starts at position 2, so we continue with `"a"`. Here is no
+match anymore, so the result is $1 + 1 + 0 = 2$. For `"ab"` in
+`"abab cd cdab"` the two versions give the same result 3, because
+`"ab"` cannot overlap with itself.
+
+## Exercise 125
+
+Write a recursive function for generating all combinations of $k$ out of $n$
+objects in the form of 0/1 "incidence" strings (i.e., strings consisting of
+$k$ "1" and $n-k$ "0" characters; the $i$-th character indicates whether
+object $i$ occurs in the respective combination ("1") or not ("0")).
+E.g., for $n = 3$ and $k = 2$, the function should return
+`c("110", "101", "011")`.
+
+```{r}
+# Define a recursive function to generate 0/1 incidence strings
+# n = total number of objects, k = number of objects to select ("1"s)
+generate_combinations <- function(n, k) {
+  
+  # --- Base Cases (Stopping conditions for the recursion) ---
+  
+  # Base Case 1: We need to select 0 objects (k = 0).
+  # The only way to do this is a string of n zeros.
+  # rep("0", n) creates a vector like c("0", "0", "0")
+  # paste(..., collapse = "") joins them into a single string "000"
+  if (k == 0) {
+    return(paste(rep("0", n), collapse = ""))
+  }
+  
+  # Base Case 2: We need to select all remaining objects (k = n).
+  # The only way to do this is a string of n ones.
+  if (k == n) {
+    return(paste(rep("1", n), collapse = ""))
+  }
+  
+  # --- Recursive Step (Branching logic) ---
+  
+  # Scenario A: The FIRST object IS included in the combination.
+  # This means the string starts with "1".
+  # Since we just used one "1", we now need to find (k - 1) more "1"s 
+  # out of the remaining (n - 1) available positions.
+  strings_with_1 <- generate_combinations(n - 1, k - 1)
+  
+  # Prepend the "1" to all the combinations generated by this branch
+  strings_with_1 <- paste0("1", strings_with_1)
+  
+  # Scenario B: The FIRST object is NOT included.
+  # This means the string starts with "0".
+  # Since we haven't used any "1"s yet, we still need to find all k "1"s,
+  # but we only have (n - 1) positions left to put them in.
+  strings_with_0 <- generate_combinations(n - 1, k)
+  
+  # Prepend the "0" to all the combinations generated by this branch
+  strings_with_0 <- paste0("0", strings_with_0)
+  
+  # --- Combine and Return ---
+  # Merge the results from both scenarios into a single vector
+  return(c(strings_with_1, strings_with_0))
+}
+
+# --- Examples to test the function ---
+
+# Test Case from the image: n = 3, k = 2
+n_val <- 3
+k_val <- 2
+cat("Combinations for n =", n_val, "and k =", k_val, ":\n")
+print(generate_combinations(n_val, k_val))
+
+# Larger Test Case: n = 5, k = 3
+# Choosing 3 items out of 5 yields 10 possible combinations (5 over 3)
+cat("\nCombinations for n = 5 and k = 3:\n")
+print(generate_combinations(5, 3))
+```
+
+**Explanation of the Logic**
+
+**What the task asks for:** The goal is to write a recursive function
+that generates all possible combinations of choosing $k$ objects from a
+total of $n$ objects. Instead of listing the objects themselves, the
+output must be "incidence" strings made of 0s and 1s. A "1" at position
+$i$ means the $i$-th object is included in that specific combination,
+and a "0" means it is excluded. The prompt explicitly demands that the
+function must be recursive.
+
+**How the recursive algorithm works:** This code is a computational
+implementation of Pascal's Rule for binomial coefficients, which states
+that: $\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k}$.
+
+When building these binary strings, you look at the very first slot of
+the string and make a binary choice. That choice splits the problem into
+two smaller, self-similar problems:
+
+1.  **The "1" Branch:** You decide to put a `1` in the first slot. You
+    now have $n-1$ empty slots left to fill, and because you just used
+    up one of your "choices," you only have $k-1$ ones left to place.
+    You ask the function to solve this smaller problem, and then glue a
+    `"1"` to the front of whatever it returns.
+
+2.  **The "0" Branch:** You decide to put a `0` in the first slot. You
+    still have $n-1$ empty slots left to fill, but because you didn't
+    use a "choice," you still need to place all $k$ ones. You ask the
+    function to solve this smaller problem, and then glue a `"0"` to the
+    front of whatever it returns.
+
+Because the function calls itself with progressively smaller numbers for
+$n$ and $k$, it eventually hits a logical dead end where the answer is
+obvious. These are the **Base Cases**: if $k$ hits 0 (you need no more
+ones, so the rest of the string must be all zeros), or if $k$ equals $n$
+(you have exactly as many ones left to place as you have slots, so the
+rest of the string must be all ones). The recursion stops, and the
+strings bubble back up the chain, merging together to give you the final
+vector.
+
+## Exercise 126
+
+Write a recursive function which computes the octal representation (as a
+sequence of digits 0 to 7) of a given natural number.
+
+For the octal representation we write
+$n = 8 \cdot (n \,\%/\%\, 8) + (n \,\%\%\, 8)$. The last octal digit of
+$n$ is the remainder `n %% 8`, and the digits in front of it are the
+octal representation of `n %/% 8`. This is the recursion. It stops when
+$n < 8$, since then $n$ is a single octal digit. For $n = 100$:
+
+| step | $n$ | `n %/% 8` | last digit `n %% 8` |
+|:----:|:---:|:---------:|:-------------------:|
+|  1   | 100 |    12     |          4          |
+|  2   | 12  |     1     |          4          |
+|  3   |  1  |  (stop)   |    1 (the digit)    |
+
+So $100 = (144)_8$, since $1 \cdot 64 + 4 \cdot 8 + 4 = 100$.
+
+```{r}
+octal <- function(n) {
+  if (n < 8) {
+    return(n) # a single digit (also for n = 0)
+  } else {
+    return(c(octal(n %/% 8), n %% 8)) # digits of n %/% 8, then the last digit
+  }
+}
+
+octal(0)
+octal(7)
+octal(8)
+octal(64)
+octal(511)
+octal(512)
+octal(2026)
+```
+
+
