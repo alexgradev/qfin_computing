@@ -1,0 +1,52 @@
+---
+title: "Homework6_Gradev"
+format: pdf
+editor: visual
+---
+
+## Exercise 138
+
+Show that the iterative method
+$$
+x_{k+1}= \frac{x_{k−1} \cdot f(x_k)−x_k \cdot f(x_{k−1})}
+{f(x_k) −f(x_{k−1})}
+$$
+
+is mathematically equivalent to the secant method
+$$
+x_{k+1} = x_k − f(x_k) \cdot \frac{x_k −x_{k−1}}
+{f(x_k) − f(x_{k−1})}
+$$
+for solving a scalar non-linear equation f(x) = 0.
+
+When implemented in finite-precision floating-point arithmetic, what advantages does the
+new formula have compared with the standard formula for the secant method?
+
+*Solution*
+
+We start from the secant method and through algebraic manipulations we will show its equivalent to the iterative method.
+
+$$
+\begin{aligned}
+x_{k+1} &= x_k - f(x_k)\,\frac{x_k - x_{k-1}}{f(x_k) - f(x_{k-1})} \\[1.5ex]
+&= \frac{x_k\bigl(f(x_k) - f(x_{k-1})\bigr) - f(x_k)\,(x_k - x_{k-1})}{f(x_k) - f(x_{k-1})} \\[1.5ex]
+&= \frac{x_k f(x_k) - x_k f(x_{k-1}) - x_k f(x_k) + x_{k-1} f(x_k)}{f(x_k) - f(x_{k-1})} \\[1.5ex]
+&= \frac{x_{k-1} f(x_k) - x_k f(x_{k-1})}{f(x_k) - f(x_{k-1})}
+\end{aligned}
+$$
+
+The two formulas are equivalent in exact mathematics but not in finite-precision floating-point arithmetic. With the standard formula, near convergence, the rounding error only affects the correction term. The error relative to $x_k$ is of the order of the machine epsilon (approx. $2.2 \cdot 10^{-16}$). Hence, the accuracy of the iterate $k+1$ is essentially limited by $\epsilon_{\text{mach}}$. 
+
+With the new formula, near the root we have $x_k \approx x_{k+1}$ and $f(x_k) \approx f(x_{k+1}) \approx 0$. In other words, the numerator substracts two nearly equal products, which leads to catastrophic cancellation, while the denominator is really small. The rounding error from the numeritor is therefore futher magnified when divided by the small denominator. This leads to loss of significant digits and consequently less accurate $x_{k+1}$. 
+
+Additionally, using the iterative method won't lead to a significant speed advantage, because both need the same number of operations (two subtractions, a division and a multiplication at each step). 
+
+However, the big advantage comes from the case where  $f(x_k)$ and $f(x_{k-1})$ have opposite signs, while $x_k$ and $x_{k-1}$ have the same sign. Then the formula represents a convex combination
+$$
+x_{k+1} = w_1 x_{k-1} + w_2 x_k,\qquad \text{where} \qquad w_1=\frac{f(x_k)}{f(x_k)-f(x_{k-1})} \quad \text{and} \quad w_2=\frac{-f(x_{k-1})}{f(x_k)-f(x_{k-1})}
+$$
+with $w_1,w_2 \in (0,1)$ and $w_1 + w_2 = 1$. Hence, $w_{k+1}$ lies between $x_k$ and $x_{k-1}$. 
+
+This leads to no cancellation in both the numerator and denominator. WLoG, suppose $f(x_k) > 0 > f(x_{k-1})$ and $x_k, x_{k-1} > 0$. In the denominator we have $$f(x_k) - f(x_{k-1}) = f(x_k) + |f(x_{k-1})|$$
+At the same time, in the numerator we have $$x_{k-1} \cdot f(x_k) - x_k \cdot f(x_{k-1}) = x_{k-1} \cdot f(x_k) +   x_k \cdot |f(x_{k-1})|$$
+Hence, in such case this formula does not make rounding errors worse.
