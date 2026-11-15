@@ -14,29 +14,42 @@ Use a starting value of 0.5. How many iterations does it take before you have an
 We start with implementing the fixed-point iteration algorithm to find the exact number it converges to. Since $\cos(x) = x$ is directly in the form $x_{n+1} = g(x_n)$, we can just write
 
 ```{r}
-
+# Implement the iteration algorithm to find the exact number
 cos_fixed_point <- function(starting_value, tol = 1e-12) {
+  # init the variables used
   x <- starting_value
   counter <- 0
   
+  # tolerance measured as the change in x from an additional step
   while(abs(cos(x) - x) > tol){
     x <- cos(x)
     counter <- counter+1
   }
+  # we are interested in both the fixed point itself and the number of steps 
+  # we needed to get to it
   return(list(fixed_point = x, iterations = counter))
 }
 
-x_star <- cos_fixed_point(0)$fixed_point
+x_star <- cos_fixed_point(0.5)$fixed_point
+cos_fixed_point(0.5)$iterations
 ```
 
-Now we will implement a function that counts the iterations so answer is accurate in the first $d$ digits.
+The iteration converges to $x^* \approx 0.7390851$ and it needed 68 iterations to get there with a tolerance of $10^{-12}$.
+
+We can also see why the iteration converges at all. If we start anywhere in $[0,1]$, $\cos(x)$ always gives a value between $\cos(1) \approx 0.54$ and $1$, so we never leave the interval. In addition, the slope of $\cos(x)$ is $-\sin(x)$ and its absolute value is at most $\sin(1) \approx 0.84 < 1$ on this interval. This means every step pulls two points closer together, so the iterates have to converge at one single point and that point is the solution of $\cos(x) = x$.
+
+We will now will implement a function that counts the iterations so the answer is accurate in the first $d$ digits.
 
 ```{r}
 
 digits_needed <- function(starting_value, d, x_star) {
+  # init the variables used
   x <- starting_value
   counter <- 0
-  while (abs(x - x_star) > 0.5 * 10^(-d)) {
+  
+  # to be correct to d decimal places, the number can be off by at most half 
+  # of the last digit
+  while(abs(x - x_star) > 0.5 * 10^(-d)) {
     x <- cos(x)
     counter <- counter + 1
   }
@@ -50,7 +63,12 @@ cat("Iterations needed with starting value 0.5 for",
 )
 ```
 
-We will now check how does the number of iterations change when we use 0.0 or 0.7 as starting value.
+We count a result as accurate in the first $d$ digits if it is within $0.5 \cdot 10^{-d}$ of $x^*$, meaning it rounds to the correct value. Since $x^* \approx 0.74$, the first $d$ digits are the same as the first $d$ decimal places.
+
+Starting from 0.5, we need 10 iterations for two correct digits, 16 for three and 22 for four. So each extra correct digit costs about 6 more iterations. The reason is that close to the solution, every step shrinks the error by roughly the same factor ($\sin(x^*) \approx 0.674$). To gain one more digit the error has to become 10 times smaller and since
+$$0.674^6 \approx 0.094 \approx \frac{1}{10},$$
+
+that takes about 6 steps. We will now check how does the number of iterations change when we use 0.0 or 0.7 as starting value.
 
 ```{r}
 cat("Iterations needed with starting value 0.0 for",
@@ -65,6 +83,13 @@ cat("Iterations needed with starting value 0.7 for",
     "\n4 digits ->", digits_needed(0.7, 4, x_star)
 )
 ```
+Since 0.7 is the closest to the actual fixed point, it was expected that it would require the least amount of iterations among the three starting values.
+
+Starting at 0.0 takes 1–2 extra iterations. The first two steps give $\cos(0) = 1$ and then $\cos(1) \approx 0.540$. After these two steps we are at about the same distance from the solution as when starting at 0.5, so the 0.0 start basically “wastes” its first steps catching up.
+
+In general, the closer the starting value is to the solution, the fewer iterations we need.
+
+
 ## Exercise 138
 
 Show that the iterative method
@@ -98,19 +123,20 @@ $$
 
 The two formulas are equivalent in exact mathematics but not in finite-precision floating-point arithmetic. With the standard formula, near convergence, the rounding error only affects the correction term. The error relative to $x_k$ is of the order of the machine epsilon (approx. $2.2 \cdot 10^{-16}$). Hence, the accuracy of the iterate $k+1$ is essentially limited by $\epsilon_{\text{mach}}$. 
 
-With the new formula, near the root we have $x_k \approx x_{k+1}$ and $f(x_k) \approx f(x_{k+1}) \approx 0$. In other words, the numerator substracts two nearly equal products, which leads to catastrophic cancellation, while the denominator is really small. The rounding error from the numeritor is therefore futher magnified when divided by the small denominator. This leads to loss of significant digits and consequently less accurate $x_{k+1}$. 
+With the new formula, near the root we have $x_k \approx x_{k-1}$ and $f(x_k) \approx f(x_{k-1}) \approx 0$. In other words, the numerator subtracts two nearly equal products, which leads to catastrophic cancellation, while the denominator is really small. The rounding error from the numerator is therefore further magnified when divided by the small denominator. This leads to loss of significant digits and consequently less accurate $x_{k+1}$. 
 
-Additionally, using the iterative method won't lead to a significant speed advantage, because both need the same number of operations (two subtractions, a division and a multiplication at each step). 
+Additionally, using the iterative method won't lead to a significant speed advantage, because both need the same number of operations (3 subtractions, 1 multiplication and 1 division in the secant method vs 2 subtractions, 2 multiplications and 1 division in the iterative method).
 
-However, the big advantage comes from the case where  $f(x_k)$ and $f(x_{k-1})$ have opposite signs, while $x_k$ and $x_{k-1}$ have the same sign. Then the formula represents a convex combination
+However, probably the only advantage comes from the case where  $f(x_k)$ and $f(x_{k-1})$ have opposite signs, while $x_k$ and $x_{k-1}$ have the same sign. Then the formula represents a convex combination
 $$
 x_{k+1} = w_1 x_{k-1} + w_2 x_k,\qquad \text{where} \qquad w_1=\frac{f(x_k)}{f(x_k)-f(x_{k-1})} \quad \text{and} \quad w_2=\frac{-f(x_{k-1})}{f(x_k)-f(x_{k-1})}
 $$
-with $w_1,w_2 \in (0,1)$ and $w_1 + w_2 = 1$. Hence, $w_{k+1}$ lies between $x_k$ and $x_{k-1}$. 
+with $w_1,w_2 \in (0,1)$ and $w_1 + w_2 = 1$. Hence, $x_{k+1}$ lies between $x_k$ and $x_{k-1}$. 
 
 This leads to no cancellation in both the numerator and denominator. WLoG, suppose $f(x_k) > 0 > f(x_{k-1})$ and $x_k, x_{k-1} > 0$. In the denominator we have $$f(x_k) - f(x_{k-1}) = f(x_k) + |f(x_{k-1})|$$
 At the same time, in the numerator we have $$x_{k-1} \cdot f(x_k) - x_k \cdot f(x_{k-1}) = x_{k-1} \cdot f(x_k) +   x_k \cdot |f(x_{k-1})|$$
 Hence, in such case this formula does not make rounding errors worse.
+
 
 ## Exercise 152
 
@@ -127,7 +153,10 @@ Describe, in words, what happens when the number of observations is even.
 
 We start by writing a simple `R` function that constructs $f(x)$ given the data values $x_1, \dots,x_n$.
 ```{r}
+# We write a function that outputs f(x) given the data values
 construct_f <- function(x_vector) {
+  # we vectorize the function so that we can directly pass a vector of x values
+  # and the function will make f evaluate each element of such vector separately
   Vectorize(function(x) {
     sum(abs(x - x_vector))
   }
@@ -135,7 +164,6 @@ construct_f <- function(x_vector) {
 }
 
 data_a <- c(3, 7, 9, 12, 15)
-
 f_a <- construct_f(data_a)
 ```
 
@@ -154,6 +182,7 @@ points(median(data_a), f_a(median(data_a)), pch = 19, col = "red")  # minimum
 legend("topright", legend = c("f(x)", "median"),
        col = c("steelblue", "red"), lty = c(1, 2), lwd = c(2, 1), bty = "n")
 ```
+
 We will now check numerically that the median is indeed the minimizer of $f_a$. We use `optimize()`, which performs a one-dimensional search for the minimum of a function over a given interval. The interval $[-100, 100]$ is much wider than the range of the data, so the search does not depend on knowing the answer in advance and the tolerance is set very small to get a precise result.
 
 ```{r}
@@ -162,8 +191,8 @@ opt_a <- optimize(f_a, interval = c(-100, 100), maximum = FALSE, tol = 1e-12)
 cat("Median         =", median(data_a),
     "\nNumerical min  =", opt_a$minimum)
 ```
-We see that the minimizer found by the optimizer agrees with the sample median $9$ up to a very small difference. However, the two numbers are not exactly the same, because `optimize()` is an iterative numerical method. It narrows down an interval around the minimizer and stops once the interval is shorter than the specified tolerance. Moreover, all computations are carried out in finite-precision floating-point arithmetic, so the result cannot be expected to
-match the exact value $9$ to every digit. The minimal value $f_a(9) = 17$ is reproduced exactly and the median is the exact minimizer.
+
+We see that the minimizer found by the optimizer agrees with the sample median $9$ up to a very small difference. However, the two numbers are not exactly the same, because `optimize()` is an iterative numerical method. It narrows down an interval around the minimizer and stops once the interval is shorter than the specified tolerance. Moreover, all computations are carried out in finite-precision floating-point arithmetic, so the result cannot be expected to match the exact value $9$ to every digit. The minimal value $f_a(9) = 17$ is reproduced exactly and the median is the exact minimizer.
 
 We show the same for (b)
 ```{r}
@@ -189,4 +218,8 @@ cat("Median         =", median(data_b),
 
 ```
 
+
+
 When the number of observations is even, the value $x$ that gives the minimum of $f$ is no longer unique. Let $x_{1} \le \dots \le x_{n}$ be the sorted data. Between the two middle values $x_{\frac{n}{2}}$ and $x_{\frac{n}{2} + 1}$, exactly half of the observations lie to the left of $x$ and half lie to the right. Moving $x$ slightly to the right then increases the distance to the left half by the same amount as it decreases the distance to the right half, so $f$ stays constant. The graph of $f$ is therefore flat at its lowest level and every point of the interval $[x_{\frac{n}{2}}, x_{\frac{n}{2} + 1}]$ is a minimizer. The usual definition of the sample median for even $n$, the average of the two middle values, is the midpoint of this interval, so it is still a minimizer, but it is just one of infinitely many.
+
+
