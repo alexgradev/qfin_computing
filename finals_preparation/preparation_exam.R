@@ -113,3 +113,11 @@ minus_epsilon == .Machine$double.neg.eps
 # smallest positive normalized and the largest positive denormalized numbers? 
 # What is the difference between them?
 
+# The smallest positive normalized number is
+# 2^(-1022)
+
+# The largest positive denormalized number has significand (11...11) 
+# Hence (0 + 1/2 + ... + 1/2^52) * 2^-1022 = (1-2^-52) * 2^-1022
+
+# The difference between them is 
+# 2^(-1022) - (1-2^-52) * 2^-1023 = 2^-52 * 2^-1023 = 2^-1074
