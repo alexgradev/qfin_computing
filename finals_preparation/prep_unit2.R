@@ -121,3 +121,13 @@ minus_epsilon == .Machine$double.neg.eps
 
 # The difference between them is 
 # 2^(-1022) - (1-2^-52) * 2^-1023 = 2^-52 * 2^-1023 = 2^-1074
+
+
+# Exercise 42 -------------------------------------------------------------
+
+# The remainder of the (integer) division of x by m is also called 
+# (the remainder of) x modulo m. Verify that the remainder of x times y modulo 
+# m can be obtained as the remainder of the product of the remainders of x and 
+# y modulo m modulo m. Use this to implement a recursive function expmod which
+# computes the remainder of ax modulo m without exponentation.
+# (Distinguish the cases where x is zero, even or odd.)
