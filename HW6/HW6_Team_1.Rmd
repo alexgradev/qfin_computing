@@ -1,0 +1,1509 @@
+---
+title: "Computing - Homework Assignment 6"
+author: "Group 1: Bachtiary, Gradev, Hartai, Isakova, Pemsel"
+output: pdf_document
+---
+
+
+
+#### Exercise 129:
+
+Use a fixed-point iteration to determine the solution (in $[0,1]$) of the equation $\cos(x) = x$. Use a starting value of 0.5. How many iterations does it take before you have an answer which is accurate in the first two, three or four digits? What happens if you change the starting value to 0.7 or to 0.0?
+
+*Solution*
+
+We start with implementing the fixed-point iteration algorithm to find the exact number it converges to. Since $\cos(x) = x$ is directly in the form $x_{n+1} = g(x_n)$, we can just write
+
+```{r}
+# Implement the iteration algorithm to find the exact number
+cos_fixed_point <- function(starting_value, tol = 1e-12) {
+  # init the variables used
+  x <- starting_value
+  counter <- 0
+  
+  # tolerance measured as the change in x from an additional step
+  while(abs(cos(x) - x) > tol){
+    x <- cos(x)
+    counter <- counter+1
+  }
+  # we are interested in both the fixed point itself and the number of steps 
+  # we needed to get to it
+  return(list(fixed_point = x, iterations = counter))
+}
+
+x_star <- cos_fixed_point(0.5)$fixed_point
+cos_fixed_point(0.5)$iterations
+```
+
+The iteration converges to $x^* \approx 0.7390851$ and it needed 68 iterations to get there with a tolerance of $10^{-12}$.
+
+We can also see why the iteration converges at all. If we start anywhere in $[0,1]$, $\cos(x)$ always gives a value between $\cos(1) \approx 0.54$ and $1$, so we never leave the interval. In addition, the slope of $\cos(x)$ is $-\sin(x)$ and its absolute value is at most $\sin(1) \approx 0.84 < 1$ on this interval. This means every step pulls two points closer together, so the iterates have to converge at one single point and that point is the solution of $\cos(x) = x$.
+
+We will now will implement a function that counts the iterations so the answer is accurate in the first $d$ digits.
+
+```{r}
+digits_needed <- function(starting_value, d, x_star) {
+  # init the variables used
+  x <- starting_value
+  counter <- 0
+  
+  # to be correct to d decimal places, the number can be off by at most half 
+  # of the last digit
+  while(abs(x - x_star) > 0.5 * 10^(-d)) {
+    x <- cos(x)
+    counter <- counter + 1
+  }
+  counter
+}
+
+cat("Iterations needed with starting value 0.5 for",
+    "\n2 digits ->", digits_needed(0.5, 2, x_star),
+    "\n3 digits ->", digits_needed(0.5, 3, x_star),
+    "\n4 digits ->", digits_needed(0.5, 4, x_star)
+)
+```
+
+We count a result as accurate in the first $d$ digits if it is within $0.5 \cdot 10^{-d}$ of $x^*$, meaning it rounds to the correct value. Since $x^* \approx 0.74$, the first $d$ digits are the same as the first $d$ decimal places.
+
+Starting from 0.5, we need 10 iterations for two correct digits, 16 for three and 22 for four. So each extra correct digit costs about 6 more iterations. The reason is that close to the solution, every step shrinks the error by roughly the same factor ($\sin(x^*) \approx 0.674$). To gain one more digit the error has to become 10 times smaller and since $$0.674^6 \approx 0.094 \approx \frac{1}{10},$$
+
+that takes about 6 steps. We will now check how does the number of iterations change when we use 0.0 or 0.7 as starting value.
+
+```{r}
+cat("Iterations needed with starting value 0.0 for",
+    "\n2 digits ->", digits_needed(0.0, 2, x_star),
+    "\n3 digits ->", digits_needed(0.0, 3, x_star),
+    "\n4 digits ->", digits_needed(0.0, 4, x_star)
+)
+
+cat("Iterations needed with starting value 0.7 for",
+    "\n2 digits ->", digits_needed(0.7, 2, x_star),
+    "\n3 digits ->", digits_needed(0.7, 3, x_star),
+    "\n4 digits ->", digits_needed(0.7, 4, x_star)
+)
+```
+
+Since 0.7 is the closest to the actual fixed point, it was expected that it would require the least amount of iterations among the three starting values.
+
+Starting at 0.0 takes 1–2 extra iterations. The first two steps give $\cos(0) = 1$ and then $\cos(1) \approx 0.540$. After these two steps we are at about the same distance from the solution as when starting at 0.5, so the 0.0 start basically “wastes” its first steps catching up.
+
+In general, the closer the starting value is to the solution, the fewer iterations we need.
+
+#### Exercise 132:
+
+The equation $x^7 + 10000x^6 + 1.06x^5 + 10600x^4 + 0.0605x^3 + 605x^2 + 0.0005x + 5 = 0$ has exactly one real solution. How many iterations of Newton's method are required to find this root if the initial guess is $x = 0$?
+
+*Solution*
+
+First we look at the structure of the polynomial. The coefficients come in pairs where the second one is always $10000$ times the first ($10000 = 10000 \cdot 1$, $10600 = 10000 \cdot 1.06$, $605 = 10000 \cdot 0.0605$, $5 = 10000 \cdot 0.0005$). So we can factor out $(x + 10000)$:
+
+$$f(x) = x^6(x + 10000) + 1.06x^4(x + 10000) + 0.0605x^2(x + 10000) + 0.0005(x + 10000) = (x + 10000)\, q(x)$$
+
+with
+
+$$q(x) = x^6 + 1.06x^4 + 0.0605x^2 + 0.0005 = (x^2 + 1)(x^2 + 0.01)(x^2 + 0.05).$$
+
+Since $q(x) \ge 0.0005 > 0$ for all real $x$, $q$ has no real roots, and the only real solution of $f(x) = 0$ is $x^* = -10000$.
+
+Newton's method is $x_{n+1} = x_n - f(x_n)/f'(x_n)$ with
+
+$$f'(x) = 7x^6 + 60000x^5 + 5.3x^4 + 42400x^3 + 0.1815x^2 + 1210x + 0.0005.$$
+
+At the starting value $x_0 = 0$ we have $f(0) = 5$ and $f'(0) = 0.0005$, so
+
+$$x_1 = 0 - \frac{5}{0.0005} = -10000.$$
+
+The first Newton step lands exactly on the root. This is not a coincidence. With $f(x) = (x + 10000)\,q(x)$ the product rule gives $f'(x) = q(x) + (x + 10000)\,q'(x)$. The polynomial $q$ only contains even powers of $x$, so $q'(0) = 0$, and therefore $f'(0) = q(0)$ and $f(0) = 10000\, q(0)$. The Newton step is then
+
+$$x_1 = 0 - \frac{10000\, q(0)}{q(0)} = -10000.$$
+
+So the answer is **one iteration**. This is a bit surprising: the tangent at $x = 0$ is almost flat ($f'(0) = 0.0005$), which normally makes Newton jump far away to some useless point. Here, the huge jump goes exactly to the root.
+
+We check this in R. The stopping rule compares two successive iterates, so the loop needs a second step to see that $x$ no longer changes. That second step only confirms convergence; the root is already found after step 1.
+
+```{r}
+f  <- function(x) x^7 + 10000*x^6 + 1.06*x^5 + 10600*x^4 + 0.0605*x^3 + 605*x^2 + 0.0005*x + 5
+fp <- function(x) 7*x^6 + 60000*x^5 + 5.3*x^4 + 42400*x^3 + 0.1815*x^2 + 1210*x + 0.0005
+
+newton <- function(f, fp, x0, tol = 1e-10, max_iter = 100) {
+  x <- x0
+  for (k in 1:max_iter) {
+    x_new <- x - f(x) / fp(x)   # Newton step
+    cat("step", k, ": x =", format(x_new, digits = 15), "  f(x) =", f(x_new), "\n")
+    # relative stopping rule, since the root is large in absolute value
+    if (abs(x_new - x) < tol * max(1, abs(x))) return(c(root = x_new, iterations = k))
+    x <- x_new
+  }
+  warning("no convergence")
+  c(root = x, iterations = max_iter)
+}
+
+newton(f, fp, x0 = 0)
+
+# all 7 roots of the polynomial (coefficients from the constant term up)
+round(polyroot(c(5, 0.0005, 605, 0.0605, 10600, 1.06, 10000, 1)), 7)
+```
+
+After the first step we are at $x = -10000$ with $f(x) = 0$ exactly, also in floating-point arithmetic. `polyroot()` confirms that $-10000$ is the only real root. The other six roots are the complex pairs $\pm i$, $\pm 0.1i$ and $\pm\sqrt{0.05}\,i \approx \pm 0.2236i$, which come from the factors of $q$.
+
+#### Exercise 136:
+
+a\)
+
+To find the Newton iteration for computing the square root of a positive number $a$, we start with the standard formula for Newton's method:
+
+$$ x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)} $$
+
+Given the function to solve is $f(x) = x^2 - a = 0$:
+
+1.  The original function is $f(x) = x^2 - a$
+
+2.  The first derivative with respect to $x$ is $f'(x) = 2x$
+
+Substitute $f(x_n)$ and $f'(x_n)$ into the Newton formula:
+
+$$ x_{n+1} = x_n - \frac{x_n^2 - a}{2x_n} $$
+
+Now, simplify the expression algebraically to avoid unnecessary operations:
+
+$$ x_{n+1} = x_n - \left( \frac{x_n^2}{2x_n} - \frac{a}{2x_n} \right) $$
+
+$$ x_{n+1} = x_n - \frac{x_n}{2} + \frac{a}{2x_n} $$
+
+$$ x_{n+1} = \frac{x_n}{2} + \frac{a}{2x_n} $$
+
+$$ x_{n+1} = \frac{1}{2} \left( x_n + \frac{a}{x_n} \right) $$
+
+This beautiful simplification is historically known as the **Babylonian method** (or Heron's method). It reveals why this specific iteration is so computationally efficient: it replaces expensive power calculations and multiple function evaluations with just one division, one addition, and a division by two (which computers execute rapidly via bit-shifting).
+
+```{r}
+# Computes the square root of 'a' using the simplified Newton/Babylonian iteration
+# a: The target value
+# x0: Initial guess (in a real system, this comes from a hardware lookup table)
+# tol: Stopping threshold
+newton_sqrt <- function(a, x0, tol = 1e-9) {
+  
+  # Safety check: square roots of negative numbers are imaginary
+  if (a < 0) {
+    stop("Value 'a' must be a positive number.")
+  }
+  # Immediate return for exactly 0
+  if (a == 0) return(0)
+  
+  x_curr <- x0
+  iter <- 0
+  
+  cat(sprintf("Starting guess: %.9f\n", x_curr))
+  
+  # The loop continues as long as the error |x^2 - a| is larger than our tolerance
+  while (abs(x_curr^2 - a) > tol) {
+    
+    # Apply the algebraically simplified Newton iteration: 0.5 * (x + a/x)
+    x_next <- 0.5 * (x_curr + (a / x_curr))
+    
+    iter <- iter + 1
+    cat(sprintf("Iteration %d: x = %.9f\n", iter, x_next))
+    
+    # Update the current value for the next loop pass
+    x_curr <- x_next
+  }
+  
+  cat("Converged!\n\n")
+  return(x_curr)
+}
+
+# Example: Compute the square root of 612 using an arbitrary initial guess of 10
+final_val <- newton_sqrt(a = 612, x0 = 10)
+cat("Calculated root:", final_val, "\n")
+cat("R's built-in sqrt:", sqrt(612), "\n")
+```
+
+**b)**
+
+To prove the identity $x_{k+1}^2 - a = \left( \frac{x_k^2 - a}{2x_k} \right)^2$ and show that $x_k > \sqrt{a}$ for all $k > 0$, we use the Newton iteration derived in part (a) for a positive number $a > 0$.
+
+**1. Mathematical Proof of the Identity**
+
+From part (a), the Newton iteration for $f(x) = x^2 - a = 0$ is:
+
+$$ x_{k+1} = x_k - \frac{x_k^2 - a}{2x_k} $$
+
+**Using the Un-simplified Newton Formula:**
+
+1.  **Square both sides** of the unsimplified Newton iteration using the binomial expansion $(u - v)^2 = u^2 - 2uv + v^2$:
+
+    $$ x_{k+1}^2 = \left( x_k - \frac{x_k^2 - a}{2x_k} \right)^2 $$
+
+    $$ x_{k+1}^2 = x_k^2 - 2 \cdot x_k \cdot \left( \frac{x_k^2 - a}{2x_k} \right) + \left( \frac{x_k^2 - a}{2x_k} \right)^2 $$
+
+2.  **Cancel** $2x_k$ in the middle term:
+
+    $$ x_{k+1}^2 = x_k^2 - (x_k^2 - a) + \left( \frac{x_k^2 - a}{2x_k} \right)^2 $$
+
+    $$ x_{k+1}^2 = a + \left( \frac{x_k^2 - a}{2x_k} \right)^2 $$
+
+3.  **Subtract** $a$ from both sides to obtain the exact required identity:
+
+    $$ x_{k+1}^2 - a = \left( \frac{x_k^2 - a}{2x_k} \right)^2 $$
+
+**2. Concluding that** $x_k > \sqrt{a}$ **for all** $k > 0$
+
+Assuming our starting guess is positive ($x_0 > 0$) and not already equal to the exact root ($x_0 \neq \sqrt{a}$):
+
+1.  **Positivity of all iterates (**$x_k > 0$**):** Since $a > 0$ and $x_0 > 0$, the update rule $x_{k+1} = \frac{1}{2}\left(x_k + \frac{a}{x_k}\right)$ is an average of two strictly positive numbers. By induction, $x_k > 0$ for all $k \ge 1$.
+
+2.  **Positivity of the squared error:** For any real number $x_k \neq \sqrt{a}$, the term $\frac{x_k^2 - a}{2x_k}$ is a non-zero real number. The square of any non-zero real number is strictly positive:
+
+    $$ x_{k+1}^2 - a = \left( \frac{x_k^2 - a}{2x_k} \right)^2 > 0 $$
+
+3.  **Taking the square root:** Adding $a$ to both sides gives:
+
+    $$ x_{k+1}^2 > a $$
+
+    Since both $x_{k+1} > 0$ and $a > 0$, taking the positive square root preserves the inequality:
+
+    $$ x_{k+1} > \sqrt{a} \quad \text{for all } k \ge 0 $$
+
+Replacing the index $k+1$ with $k$ means $x_k > \sqrt{a}$ **for all** $k > 0$ ($k = 1, 2, 3, \dots$).
+
+**Geometric Intuition:** Because $f(x) = x^2 - a$ is strictly convex (curved upward) for $x > 0$, its tangent line always lies completely *below* the curve. Even if your initial guess $x_0$ is smaller than $\sqrt{a}$ (e.g., $0 < x_0 < \sqrt{a}$), the tangent line at $x_0$ shoots across the x-axis to the right of $\sqrt{a}$, so $x_1 > \sqrt{a}$. From $k = 1$ onward, the sequence approaches $\sqrt{a}$ monotonically from above.
+
+**c)**
+
+To show that the sequence $(x_k)$ is strictly decreasing for all $k > 0$ (assuming $x_0 \neq \sqrt{a}$), we must prove that $x_{k+1} < x_k$, or equivalently, $x_{k+1} - x_k < 0$.
+
+**1. Set up the difference** $x_{k+1} - x_k$ From the unsimplified Newton iteration for $f(x) = x^2 - a$:
+
+$$ x_{k+1} = x_k - \frac{x_k^2 - a}{2x_k} $$
+
+Subtract $x_k$ from both sides:
+
+$$ x_{k+1} - x_k = -\frac{x_k^2 - a}{2x_k} $$
+
+**2. Analyze the signs of the numerator and denominator for** $k > 0$ From part (b), we established that for all $k > 0$:
+
+$$ x_k > \sqrt{a} > 0 $$
+
+- **Denominator:** Since $x_k > 0$, it follows immediately that:
+
+  $$ 2x_k > 0 $$
+
+- **Numerator:** Squaring both sides of the inequality $x_k > \sqrt{a}$ (which is valid since both sides are positive) gives $x_k^2 > a$, or:
+
+  $$ x_k^2 - a > 0 $$
+
+**3. Conclude the inequality** Since both the numerator $(x_k^2 - a)$ and the denominator $2x_k$ are strictly positive for all $k > 0$, their quotient is strictly positive:
+
+$$ \frac{x_k^2 - a}{2x_k} > 0 $$
+
+Multiplying by $-1$ reverses the inequality:
+
+$$ x_{k+1} - x_k = -\frac{x_k^2 - a}{2x_k} < 0 $$
+
+Therefore, $x_{k+1} < x_k$ for all $k > 0$, which proves that the sequence $(x_k)$ is strictly decreasing for $k > 0$.
+
+**d)**
+
+To prove both error formulas given the definitions $e_k = \sqrt{a} - x_k$ and $r_k = e_k / \sqrt{a}$, we substitute the Newton iteration $x_{k+1} = \frac{x_k^2 + a}{2x_k}$ derived in part (a).
+
+**1. Proof that** $e_{k+1} = -\frac{e_k^2}{2x_k}$
+
+1.  Start with the definition of the absolute error at step $k+1$:
+
+    $$ e_{k+1} = \sqrt{a} - x_{k+1} $$
+
+2.  Substitute $x_{k+1} = \frac{x_k^2 + a}{2x_k}$:
+
+    $$ e_{k+1} = \sqrt{a} - \frac{x_k^2 + a}{2x_k} $$
+
+3.  Combine the terms over the common denominator $2x_k$:
+
+    $$ e_{k+1} = \frac{2x_k\sqrt{a} - x_k^2 - a}{2x_k} $$
+
+4.  Factor out $-1$ from the numerator and rewrite $a$ as $(\sqrt{a})^2$:
+
+    $$ e_{k+1} = -\frac{(\sqrt{a})^2 - 2\sqrt{a}x_k + x_k^2}{2x_k} $$
+
+5.  Factor the numerator using the binomial identity $(u - v)^2 = u^2 - 2uv + v^2$:
+
+    $$ e_{k+1} = -\frac{(\sqrt{a} - x_k)^2}{2x_k} $$
+
+6.  Substitute $e_k = \sqrt{a} - x_k$ to obtain the first required result:
+
+    $$ e_{k+1} = -\frac{e_k^2}{2x_k} $$
+
+**2. Proof that** $r_{k+1} = -\frac{\sqrt{a}}{2x_k} r_k^2$
+
+1.  From the definition of the relative error $r_k = \frac{e_k}{\sqrt{a}}$, we have $r_{k+1} = \frac{e_{k+1}}{\sqrt{a}}$ and $e_k = \sqrt{a} \cdot r_k$.
+
+2.  Divide both sides of the equation $e_{k+1} = -\frac{e_k^2}{2x_k}$ by $\sqrt{a}$:
+
+    $$ r_{k+1} = \frac{e_{k+1}}{\sqrt{a}} = -\frac{e_k^2}{2x_k\sqrt{a}} $$
+
+3.  Substitute $e_k = \sqrt{a} \cdot r_k$ into the numerator:
+
+    $$ r_{k+1} = -\frac{(\sqrt{a} \cdot r_k)^2}{2x_k\sqrt{a}} = -\frac{a \cdot r_k^2}{2x_k\sqrt{a}} $$
+
+4.  Simplify $\frac{a}{\sqrt{a}} = \sqrt{a}$ to obtain the second required result:
+
+    $$ r_{k+1} = -\frac{\sqrt{a}}{2x_k} r_k^2 $$
+
+**e)**
+
+To derive an upper bound for $\vert{}r_4\vert{}$ given $x_0 \ge \sqrt{a}$ and $\vert{}r_0\vert{} \le 0.1$, we bound the recursive relative error formula established in part (d).
+
+**1. Bound the one-step relative error recurrence**
+
+From part (d), the relative error satisfies:
+
+$$ r_{k+1} = -\frac{\sqrt{a}}{2x_k} r_k^2 $$
+
+Taking the absolute value of both sides gives:
+
+$$ \vert{}r_{k+1}\vert{} = \frac{\sqrt{a}}{2x_k} \vert{}r_k\vert{}^2 $$
+
+By assumption, $x_0 \ge \sqrt{a}$, and from part (b), $x_k > \sqrt{a}$ for all $k > 0$. Therefore, $x_k \ge \sqrt{a} > 0$ for all $k \ge 0$, which implies:
+
+$$ \frac{\sqrt{a}}{x_k} \le 1 \implies \frac{\sqrt{a}}{2x_k} \le \frac{1}{2} $$
+
+Substituting this inequality into the absolute relative error equation yields the recursive bound for all $k \ge 0$:
+
+$$ \vert{}r_{k+1}\vert{} \le \frac{1}{2} \vert{}r_k\vert{}^2 $$
+
+2**. Unroll the recurrence to** $k = 4$
+
+Applying the inequality $\vert{}r_{k+1}\vert{} \le \frac{1}{2} \vert{}r_k\vert{}^2$ step-by-step from $k = 0$ to $k = 3$:
+
+1.  For $k = 0$:
+
+    $$ \vert{}r_1\vert{} \le \frac{1}{2} \vert{}r_0\vert{}^2 $$
+
+2.  For $k = 1$:
+
+    $$ \vert{}r_2\vert{} \le \frac{1}{2} \vert{}r_1\vert{}^2 \le \frac{1}{2} \left( \frac{1}{2} \vert{}r_0\vert{}^2 \right)^2 = \frac{1}{2^3} \vert{}r_0\vert{}^4 $$
+
+3.  For $k = 2$:
+
+    $$ \vert{}r_3\vert{} \le \frac{1}{2} \vert{}r_2\vert{}^2 \le \frac{1}{2} \left( \frac{1}{2^3} \vert{}r_0\vert{}^4 \right)^2 = \frac{1}{2^7} \vert{}r_0\vert{}^8 $$
+
+4.  For $k = 3$ (following the general pattern $\vert{}r_k\vert{} \le 2^{-(2^k - 1)} \vert{}r_0\vert{}^{2^k}$):
+
+    $$ \vert{}r_4\vert{} \le \frac{1}{2} \vert{}r_3\vert{}^2 \le \frac{1}{2} \left( \frac{1}{2^7} \vert{}r_0\vert{}^8 \right)^2 = \frac{1}{2^{15}} \vert{}r_0\vert{}^{16} $$
+
+**3. Evaluate the bound for** $\vert{}r_0\vert{} \le 0.1$
+
+Substituting $\vert{}r_0\vert{} \le 0.1 = 10^{-1}$ and $2^{15} = 32768$:
+
+$$ \vert{}r_4\vert{} \le \frac{1}{2^{15}} (10^{-1})^{16} = \frac{10^{-16}}{32768} \approx 3.0518 \times 10^{-21} $$
+
+(*Note: Even if you use the simpler, looser bound* $\frac{\sqrt{a}}{2x_k} < 1 \implies \vert{}r_{k+1}\vert{} < \vert{}r_k\vert{}^2$*, you still obtain* $\vert{}r_4\vert{} < \vert{}r_0\vert{}^{16} \le 10^{-16}$*, which is already below standard IEEE 754 double-precision machine epsilon* $\approx 2.22 \times 10^{-16}$ *in just 4 iterations.)*
+
+**Exercise 137:**
+
+On a computer with no functional unit for floating-point division, one might instead use multiplication by the reciprocal of the divisor. Apply Newton's method to produce an iterative scheme for approximating the reciprocal of a number $y > 0$ (i.e., to solve the equation $f(x) = (1/x) - y = 0$ for given $y$). Considering the intended application, your formula should contain no divisions.
+
+Idea that the computer can't divide, so instead of $a / y$ we compute $a \cdot (1/y)$. To get $1/y$ we need the root of
+
+$$f(x) = \frac{1}{x} - y = 0$$
+
+because when $x = 1/y$ we get $1/x = y$, so $f(x) = 0$.
+
+Newton's method is
+
+$$x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}$$
+
+The derivative is
+
+$$f'(x) = -\frac{1}{x^2}$$
+
+Now we plug it in:
+
+$$x_{k+1} = x_k - \frac{1/x_k - y}{-1/x_k^2}$$
+
+Dividing by $-1/x_k^2$ is the same as multiplying by $-x_k^2$, so
+
+$$x_{k+1} = x_k + x_k^2 \left(\frac{1}{x_k} - y\right) = x_k + x_k - y x_k^2$$
+
+and it gives
+
+$$x_{k+1} = x_k (2 - y x_k)$$
+
+This formula has only multiplications and a subtraction, no divisions. So it can run on that computer.
+
+When does it work?: we look at the error $e_k = 1 - y x_k$ (it is 0 when $x_k = 1/y$). Then
+
+$$1 - y x_{k+1} = 1 - 2 y x_k + y^2 x_k^2 = (1 - y x_k)^2$$
+
+so $e_{k+1} = e_k^2$. This means the error gets squared every step (quadratic convergence). It only goes to 0 if $|e_0| < 1$, which means we need
+
+$$0 < x_0 < \frac{2}{y}$$
+
+If $x_0$ is too big the method blows up. For example with $y = 4$ and $x_0 = 1$ we get $x_1 = 1 \cdot (2 - 4) = -2$ and then it goes to $-\infty$
+
+Stopping rule: we stop when $|1 - y x_k| < tol$. This is exactly the relative error $e_k$ from above. It has no division and it works for small and big $y$ the same way. We also stop after max_iter steps, so the loop can't run forever if the start is bad
+
+Example: $y = 4$, $x_0 = 0.1$:
+
+$x_1 = 0.1 \cdot (2 - 0.4) = 0.16$
+
+$x_2 = 0.16 \cdot (2 - 0.64) = 0.2176$
+
+$x_3 = 0.2458$, $x_4 = 0.24993$ which close to $1/4 = 0.25$
+
+```{r}
+#Newton for f(x) = 1/x - y
+#x_new = x * (2 - y*x), no division
+#stop when |1 - y*x| < tol (as x*y is almost 1 so x is almost 1/y)
+
+newton <- function(y, x0, tol = 1e-12, max_iter = 100) {
+  x <- x0
+  k <- 0
+  repeat {
+    x <- x * (2 - y * x) #Newton step, only * and -
+    k <- k + 1
+    cat("k =", k, " x =", x, "\n")
+    #stop when x*y is almost 1 or too many steps
+    if (abs(1 - y * x) < tol || k >= max_iter) break
+  }
+  x
+}
+
+#example 1: y = 4, start 0.1 (0 < 0.1 < 2/4)
+r <- newton(4, 0.1)
+
+#example 2: y = 7, start 0.1 (0 < 0.1 < 2/7)
+r2 <- newton(7, 0.1)
+
+#example 3: very big y, the answer is very small
+r3 <- newton(1e13, 1e-14)
+
+#bad start: x0 = 1 > 2/4, so it blows up
+r4 <- newton(4, 1, max_iter = 5)
+
+cat("x_{k+1} = x_k*(2 - y*x_k), e.g. 1/4 =", r, "and 1/7 =", r2, "\n")
+```
+
+Results: Newton's method for $f(x) = 1/x - y$ gives the formula $x_{k+1} = x_k (2 - y x_k)$. It uses only multiplication and subtraction, so it works on a computer that can't divide. In our examples it found $1/4 = 0.25$ and $1/7 = 0.1428571$ in only 5-6 steps. This is because the error $1 - y x_k$ gets squared every step, so the method converges very fast. We stop when $|1 - y x_k| < tol$. This check also has no division and it works for very big $y$ too, like example 3 gave $10^{-13}$
+
+#### Exercise 138
+
+Show that the iterative method $$ x_{k+1}= \frac{x_{k-1} \cdot f(x_k)-x_k \cdot f(x_{k-1})} {f(x_k) -f(x_{k-1})} $$
+
+is mathematically equivalent to the secant method $$ x_{k+1} = x_k - f(x_k) \cdot \frac{x_k -x_{k-1}} {f(x_k) - f(x_{k-1})} $$ for solving a scalar non-linear equation f(x) = 0.
+
+When implemented in finite-precision floating-point arithmetic, what advantages does the new formula have compared with the standard formula for the secant method?
+
+*Solution*
+
+We start from the secant method and through algebraic manipulations we will show its equivalent to the iterative method.
+
+$$ \begin{aligned} x_{k+1} &= x_k - f(x_k)\,\frac{x_k - x_{k-1}}{f(x_k) - f(x_{k-1})} \\[1.5ex] &= \frac{x_k\bigl(f(x_k) - f(x_{k-1})\bigr) - f(x_k)\,(x_k - x_{k-1})}{f(x_k) - f(x_{k-1})} \\[1.5ex] &= \frac{x_k f(x_k) - x_k f(x_{k-1}) - x_k f(x_k) + x_{k-1} f(x_k)}{f(x_k) - f(x_{k-1})} \\[1.5ex] &= \frac{x_{k-1} f(x_k) - x_k f(x_{k-1})}{f(x_k) - f(x_{k-1})} \end{aligned} $$
+
+The two formulas are equivalent in exact mathematics but not in finite-precision floating-point arithmetic. With the standard formula, near convergence, the rounding error only affects the correction term. The error relative to $x_k$ is of the order of the machine epsilon (approx. $2.2 \cdot 10^{-16}$). Hence, the accuracy of the iterate $k+1$ is essentially limited by $\epsilon_{\text{mach}}$.
+
+With the new formula, near the root we have $x_k \approx x_{k-1}$ and $f(x_k) \approx f(x_{k-1}) \approx 0$. In other words, the numerator subtracts two nearly equal products, which leads to catastrophic cancellation, while the denominator is really small. The rounding error from the numerator is therefore further magnified when divided by the small denominator. This leads to loss of significant digits and consequently less accurate $x_{k+1}$.
+
+Additionally, using the iterative method won't lead to a significant speed advantage, because both need the same number of operations (3 subtractions, 1 multiplication and 1 division in the secant method vs 2 subtractions, 2 multiplications and 1 division in the iterative method).
+
+However, probably the only advantage comes from the case where $f(x_k)$ and $f(x_{k-1})$ have opposite signs, while $x_k$ and $x_{k-1}$ have the same sign. Then the formula represents a convex combination $$ x_{k+1} = w_1 x_{k-1} + w_2 x_k,\qquad \text{where} \qquad w_1=\frac{f(x_k)}{f(x_k)-f(x_{k-1})} \quad \text{and} \quad w_2=\frac{-f(x_{k-1})}{f(x_k)-f(x_{k-1})} $$ with $w_1,w_2 \in (0,1)$ and $w_1 + w_2 = 1$. Hence, $x_{k+1}$ lies between $x_k$ and $x_{k-1}$.
+
+This leads to no cancellation in both the numerator and denominator. WLoG, suppose $f(x_k) > 0 > f(x_{k-1})$ and $x_k, x_{k-1} > 0$. In the denominator we have $$f(x_k) - f(x_{k-1}) = f(x_k) + |f(x_{k-1})|$$ At the same time, in the numerator we have $$x_{k-1} \cdot f(x_k) - x_k \cdot f(x_{k-1}) = x_{k-1} \cdot f(x_k) +   x_k \cdot |f(x_{k-1})|$$ Hence, in such case this formula does not make rounding errors worse.
+
+#### Exercise 139
+
+We write the system as $F(x) = 0$ with $$F(x_1, x_2) = \begin{pmatrix} x_1 - 1 \\ x_1x_2 - 1 \end{pmatrix}, \qquad J(x_1, x_2) = \begin{pmatrix} 1 & 0 \\ x_2 & x_1 \end{pmatrix},$$ where $J$ is the Jacobian matrix. Its only solution is $(1, 1)$.
+
+Newton's method computes the step $s$ from the linear system $J(x^{(k)})\,s = -F(x^{(k)})$ and sets $x^{(k+1)} = x^{(k)} + s$. This only works if $J$ is invertible, and $$\det J = 1 \cdot x_1 - 0 \cdot x_2 = x_1 .$$ So Newton's method fails whenever we reach a point with $x_1 = 0$: the linear system has no unique solution and the step is not defined.
+
+Since $J$ is triangular, we can also solve for the step by hand. The first row gives $s_1 = -(x_1 - 1) = 1 - x_1$, so after one step $$x_1^{(1)} = x_1 + (1 - x_1) = 1$$ no matter where we started (the first equation is linear, and for linear equations Newton is exact after one step). The second row gives $x_2 s_1 + x_1 s_2 = -(x_1x_2 - 1)$, so $$s_2 = \frac{1 - x_1x_2 - x_2(1 - x_1)}{x_1} = \frac{1 - x_2}{x_1}, \qquad x_2^{(1)} = x_2 + \frac{1 - x_2}{x_1}.$$ After the first step $x_1 = 1$, so the Jacobian has determinant 1 and the second step gives $x_2^{(2)} = x_2^{(1)} + (1 - x_2^{(1)}) = 1$. So for every starting point with $x_1 \ne 0$, Newton's method reaches the exact solution $(1, 1)$ in two steps.
+
+**Answer:** Newton's method fails exactly for the starting points $(0, x_2)$ with any $x_2$, because there the Jacobian is singular. (With $x_1$ very close to 0 it doesn't fail in theory, but the first step $\frac{1 - x_2}{x_1}$ becomes huge, so in practice this is also problematic.)
+
+We check this with a small implementation of Newton's method for systems, which uses `solve()` for the linear system in every step.
+
+```{r}
+F <- function(x) c(x[1] - 1, x[1] * x[2] - 1)
+J <- function(x) matrix(c(1, x[2], 0, x[1]), nrow = 2)   # filled column by column
+
+newton_system <- function(x, tol = 1e-12, maxit = 50) {
+  for (k in 1:maxit) {
+    s <- solve(J(x), -F(x))          # Newton step: J s = -F
+    x <- x + s
+    cat("step", k, ": x =", x, "\n")
+    if (sqrt(sum(s^2)) < tol) break
+  }
+  x
+}
+
+newton_system(c(2, 3))
+newton_system(c(-5, 10))
+try(newton_system(c(0, 5)))
+```
+
+From $(2, 3)$ and $(-5, 10)$ the method is at $(1, 1)$ after two steps (the third step only confirms that the step size is 0). From $(0, 5)$ `solve()` stops with an error, because the Jacobian is singular.
+
+#### Exercise 140:
+
+The function $f(x) = \sin(10x) - x$ has **7 zeros**:
+
+$$ x \in \{-0.8423204, \; -0.7068174, \; -0.2852342, \; 0, \; 0.2852342, \; 0.7068174, \; 0.8423204\} $$
+
+1\. Mathematical & Graphical Analysis: Why Are There 7 Zeros?
+
+Setting $f(x) = \sin(10x) - x = 0$ is equivalent to finding where the wave $y = \sin(10x)$ intersects the line $y = x$:
+
+1.  **Bounded Domain (**$[-1, 1]$**):** Because $-1 \le \sin(10x) \le 1$ for all real $x$, no root can exist where $\vert{}x\vert{} > 1$. Every zero must lie inside the interval $[-1, 1]$.
+
+2.  **Symmetry:** Since $f(-x) = \sin(-10x) - (-x) = -(\sin(10x) - x) = -f(x)$, the function is **odd**. This guarantees a root at $x = 0$, and every positive root $r > 0$ has a mirror-image negative root $-r < 0$.
+
+3.  **Counting Positive Roots via Turning Points:** The peaks and troughs of $\sin(10x)$ occur where $10x = \frac{\pi}{2} + k\pi$, or $x = \frac{(2k+1)\pi}{20}$:
+
+    - At $x = 0$, $f(0) = 0$ (**Root 4**, the center root). Near $0$, the slope is $f'(0) = 10\cos(0) - 1 = 9 > 0$, so $f(x)$ rises above the x-axis.
+
+    - At the 1st peak $x = \frac{\pi}{20} \approx 0.157$, $f(x) = 1 - 0.157 = +0.843 > 0$.
+
+    - At the 1st trough $x = \frac{3\pi}{20} \approx 0.471$, $f(x) = -1 - 0.471 = -1.471 < 0$. By the Intermediate Value Theorem (IVT), there is **1 root** in $[0.157, 0.471]$.
+
+    - At the 2nd peak $x = \frac{5\pi}{20} \approx 0.785$, $f(x) = 1 - 0.785 = +0.215 > 0$. By the IVT, there is **1 root** in $[0.471, 0.785]$.
+
+    - At the 2nd trough $x = \frac{7\pi}{20} \approx 1.100$, $f(x) = -1 - 1.100 = -2.100 < 0$. By the IVT, there is **1 root** in $[0.785, 1.000]$.
+
+    - Beyond $x = 1$, $f(x)$ remains strictly negative forever.
+
+Combining $x = 0$, the **3 positive roots**, and the **3 negative roots** gives **7 zeros in total**.
+
+```{r}
+# ---------------------------------------------------------
+# 1. Define the function f(x) and its derivative f'(x)
+# ---------------------------------------------------------
+f <- function(x) sin(10 * x) - x
+f_prime <- function(x) 10 * cos(10 * x) - 1
+
+# ---------------------------------------------------------
+# 2. Plot the function to visually inspect the roots
+# ---------------------------------------------------------
+# Plot on [-1.2, 1.2] since all roots must lie in [-1, 1]
+curve(f, from = -1.2, to = 1.2, n = 1000,
+      col = "steelblue", lwd = 2,
+      main = "Graph of f(x) = sin(10x) - x",
+      xlab = "x", ylab = "f(x)")
+abline(h = 0, col = "red", lty = 2, lwd = 1.5) # Horizontal line at y = 0
+grid()
+
+# ---------------------------------------------------------
+# 3. Method A: Bracketing Solver using R's built-in uniroot()
+# ---------------------------------------------------------
+# Define 7 bracketing intervals [a, b] where f(a) and f(b) have opposite signs
+brackets <- list(
+  c(-1.00, -0.80),  # Bracket for Root 1
+  c(-0.75, -0.50),  # Bracket for Root 2
+  c(-0.45, -0.15),  # Bracket for Root 3
+  c(-0.10,  0.10),  # Bracket for Root 4 (x = 0)
+  c( 0.15,  0.45),  # Bracket for Root 5
+  c( 0.50,  0.75),  # Bracket for Root 6
+  c( 0.80,  1.00)   # Bracket for Root 7
+)
+
+# Apply uniroot() to each bracketing interval
+roots_uniroot <- sapply(brackets, function(interval) {
+  uniroot(f, interval = interval, tol = 1e-12)$root
+})
+
+# Add the discovered roots as red points on our plot
+points(roots_uniroot, rep(0, length(roots_uniroot)), pch = 19, col = "red", cex = 1.3)
+
+# ---------------------------------------------------------
+# 4. Method B: Newton's Method with 7 starting guesses
+# ---------------------------------------------------------
+newton_single <- function(x0, tol = 1e-12, max_iter = 100) {
+  x <- x0
+  for (i in 1:max_iter) {
+    x_next <- x - f(x) / f_prime(x)
+    if (abs(x_next - x) < tol) return(x_next)
+    x <- x_next
+  }
+  return(x)
+}
+
+# Pick 7 initial guesses near the zero crossings seen on the graph
+initial_guesses <- c(-0.85, -0.70, -0.30, 0.0, 0.30, 0.70, 0.85)
+roots_newton <- sapply(initial_guesses, newton_single)
+
+# ---------------------------------------------------------
+# 5. Display the results in a summary table
+# ---------------------------------------------------------
+results_table <- data.frame(
+  Root_Number = 1:7,
+  Bracket_Lower = sapply(brackets, `[`, 1),
+  Bracket_Upper = sapply(brackets, `[`, 2),
+  Root_uniroot = round(roots_uniroot, 7),
+  Root_Newton = round(roots_newton, 7)
+)
+
+cat("Total number of zeros found:", length(roots_uniroot), "\n\n")
+print(results_table, row.names = FALSE)
+```
+
+#### Exercise 143
+
+Find a minimizer of the function $$f(x) = (x - 3)^4 + 7(x - 2)^2 + x.$$
+
+First we look at the derivatives: $$f'(x) = 4(x-3)^3 + 14(x-2) + 1 = 4x^3 - 36x^2 + 122x - 135,$$ $$f''(x) = 12(x-3)^2 + 14 \ge 14 > 0.$$
+
+- *Existence:* $f$ is a polynomial of degree 4 with a positive leading coefficient, so $f(x) \to \infty$ for $x \to \pm\infty$. A continuous function with this property attains its minimum.
+- *Uniqueness:* since $f'' > 0$ everywhere, $f$ is strictly convex, so it has at most one minimizer.
+- *Characterization:* at a minimizer $f'(x) = 0$, and for a convex function every stationary point is a global minimizer.
+
+So the minimizer is the solution of the cubic equation $f'(x) = 0$. Because $f'' > 0$, the function $f'$ is strictly increasing from $-\infty$ to $+\infty$, so this equation has exactly one real root. We look at the graph and compute the root numerically (and afterwards also in closed form).
+
+```{r}
+f  <- function(x) (x - 3)^4 + 7 * (x - 2)^2 + x
+fp <- function(x) 4 * (x - 3)^3 + 14 * (x - 2) + 1 # derivative f'
+
+curve(f, from = 0, to = 5, xlab = "x", ylab = "f(x)", main = "Graph of f")
+```
+
+```{r}
+# roots of 4x^3 - 36x^2 + 122x - 135 (coefficients from the constant term up)
+polyroot(c(-135, 122, -36, 4))
+
+# f'(0) < 0 and f'(5) > 0, so uniroot has a valid sign-change bracket
+stopifnot(fp(0) * fp(5) < 0)
+# the real root of f'
+root <- uniroot(fp, c(0, 5), tol = 1e-12)$root
+print(root, digits = 12)
+print(f(root), digits = 12)
+fp(root) # f' is (almost) zero there
+12 * (root - 3)^2 + 14 # f'' is positive
+```
+
+The real root of $f'$ is $x^* \approx 2.1219718$ (`polyroot()` confirms that the other two roots of the cubic are complex). Since $f'' > 0$, it is the global minimizer, with $f(x^*) \approx 2.8204501$.
+
+**Closed form.** With $t = x - 3$ the equation $f'(x) = 0$ becomes $4t^3 + 14t + 15 = 0$, i.e. $t^3 + pt + q = 0$ with $p = 7/2$ and $q = 15/4$. The discriminant is $D = (p/3)^3 + (q/2)^2 = (7/6)^3 + (15/8)^2 = 8819/1728 > 0$, so Cardano's formula gives the unique real root $$x^* = 3 + \sqrt[3]{-\tfrac{15}{8} + \sqrt{D}} + \sqrt[3]{-\tfrac{15}{8} - \sqrt{D}}.$$
+
+```{r}
+cbrt <- function(z) sign(z) * abs(z)^(1/3) # real cube root, also for z < 0
+D <- (7/6)^3 + (15/8)^2
+x_cardano <- 3 + cbrt(-15/8 + sqrt(D)) + cbrt(-15/8 - sqrt(D))
+print(x_cardano, digits = 12)
+x_cardano - root # agrees with uniroot()
+```
+
+We can also use R's minimization functions and compare them:
+
+```{r}
+m_optimize <- optimize(f, c(0, 5), tol = 1e-10)
+m_optim <- optim(0, f, method = "BFGS")
+m_nlm <- nlm(f, 0)
+
+print(data.frame(
+  method = c("root of f'", "optimize", "optim (BFGS)", "nlm"),
+  minimizer = c(root, m_optimize$minimum, m_optim$par, m_nlm$estimate),
+  f_value = c(f(root), m_optimize$objective, m_optim$value, m_nlm$minimum)),
+  digits = 10)
+```
+
+All methods agree on the minimizer $x^* \approx 2.1219718$. The estimates differ only in the 8th or 9th digit, because the algorithms use different stopping rules. This is the accuracy we can expect when we minimize $f$ directly: near $x^*$ Taylor's theorem and $f'(x^*) = 0$ give $$f(x) - f(x^*) \approx \frac{f''(x^*)}{2}(x - x^*)^2 \approx 11.6\,(x - x^*)^2.$$ A change of $x$ of the size $10^{-8}$ therefore changes $f$ by only about $10^{-15}$. This is comparable to the floating-point resolution of $f(x^*) \approx 2.8$ (adjacent doubles near 2.8 differ by about $4.4 \cdot 10^{-16}$). Consequently, function-only minimization can struggle to locate the minimizer much more precisely than about $\sqrt{\varepsilon} \approx 10^{-8}$, even when the objective value is accurate to machine precision. Solving $f'(x) = 0$ is especially effective here because the derivative crosses zero with a nonzero slope $f''(x^*) \approx 23$, allowing a more accurate estimate of the minimizer.
+
+#### Exercise 149:
+
+For a real-valued function $f$, the Newton-Raphson algorithm uses a sequence of linear approximations to $f$ to find a root. What happens if we use quadratic approximations instead?
+
+Suppose that $x_n$ is our current approximation to the root, then a quadratic approximation to $f$ at $x_n$ is given by the second order Taylor expansion
+
+$$f(x) \approx g_n(x) = f(x_n) + (x - x_n) f'(x_n) + \frac{1}{2}(x - x_n)^2 f''(x_n).$$ Let $x_{n+1}$ be the solution of $g_n(x) = 0$ that is closest to $x_n$, assuming a solution exists. If there is no solution, then let $x_{n+1}$ be the point at which $g_n$ attains either its minimum or maximum.
+
+Implement this algorithm in R and use it to find the roots of the following functions: (a) $\cos(x) - x$ using $x_0 = 1, 3, 6$. (b) $x^3 - x - 3$ using $x_0 = 0$. (c) $x^3 - 7x^2 + 14x - 8$ using $x_0 = 1.1, 1.2, ..., 1.9$. For your implementation, assuming that you are given a function f(x) which returns the vector $(f(x), f'(x), f''(x))$. Given $x_n$, if you rewrite $g_n$ as $g_n(x) = Ax^2 + Bx + C$ then you can use the formula $(-B \pm \sqrt{B^2 - 4AC})/(2A)$ to find the roots of $g_n$ and thus $x_{n+1}$. If $g_n$ has no roots then the min/max occurs at the point where $g_n'(x) = 0$. How does this algorithm compare to the Newton-Raphson algorithm?
+
+Idea that Normal Newton replaces $f$ with a straight line, the tangent, and jumps to where this line is 0. Here we do the same thing, but with a parabola. The parabola also uses $f''$, so it bends like the function and should be closer to it. So we hope to get to the root in fewer steps.
+
+As first, let's make the parabola easy. Instead of expanding everything into $Ax^2 + Bx + C$, we just call the step $h = x - x_n$. Then $g_n(x) = 0$ is
+
+$$a h^2 + b h + c = 0$$
+
+and
+
+$$a = \frac{f''(x_n)}{2}, \quad b = f'(x_n), \quad c = f(x_n)$$
+
+This is the same parabola, only shifted so that $x_n$ is at 0. When we know $h$, the new point is just $x_{n+1} = x_n + h$
+
+We have 3 cases:
+
+1)  If $b^2 - 4ac \ge 0$, the parabola has two roots
+
+$$h = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+
+We want the root closest to $x_n$, which simply means the $h$ with the smaller $|h|$
+
+2)  If $b^2 - 4ac < 0$, the parabola never touches 0. Then we go to its top or bottom. There the slope is 0, so $g_n' = 2ah + b = 0$ and
+
+$$h = -\frac{b}{2a}$$
+
+3)  If $f''(x_n) = 0$, then $a = 0$ and the parabola is just a line. We can't divide by $2a$, so we do a normal Newton step
+
+$$h = -\frac{c}{b} = -\frac{f(x_n)}{f'(x_n)}$$
+
+We repeat this until the step $|h|$ is tiny (then we don't move anymore), or until max_iter steps, so the loop can't run forever
+
+To compare, we also code normal Newton $x_{n+1} = x_n - f(x_n)/f'(x_n)$ and run it from the same starting points
+
+Our derivatives:
+
+(a) $f = \cos x - x$, $f' = -\sin x - 1$, $f'' = -\cos x$
+(b) $f = x^3 - x - 3$, $f' = 3x^2 - 1$, $f'' = 6x$
+(c) $f = x^3 - 7x^2 + 14x - 8$, $f' = 3x^2 - 14x + 14$, $f'' = 6x - 14$
+
+```{r}
+quad_newton <- function(f, x0, tol = 1e-10, max_iter = 100) {
+  x <- x0
+  k <- 0
+  repeat {
+    v <- f(x) #v = (f(x), f'(x), f''(x))
+    a <- v[3] / 2
+    b <- v[2]
+    c <- v[1]
+    if (a == 0) {
+      h <- -c / b  #g is a line, so Newton step
+    } else {
+      D <- b^2 - 4 * a * c
+      if (D >= 0) {
+        h1 <- (-b + sqrt(D)) / (2 * a)
+        h2 <- (-b - sqrt(D)) / (2 * a)
+        if (abs(h1) < abs(h2)) h <- h1 else h <- h2 #root closest to x
+      } else {
+        h <- -b / (2 * a)   #no root that min/max of g
+      }
+    }
+    x <- x + h
+    k <- k + 1
+    if (abs(h) < tol || k >= max_iter) break
+  }
+  c(x, k)   #root and number of steps
+}
+
+#normal Newton-Raphson for comparison
+newton <- function(f, x0, tol = 1e-10, max_iter = 100) {
+  x <- x0
+  k <- 0
+  repeat {
+    v <- f(x)
+    h <- -v[1] / v[2]
+    x <- x + h
+    k <- k + 1
+    if (abs(h) < tol || k >= max_iter) break
+  }
+  c(x, k)
+}
+
+fa <- function(x) c(cos(x) - x, -sin(x) - 1, -cos(x))
+fb <- function(x) c(x^3 - x - 3, 3*x^2 - 1, 6*x)
+fc <- function(x) c(x^3 - 7*x^2 + 14*x - 8, 3*x^2 - 14*x + 14, 6*x - 14)
+
+#Answer
+cat("(a) cos(x) - x \n")
+for (x0 in c(1, 3, 6)) {
+  q <- quad_newton(fa, x0)
+  n <- newton(fa, x0)
+  cat("x0 =", x0, " quadratic:", q[1], "in", q[2], "steps;",
+      " Newton:", n[1], "in", n[2], "steps \n")
+}
+
+cat("(b) x^3 - x - 3 \n")
+q <- quad_newton(fb, 0)
+n <- newton(fb, 0)
+cat("x0 = 0  quadratic:", q[1], "in", q[2], "steps;",
+    " Newton:", n[1], "in", n[2], "steps \n")
+
+cat("(c) x^3 - 7x^2 + 14x - 8 \n")
+for (x0 in seq(1.1, 1.9, by = 0.1)) {
+  q <- quad_newton(fc, x0)
+  n <- newton(fc, x0)
+  cat("x0 =", x0, " quadratic:", q[1], "in", q[2], "steps;",
+      " Newton:", n[1], "in", n[2], "steps \n")
+}
+
+cat("the quadratic method needs fewer steps, \n")
+cat("but it can get stuck at a min/max of f (a: x0 = 6, b: x0 = 0) \n")
+```
+
+To see what happened we plot the functions. The black horizontal line is $y = 0$, so the roots are where the curve crosses it. Red lines show where the quadratic method stopped in (a) and (b) and blue lines are the roots in (c).
+
+```{r}
+par(mfrow = c(1, 3))
+curve(cos(x) - x, 0, 7, main = "(a)")
+abline(h = 0)
+abline(v = 4.712389, col = "red", lwd = 2)  #quadratic from x0 = 6 got stuck here
+
+curve(x^3 - x - 3, -2, 2.5, main = "(b)")
+abline(h = 0)
+abline(v = -0.5773503, col = "red", lwd = 2)  #stuck at local max, real root ~ 1.67
+
+curve(x^3 - 7*x^2 + 14*x - 8, 0.5, 4.5, main = "(c)")
+abline(h = 0)
+abline(v = c(1, 2, 4), col = "blue", lwd = 2) #three roots 1, 2, 4
+par(mfrow = c(1, 1))
+```
+
+Results:
+
+a)  From $x_0 = 1$ and $3$ both methods find the root $0.739$, but the quadratic one needs fewer steps. From $x_0 = 6$ it fails: the parabola has no roots there, so it keeps going to its min/max and ends at $x \approx 4.71$. The plot shows the curve is flat there but not 0, so it's not a root. Newton still finds the root.
+
+b)  The real root is about $1.67$, but both methods fail from $x_0 = 0$. The quadratic method gets stuck on the top of the hill at $x \approx -0.577$ (a local max, not a root). Newton runs in an approximate cycle $0 -> -3 -> -1.96 -> -1.15 -> 0$ and never converges.
+
+c)  The quadratic method finds the closest root (1 or 2) in 3-4 steps, Newton needs 5-9. For $x_0 = 1.5$ Newton even jumps to the far root 4, because the tangent there is almost flat.
+
+Comparison with Newton-Raphson. The quadratic method also uses $f''$, so near a root it is faster (order 3 instead of 2) and needs fewer steps. But each step is more work: second derivative, square root and more if-checks. The main problem is when the parabola has no roots. Then it goes to a min/max and can get stuck at a point where $f' = 0$ but $f \neq 0$. So it is faster, but not more reliable than Newton and the starting point still matters a lot.
+
+#### Exercise 150
+
+\(a\)
+
+For $f(x) = \sin(x)$ we have $f'(x) = \cos(x)$, so the Newton iteration is $$x_{k+1} = x_k - \frac{\sin(x_k)}{\cos(x_k)} = x_k - \tan(x_k).$$ We start at $x_0 = 3$ and print the difference to R's `pi` after every step.
+
+```{r}
+x <- 3
+for (k in 1:5) {
+  x <- x - tan(x)
+  cat("step", k, ": x =", format(x, digits = 17), " x - pi =", x - pi, "\n")
+}
+sin(pi)
+```
+
+Newton converges very fast here: after one step 3 digits are correct, after two steps about 10, and after the third step the result is exactly the double `pi`. That is as close as we can get to $\pi$ in double precision, so about 16 significant digits. We can't get closer, because $\pi$ itself can't be stored exactly; this is also why `sin(pi)` is $1.2\cdot10^{-16}$ and not exactly 0.
+
+\(b\)
+
+$f_n(x) = \sum_{k=0}^{n}(-1)^k \frac{x^{2k+1}}{(2k+1)!}$ is the Taylor polynomial of $\sin$ of degree $2n + 1$. Since R works with vectors, we compute all terms at once and add them up. To be able to plot it, the function should also work for a vector `x`, so we use `sapply`.
+
+```{r}
+f_n <- function(x, n) {
+  k <- 0:n
+  sapply(x, function(xi) sum((-1)^k * xi^(2 * k + 1) / factorial(2 * k + 1)))
+}
+
+x <- seq(0, 7, length.out = 300)
+plot(x, sin(x), type = "l", lwd = 2, ylim = c(-2, 2), ylab = "y",
+     main = "Taylor polynomials of sin")
+n_values <- c(1, 3, 5, 10)
+for (i in seq_along(n_values)) lines(x, f_n(x, n_values[i]), col = i + 1, lty = 2)
+legend("topright", c("sin(x)", paste("n =", n_values)),
+       col = 1:5, lty = c(1, 2, 2, 2, 2), lwd = c(2, 1, 1, 1, 1))
+```
+
+For small $n$ the polynomial only follows $\sin$ close to 0 and then moves away (a polynomial goes to $\pm\infty$, $\sin$ stays between $-1$ and 1). The larger $n$, the longer it stays on top of $\sin$; for $n = 10$ it can't be distinguished from $\sin$ on $[0, 7]$ anymore.
+
+\(c\)
+
+We look for the root of $f_n$ near 3 with `uniroot`, for different $n$, and compare with $\pi$.
+
+```{r}
+n_values <- c(3, 4, 5, 6, 7, 8, 10, 15, 20)
+roots <- sapply(n_values, function(n) {
+  uniroot(function(x) f_n(x, n), interval = c(2.5, 4), tol = 1e-15)$root
+})
+data.frame(n = n_values, root = format(roots, digits = 16), error = roots - pi)
+```
+
+Yes: from $n = 8$ on the error is below $0.5 \cdot 10^{-6}$ (for $n = 8$ it is $2.2 \cdot 10^{-8}$), so the root is correct to 6 decimal places. For $n = 7$ the error $7.7 \cdot 10^{-7}$ is still too large: the root $3.1415919$ rounds to $3.141592$ instead of $3.141593$. From about $n = 15$ on it is the double `pi`.
+
+A better way to compute $\pi$ is to avoid the detour over a polynomial approximation of $\sin$ and use a formula that converges fast, for example $\pi = 4\arctan(1)$ with a good arctan routine, or Machin's formula $\pi = 16\arctan\frac15 - 4\arctan\frac1{239}$, whose series converge much faster because the arguments are small. Newton's method from (a) with the built-in `sin` is also very good: three steps already give full double precision.
+
+```{r}
+4 * atan(1) - pi
+16 * atan(1/5) - 4 * atan(1/239) - pi
+```
+
+#### Exercise 152
+
+For an odd number of data values $x_1, \dots,x_n$, the minimizer of the function $$ f(x) = \sum_{i=1}^{n} |x -x_i| $$ is the sample median of the data values. Verify this result for the following data: (a) 3, 7, 9, 12, 15. (b) 3, 7, 9, 12, 15, 18, 21. Describe, in words, what happens when the number of observations is even.
+
+*Solution*
+
+We start by writing a simple `R` function that constructs $f(x)$ given the data values $x_1, \dots,x_n$.
+
+```{r}
+# We write a function that outputs f(x) given the data values
+construct_f <- function(x_vector) {
+  # we vectorize the function so that we can directly pass a vector of x values
+  # and the function will make f evaluate each element of such vector separately
+  Vectorize(function(x) {
+    sum(abs(x - x_vector))
+  }
+  )
+}
+
+data_a <- c(3, 7, 9, 12, 15)
+f_a <- construct_f(data_a)
+```
+
+We will now plot the function, created by using the observations in (a). Additionally, we will show the median of the observations.
+
+```{r}
+x_values <- seq(min(data_a) - 2, max(data_a) + 2, by = 0.05)
+y_values <- f_a(x_values)
+
+plot(x_values, y_values, type = "l", lwd = 2, col = "steelblue",
+     xlab = "x", ylab = "f_a(x)",
+     main = "Graph of f_a(x)")
+
+abline(v = median(data_a), lty = 2, col = "red")             # median
+points(median(data_a), f_a(median(data_a)), pch = 19, col = "red")  # minimum
+legend("topright", legend = c("f(x)", "median"),
+       col = c("steelblue", "red"), lty = c(1, 2), lwd = c(2, 1), bty = "n")
+```
+
+We will now check numerically that the median is indeed the minimizer of $f_a$. We use `optimize()`, which performs a one-dimensional search for the minimum of a function over a given interval. The interval $[-100, 100]$ is much wider than the range of the data, so the search does not depend on knowing the answer in advance and the tolerance is set very small to get a precise result.
+
+```{r}
+opt_a <- optimize(f_a, interval = c(-100, 100), maximum = FALSE, tol = 1e-12)
+
+cat("Median         =", median(data_a),
+    "\nNumerical min  =", opt_a$minimum)
+```
+
+We see that the minimizer found by the optimizer agrees with the sample median $9$ up to a very small difference. However, the two numbers are not exactly the same, because `optimize()` is an iterative numerical method. It narrows down an interval around the minimizer and stops once the interval is shorter than the specified tolerance. Moreover, all computations are carried out in finite-precision floating-point arithmetic, so the result cannot be expected to match the exact value $9$ to every digit. The minimal value $f_a(9) = 17$ is reproduced exactly and the median is the exact minimizer.
+
+We show the same for (b)
+
+```{r}
+data_b <- c(3, 7, 9, 12, 15, 18, 21)
+f_b <- construct_f(data_b)
+
+x_values <- seq(min(data_b) - 2, max(data_b) + 2, by = 0.05)
+y_values <- f_b(x_values)
+
+plot(x_values, y_values, type = "l", lwd = 2, col = "steelblue",
+     xlab = "x", ylab = "f_b(x)",
+     main = "Graph of f_b(x)")
+
+abline(v = median(data_b), lty = 2, col = "red")             # median
+points(median(data_b), f_b(median(data_b)), pch = 19, col = "red")  # minimum
+legend("topright", legend = c("f(x)", "median"),
+       col = c("steelblue", "red"), lty = c(1, 2), lwd = c(2, 1), bty = "n")
+
+
+opt_b <- optimize(f_b, interval = c(-100, 100), maximum = FALSE, tol = 1e-12)
+cat("Median         =", median(data_b),
+    "\nNumerical min  =", opt_b$minimum)
+
+```
+
+When the number of observations is even, the value $x$ that gives the minimum of $f$ is no longer unique. Let $x_{1} \le \dots \le x_{n}$ be the sorted data. Between the two middle values $x_{\frac{n}{2}}$ and $x_{\frac{n}{2} + 1}$, exactly half of the observations lie to the left of $x$ and half lie to the right. Moving $x$ slightly to the right then increases the distance to the left half by the same amount as it decreases the distance to the right half, so $f$ stays constant. The graph of $f$ is therefore flat at its lowest level and every point of the interval $[x_{\frac{n}{2}}, x_{\frac{n}{2} + 1}]$ is a minimizer. The usual definition of the sample median for even $n$, the average of the two middle values, is the midpoint of this interval, so it is still a minimizer, but it is just one of infinitely many.
+
+```{r}
+F <- function(x) c(x[1] - 1, x[1] * x[2] - 1)
+J <- function(x) matrix(c(1, x[2], 0, x[1]), nrow = 2)   # filled column by column
+
+newton_system <- function(x, tol = 1e-12, maxit = 50) {
+  for (k in 1:maxit) {
+    s <- solve(J(x), -F(x))          # Newton step: J s = -F
+    x <- x + s
+    cat("step", k, ": x =", x, "\n")
+    if (sqrt(sum(s^2)) < tol) break
+  }
+  x
+}
+
+newton_system(c(2, 3))
+newton_system(c(-5, 10))
+try(newton_system(c(0, 5)))
+```
+
+From $(2, 3)$ and $(-5, 10)$ the method is at $(1, 1)$ after two steps (the third step only confirms that the step size is 0). From $(0, 5)$ `solve()` stops with an error, because the Jacobian is singular.
+
+
+
+#### Exercise 154
+
+Use the golden-section search algorithm to find all local minima of the function $$f(x) = \begin{cases} 0, & x = 0 \\ |x| \log(|x|/2)\, e^{-|x|}, & \text{otherwise} \end{cases}$$ within the interval $[-10, 10]$. (Hint: plotting the function first will give you a good idea where to look.)
+
+We plot the function first. It is even, $f(-x) = f(x)$, so everything that happens for $x > 0$ is mirrored for $x < 0$.
+
+```{r}
+f <- function(x) {
+  ifelse(x == 0, 0, abs(x) * log(abs(x) / 2) * exp(-abs(x)))
+}
+
+old_par <- par(mfrow = c(1, 2))
+curve(f, from = -10, to = 10, n = 1001, xlab = "x", ylab = "f(x)",
+      main = "f on [-10, 10]")
+abline(h = 0, lty = 3)
+curve(f, from = -3, to = 3, n = 1001, xlab = "x", ylab = "f(x)",
+      main = "zoom on [-3, 3]")
+abline(h = 0, lty = 3)
+par(old_par) # restore graphical settings for later plots
+```
+
+Because $\lim_{x\to 0} |x|\log(|x|/2)\,e^{-|x|}=0$, the piecewise function is continuous at $x=0$. The separate definition $f(0)=0$ is needed because the formula itself would give the undefined product $0\cdot\log(0)=0\cdot(-\infty)$ there (in the R code, `ifelse()` replaces the resulting `NaN` by 0).
+
+The graph shows two local minima, one at some $x < 0$ and its mirror image at some $x > 0$ (both around $\pm 0.4$, with function value about $-0.43$). For $x > 2$ the function is positive and has a local maximum (around $x \approx 3.2$) and then decreases towards 0. The point $x = 0$ is not a minimum but a local maximum with a sharp peak: $f(0) = 0$, while $f(x) < 0$ for all small $x \neq 0$ (because $\log(|x|/2) < 0$ for $|x| < 2$).
+
+**Golden-section search.** The method finds a minimum of a function on an interval $[a, b]$ on which the function is unimodal (first decreasing, then increasing). With the golden ratio constant $\varphi = (\sqrt{5} - 1)/2 \approx 0.618$ we choose two inner points $x_1 = b - \varphi(b - a)$ and $x_2 = a + \varphi(b - a)$. If $f(x_1) < f(x_2)$, the minimum lies in $[a, x_2]$, otherwise in $[x_1, b]$. The new interval is $\varphi$ times as long as the old one, and one of the two inner points can be reused as an inner point of the new interval (it has the same relative position), so each iteration needs only one new evaluation of $f$. We stop when the interval is shorter than `tol`.
+
+```{r}
+golden <- function(f, a, b, tol = 1e-8) {
+  phi <- (sqrt(5) - 1) / 2
+  x1 <- b - phi * (b - a)
+  x2 <- a + phi * (b - a)
+  f1 <- f(x1)
+  f2 <- f(x2)
+  iterations <- 0
+  
+  while (abs(b - a) > tol) {
+    iterations <- iterations + 1
+    if (f1 < f2) {      # the minimum is in [a, x2]
+      b  <- x2
+      x2 <- x1
+      f2 <- f1
+      x1 <- b - phi * (b - a)
+      f1 <- f(x1)
+    } else {            # the minimum is in [x1, b]
+      a  <- x1
+      x1 <- x2
+      f1 <- f2
+      x2 <- a + phi * (b - a)
+      f2 <- f(x2)
+    }
+  }
+  return(c(x = (a + b) / 2, iterations = iterations))
+}
+```
+
+The function $f$ is not unimodal on the whole interval $[-10, 10]$, so we cannot apply the golden-section search there directly. We first use a grid to locate candidates: a grid point is a candidate if its value is smaller than both neighboring grid values. We then apply the golden-section search in each corresponding short interval, which is unimodal in this example. A grid is not a proof that all minima have been found, as a sufficiently narrow minimum could fall between grid points. Below we also use the derivative and symmetry to verify that there are exactly two interior local minima.
+
+```{r}
+x <- (-100:100) / 10             # grid -10, -9.9, ..., 10
+y <- f(x)
+
+inner <- 2:(length(x) - 1)
+candidates <- inner[y[inner] < y[inner - 1] & y[inner] < y[inner + 1]]
+x[candidates]                    # grid points smaller than both neighbors
+
+# golden-section search on [x[i - 1], x[i + 1]] for every candidate
+results <- t(sapply(candidates, function(i) golden(f, x[i - 1], x[i + 1])))
+print(data.frame(minimizer = results[, "x"], f_value = f(results[, "x"]),
+                 iterations = results[, "iterations"]), digits = 10)
+```
+
+The grid contains two such points, $-0.4$ and $0.4$, and the golden-section search (35 iterations each) finds the two local minima $x \approx \pm 0.3891261$ with $f(x) \approx -0.4316616$. The result is only accurate up to about the tolerance $10^{-8}$ of the interval length. As a check, we use the derivative: for $x > 0$ we have $f'(x) = e^{-x}\big[(1 - x)\log(x/2) + 1\big]$, so the stationary points are the roots of the bracket.
+
+```{r}
+g <- function(x) (1 - x) * log(x / 2) + 1
+
+print(uniroot(g, c(0.2, 0.5), tol = 1e-12)$root, digits = 10) # the minimum
+print(uniroot(g, c(3, 4), tol = 1e-12)$root, digits = 10)     # the local maximum
+
+# comparison with optimize()
+print(optimize(f, c(0, 3), tol = 1e-10)$minimum, digits = 10)
+```
+
+For $x>0$ the derivative $f'(x)=e^{-x}g(x)$ has the sign of $g(x)=(1-x)\log(x/2)+1$, and $$g'(x)=-\log(x/2)+\frac{1}{x}-1,\qquad   g''(x)=-\frac{1}{x}-\frac{1}{x^2}<0.$$ Thus $g$ is strictly concave, $g(x)\to-\infty$ for $x\to0^+$ and for $x\to\infty$, and $g(2)=1>0$. So $g$ has exactly two roots $x_1<2<x_2$, and its sign is negative, positive, negative. Hence $f$ is decreasing on $(0,x_1)$, increasing on $(x_1,x_2)$ and decreasing on $(x_2,\infty)$: $x_1=0.389126\ldots$ is a local minimum and $x_2=3.1704644$ is a local maximum (the two roots found numerically above). By evenness, the only interior local minima are $$\boxed{x\approx \pm0.3891261,\quad f(x)\approx-0.4316616.}$$ These are also the global minima on $[-10,10]$. The origin is a sharp local maximum and $\pm3.1704644$ are additional local maxima.
+
+**Note on endpoints.** For the function on $\mathbb{R}$, only the two interior points are local minima. If we regard $f$ as a function on the closed interval $[-10,10]$ only, then $x=\pm10$ are also (one-sided) local minima, because $f$ is still decreasing there and moving into the interval increases the function ($f(9.9) > f(10) \approx 7.3\cdot10^{-4}$). They are not global minima, since their function value is positive. The golden-section search above locates the two interior local minima, which is what the exercise asks for.
+
+#### Exercise 156
+
+$$f(a, b) = (a - 1) + \frac{3.2}{b} + 3\log\Gamma(a) + 3a\log(b)$$
+
+The function is only defined for $a > 0$ and $b > 0$ ($\Gamma(a)$ and $\log(b)$). For $\log\Gamma(a)$ we use `lgamma()`, which computes it directly and doesn't overflow like `log(gamma(a))` would for large $a$. Both `nlm()` and `optim()` expect a function of one vector argument, so we write $p = (a, b)$.
+
+```{r}
+f <- function(p) {
+  a <- p[1]
+  b <- p[2]
+  (a - 1) + 3.2 / b + 3 * lgamma(a) + 3 * a * log(b)
+}
+
+res_nlm <- nlm(f, p = c(1, 1))
+res_nlm[c("estimate", "minimum", "gradient", "iterations")]
+
+res_optim <- optim(par = c(1, 1), fn = f)                    # Nelder-Mead (default)
+res_optim[c("par", "value", "counts")]
+
+res_bfgs <- optim(par = c(1, 1), fn = f, method = "BFGS")
+res_bfgs[c("par", "value", "counts")]
+```
+
+All three find the same minimum: $a \approx 1.400$, $b \approx 0.762$ with $f(a, b) \approx 3.099$. `nlm()` (a Newton-type method) and BFGS use gradient information and are the most precise; the gradient at the `nlm` result is practically 0. The default method of `optim()`, Nelder-Mead, only compares function values; it needs more function evaluations (47) and its result is only accurate to about 3-4 digits, which is still enough here.
+
+**Check.** At the minimum both partial derivatives are 0: $$\frac{\partial f}{\partial b} = -\frac{3.2}{b^2} + \frac{3a}{b} = 0 \;\Rightarrow\; b = \frac{3.2}{3a}, \qquad \frac{\partial f}{\partial a} = 1 + 3\psi(a) + 3\log(b) = 0,$$ where $\psi = \Gamma'/\Gamma$ is the digamma function (`digamma()` in R). Putting the first equation into the second leaves one equation in $a$, which we solve with `uniroot`:
+
+```{r}
+a_star <- uniroot(function(a) 1 + 3 * digamma(a) + 3 * log(3.2 / (3 * a)),
+                  interval = c(0.5, 5), tol = 1e-12)$root
+b_star <- 3.2 / (3 * a_star)
+print(c(a = a_star, b = b_star, f = f(c(a_star, b_star))), digits = 10)
+```
+
+This agrees with the numerical results ($a = 1.39995$, $b = 0.76193$, minimum $3.09904$).
+
+```{r}
+a <- seq(0.5, 3, length.out = 100)
+b <- seq(0.3, 2, length.out = 100)
+z <- outer(a, b, Vectorize(function(a, b) f(c(a, b))))
+contour(a, b, z, nlevels = 30, xlab = "a", ylab = "b", main = "Contour plot of f(a, b)")
+points(res_nlm$estimate[1], res_nlm$estimate[2], pch = 19, col = "red")
+```
+
+The contour plot shows a single minimum (red point) in this region.
+
+#### Exercise 158:
+
+The Rosenbrock function is a commonly used test function, given by
+
+$$f(x, y) = (1 - x)^2 + 100(y - x^2)^2.$$
+
+It has a single global minimum at $(1, 1)$.
+
+Use a contour plot to inspect the function in the region $[-2, 2] \times [-2, 5]$, and try to find the minimum of $f$ using a starting value of $(0, 3)$.
+
+Both parts of $f$ are squares, so $f \ge 0$, and $f = 0$ only when $x = 1$ and $y = x^2 = 1$. So the minimum is $(1, 1)$ Because of the $100(y - x^2)^2$ part, $f$ is big everywhere except close to the parabola $y = x^2$. So the function has a narrow curved valley (like a banana), and the minimum is at its bottom. The bottom is very flat, so it is hard for optimizers to walk along it.
+
+```{r}
+#the function with x and y (for the plot)
+fxy <- function(x, y) (1 - x)^2 + 100 * (y - x^2)^2 
+
+#contour plot on [-2,2] x [-2,5]
+x <- seq(-2, 2, by = 0.01)
+y <- seq(-2, 5, by = 0.01)
+z <- outer(x, y, fxy)   #f for every pair (x, y)
+contour(x, y, z, levels = c(0.5, 1, 2, 5, 10, 25, 50, 100, 250, 500, 1000),
+        xlab = "x", ylab = "y", main = "Rosenbrock function")
+points(1, 1, col = "violet", pch = 19) #minimum
+points(0, 3, col = "blue", pch = 19) #start
+
+#the same function with one vector p = c(x, y) for nlm, nlminb
+f <- function(p) (1 - p[1])^2 + 100 * (p[2] - p[1]^2)^2
+
+#find the minimum from (0, 3)
+r1 <- nlm(f, c(0, 3))
+r2 <- nlminb(c(0, 3), f)
+
+cat("nlm:   ", r1$estimate, " f =", r1$minimum, " iterations:", r1$iterations, "\n")
+cat("nlminb:", r2$par, " f =", r2$objective, " iterations:", r2$iterations, "\n")
+cat("the minimum is at (1, 1) with f = 0 \n")
+```
+
+Results: the contour plot shows the banana-shaped valley along $y = x^2$ with the minimum $(1, 1)$ at its bottom. From $(0, 3)$ both methods find it in 24 iterations. nlminb gets exactly $(1, 1)$, nlm stops a bit before, at about $(0.9997, 0.9994)$, because the valley bottom is so flat that $f$ hardly changes there.
+
+
+#### Exercise 159:
+
+A simple way of using local search strategies to find a global maximum is to consider several different starting points, and hope that for one of them its local maximum is in fact the global maximum. If you have no idea where to start, then randomization can be used to choose the starting point. Consider the function
+$$f(x, y) = -(x^2 + y^2 - 2)(x^2 + y^2 - 1)(x^2 + y^2)(x^2 + y^2 + 1)(x^2 + y^2 + 2)\,\big(2 - \sin(x^2 - y^2)\cos(y - e^{y})\big).$$
+It has several local maxima in the region $[-1.5, 1.5] \times [-1.5, 1.5]$. Try creating several random starting points in this region using `runif(2, -1.5, 1.5)` to find the global maximum.
+
+*Solution*
+
+Before we start searching, we look at the structure of $f$. With $r^2 = x^2 + y^2$ the function is a product of a radial part and an oscillating part:
+$$f(x, y) = h(r^2) \cdot w(x, y), \qquad h(r^2) = -(r^2 - 2)(r^2 - 1)\,r^2\,(r^2 + 1)(r^2 + 2) = -r^2 (r^4 - 1)(r^4 - 4),$$
+$$w(x, y) = 2 - \sin(x^2 - y^2)\cos(y - e^{y}).$$
+
+- Since $|\sin(\cdot)\cos(\cdot)| \le 1$, we always have $1 \le w(x, y) \le 3$. So $w > 0$, and the sign of $f$ is the sign of $h$.
+- For $0 < r^2 < 1$ both $r^4 - 1$ and $r^4 - 4$ are negative, so $h < 0$. For $1 < r^2 < 2$ we have $r^4 - 1 > 0$ and $r^4 - 4 < 0$, so $h > 0$. For $r^2 > 2$ both are positive and $h < 0$.
+- Therefore $f > 0$ only in the ring $1 < x^2 + y^2 < 2$ (between the circles with radius $1$ and $\sqrt{2}$), and $f \le 0$ everywhere else. The global maximum has to lie in this ring.
+- $f(0, 0) = 0$ and $f < 0$ for all other points inside the unit circle, so the origin is also a local maximum, but with value 0.
+- $x$ only appears as $x^2$, so $f(-x, y) = f(x, y)$: the contour plot is symmetric with respect to the $y$-axis and every local maximum with $x \neq 0$ has a mirror image. There is no such symmetry in $y$, because of the factor $\cos(y - e^y)$.
+
+We plot the function first. The dashed grey circles are $r = 1$ and $r = \sqrt{2}$.
+
+```{r}
+# f as a function of one vector p = c(x, y), as needed by optim()
+f <- function(p) {
+  x <- p[1]
+  y <- p[2]
+  r2 <- x^2 + y^2
+  -(r2 - 2) * (r2 - 1) * r2 * (r2 + 1) * (r2 + 2) *
+    (2 - sin(x^2 - y^2) * cos(y - exp(y)))
+}
+
+x_grid <- seq(-1.5, 1.5, length.out = 301)
+y_grid <- seq(-1.5, 1.5, length.out = 301)
+z <- outer(x_grid, y_grid, Vectorize(function(x, y) f(c(x, y))))
+
+contour(x_grid, y_grid, z, levels = c(-10, -5, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 7.5),
+        asp = 1, xlab = "x", ylab = "y", main = "Contour plot of f")
+symbols(0, 0, circles = 1, inches = FALSE, add = TRUE, fg = "grey", lty = 2)
+symbols(0, 0, circles = sqrt(2), inches = FALSE, add = TRUE, fg = "grey", lty = 2)
+```
+
+The plot shows four hills inside the ring: two in the lower half (around $(\pm 0.67, -1.09)$) and two in the upper half (around $(\pm 0.9, 0.9)$), plus the flat local maximum at the origin.
+
+**Random multistart.** We draw 50 random starting points with `runif(2, -1.5, 1.5)` and run a local maximization from each of them. We use `optim()` with `fnscale = -1` (so it maximizes) and the method `L-BFGS-B`, which lets us keep the search inside the region $[-1.5, 1.5]^2$. We fix the seed so that the results are reproducible.
+
+```{r}
+set.seed(159)
+n_starts <- 50
+
+runs <- t(replicate(n_starts, {
+  start <- runif(2, -1.5, 1.5)
+  o <- optim(start, f, method = "L-BFGS-B",
+             lower = c(-1.5, -1.5), upper = c(1.5, 1.5),
+             control = list(fnscale = -1))           # fnscale = -1: maximize
+  c(x0 = start[1], y0 = start[2], x = o$par[1], y = o$par[2],
+    f = o$value, code = o$convergence)
+}))
+head(round(runs, 4))
+table(code = runs[, "code"])
+
+# group the end points (rounded) and count how often each was reached
+ends <- data.frame(x = round(runs[, "x"], 2), y = round(runs[, "y"], 2),
+                   f = round(runs[, "f"], 2), count = 1)
+local_max <- aggregate(count ~ x + y + f, data = ends, FUN = sum)
+local_max[order(-local_max$f), ]
+```
+
+The 50 runs end in only five different points, which are the local maxima seen in the contour plot:
+
+| local maximum | $f$ | reached by |
+|:--|:--:|:--:|
+| $(\pm 0.665, -1.094)$ | $7.614$ | $4 + 12 = 16$ runs |
+| $(\pm 0.906, 0.907)$ | $7.263$ | $8 + 6 = 14$ runs |
+| $(0, 0)$ | $0$ | $20$ runs |
+
+One run returned convergence code 52 (the line search of `L-BFGS-B` stopped abnormally). It still ended at the local maximum $(-0.906, 0.907)$, so the code alone does not mean that the result is wrong.
+
+The largest value is found at $(\pm 0.665, -1.094)$. We refine the best point once more with a tighter tolerance, check its mirror image, and compare with the maximum over the fine grid from the contour plot.
+
+```{r}
+best <- runs[which.max(runs[, "f"]), ]
+refined <- optim(best[c("x", "y")], f, control = list(fnscale = -1, reltol = 1e-14))
+print(c(refined$par, f = refined$value), digits = 8)
+
+mirror <- c(x = -unname(refined$par[1]), y = unname(refined$par[2]))
+print(c(mirror, f = unname(f(mirror))), digits = 8)
+
+# share of the random starts which reached the global maximum
+mean(runs[, "f"] > max(runs[, "f"]) - 1e-4)
+
+# check with the grid from the contour plot
+i <- which(z == max(z), arr.ind = TRUE)
+cat("grid maximum:", max(z), "at x =", x_grid[i[, 1]], " y =", y_grid[i[, 2]], "\n")
+```
+
+The global maximum on $[-1.5, 1.5]^2$ is
+$$\boxed{f(\pm 0.665442,\; -1.094112) \approx 7.613556,}$$
+attained at two points that are mirror images of each other. The grid search (step $0.01$) confirms it: the largest grid value $7.6131$ is at $(\pm 0.67, -1.09)$. As expected, both points lie in the ring: $0.665^2 + 1.094^2 \approx 1.64 \in (1, 2)$.
+
+**How the starting point matters.** Only 16 of the 50 starts (32%) found the global maximum. Which local maximum a run reaches depends on where it starts:
+
+```{r}
+r2_start <- runs[, "x0"]^2 + runs[, "y0"]^2
+table(start_region = cut(r2_start, c(0, 1, 2, 4.5),
+                         labels = c("inside r < 1", "ring 1 < r^2 < 2", "outside r^2 > 2")),
+      ends_at_origin = abs(runs[, "f"]) < 1e-6)
+```
+
+- All starts inside the ring reach one of the four positive maxima.
+- Starts inside the unit circle are in a region where $f < 0$ with a "pit" between the origin and the ring, so about half of them climb to the useless maximum $f(0,0) = 0$.
+- Most starts outside the ring also end at the origin. There $f$ behaves like $-r^{10}$, so the gradient is huge, and the first step of the line search jumps over the whole ring into the inner region.
+
+The last plot shows every random start (circle) connected to the point where its run ended. Runs which found the global maximum are red.
+
+```{r}
+is_global <- runs[, "f"] > max(runs[, "f"]) - 1e-4
+contour(x_grid, y_grid, z, levels = c(0, 2, 4, 6, 7, 7.5), asp = 1, col = "grey60",
+        xlab = "x", ylab = "y", main = "Random starts and where they end")
+segments(runs[, "x0"], runs[, "y0"], runs[, "x"], runs[, "y"],
+         col = ifelse(is_global, "red", "grey40"), lwd = 0.8)
+points(runs[, "x0"], runs[, "y0"], pch = 1, cex = 0.7,
+       col = ifelse(is_global, "red", "grey40"))
+points(local_max$x, local_max$y, pch = 19, cex = 1.3,
+       col = ifelse(local_max$f == max(local_max$f), "red", "black"))
+```
+
+So the random multistart strategy works, but only because we used enough starting points: a single random start finds the global maximum with probability of only about one third. With knowledge of the structure (the maximum must be in the ring $1 < r^2 < 2$) we could also draw the starting points only from the ring and waste fewer runs.
+
+
+
+#### Exercise 163
+
+Consider the function $f: \mathbb{R}^2 \to \mathbb{R}$ defined by $$f(x, y) = 2x^3 - 3x^2 - 6xy(x - y - 1).$$
+
+(a) Determine all critical points of $f$ analytically (i.e., without using a computer).
+
+(b) Classify each critical point found as a minimum, maximum, or a saddle point, again working analytically.
+
+(c) Verify your analysis graphically by creating a contour plot of $f$ over the region $-2 \le x \le 2$, $-2 \le y \le 2$.
+
+(d) Use R to find the minima and maxima of $f$. Experiment with various starting points to see how the program gets around other types of critical points to find minima and maxima.
+
+**(a) Critical points.** The partial derivatives are $$f_x = 6x^2 - 6x - 12xy + 6y^2 + 6y = 6\big[(x-y)^2 - (x-y)\big] = 6(x-y)(x-y-1),$$ $$f_y = -6x^2 + 12xy + 6x = 6x(2y - x + 1).$$ A critical point needs $f_x = 0$ and $f_y = 0$. The first equation gives $x = y$ or $x = y + 1$, and the second one gives $x = 0$ or $x = 2y + 1$. We combine these cases:
+
+| case from $f_x = 0$ | case from $f_y = 0$ | solution |
+|:---|:---|:---|
+| $x = y$ | $x = 0$ | $y = 0$: $(0, 0)$ |
+| $x = y$ | $x = 2y + 1$ | $y = 2y + 1$, so $y = -1$: $(-1, -1)$ |
+| $x = y + 1$ | $x = 0$ | $y = -1$: $(0, -1)$ |
+| $x = y + 1$ | $x = 2y + 1$ | $y + 1 = 2y + 1$, so $y = 0$: $(1, 0)$ |
+
+So $f$ has exactly four critical points: $(0, 0)$, $(-1, -1)$, $(0, -1)$ and $(1, 0)$.
+
+**(b) Classification.** The second derivatives are $$f_{xx} = 12x - 12y - 6, \qquad f_{xy} = -12x + 12y + 6, \qquad f_{yy} = 12x.$$ The determinant of the Hessian matrix is $$D = f_{xx} f_{yy} - f_{xy}^2 = (12x - 12y - 6)(12y + 6) = 36\,(2x - 2y - 1)(2y + 1).$$ (With $u = f_{xx} = 12x - 12y - 6$ we have $f_{xy} = -u$ and $12x - u = 12y + 6$, so $D = 12xu - u^2 = u(12x - u) = u(12y + 6)$.) If $D > 0$ the point is a minimum ($f_{xx} > 0$) or a maximum ($f_{xx} < 0$), and if $D < 0$ it is a saddle point.
+
+| point | $f_{xx}$ | $D$ | type | $f$ |
+|:-------------:|:-------------:|:-------------:|:--------------|:-------------:|
+| $(0, 0)$ | $-6$ | $36 \cdot (-1) \cdot 1 = -36 < 0$ | saddle point | $0$ |
+| $(-1, -1)$ | $-6$ | $36 \cdot (-1) \cdot (-1) = 36 > 0$ | **local maximum** | $1$ |
+| $(0, -1)$ | $6$ | $36 \cdot 1 \cdot (-1) = -36 < 0$ | saddle point | $0$ |
+| $(1, 0)$ | $6$ | $36 \cdot 1 \cdot 1 = 36 > 0$ | **local minimum** | $-1$ |
+
+So $f$ has one local minimum at $(1, 0)$ with $f(1, 0) = -1$, one local maximum at $(-1, -1)$ with $f(-1, -1) = 1$, and two saddle points at $(0, 0)$ and $(0, -1)$. These are not global extrema: $f$ is a polynomial of degree 3, so it is unbounded above and below (e.g. $f(x, 0) = 2x^3 - 3x^2 \to \pm\infty$ for $x \to \pm\infty$).
+
+We check the calculations in R: the gradient has to vanish at the four points, and the eigenvalues of the Hessian show the type (both positive: minimum, both negative: maximum, different signs: saddle point).
+
+```{r}
+f_xy <- function(p) {
+  x <- p[1]
+  y <- p[2]
+  2 * x^3 - 3 * x^2 - 6 * x * y * (x - y - 1)
+}
+grad <- function(p) {
+  x <- p[1]
+  y <- p[2]
+  c(6 * (x - y) * (x - y - 1), 6 * x * (2 * y - x + 1))
+}
+hessian <- function(p) {
+  x <- p[1]
+  y <- p[2]
+  matrix(c(12 * x - 12 * y - 6, -12 * x + 12 * y + 6,
+           -12 * x + 12 * y + 6, 12 * x), nrow = 2)
+}
+
+critical <- rbind(c(0, 0), c(-1, -1), c(0, -1), c(1, 0))
+for (i in 1:4) {
+  p <- critical[i, ]
+  cat("point (", p[1], ",", p[2], "): f =", f_xy(p),
+      ", gradient =", grad(p),
+      ", eigenvalues of the Hessian =", round(eigen(hessian(p))$values, 3), "\n")
+}
+
+# the Hessian formula agrees with a numerical Hessian
+optimHess(c(1, 0), f_xy)
+hessian(c(1, 0))
+```
+
+**(c) Contour plot.** We plot the contour lines of $f$ on $[-2, 2] \times [-2, 2]$: levels below zero in blue, above zero in red and the level 0 in black, together with the critical points. We use several levels close to $\pm 1$ so that the lines around the minimum and the maximum can be seen.
+
+```{r}
+
+x <- seq(-2, 2, length.out = 200)
+y <- seq(-2, 2, length.out = 200)
+z <- outer(x, y, function(x, y) 2 * x^3 - 3 * x^2 - 6 * x * y * (x - y - 1))
+
+levels <- c(-100, -50, -20, -10, -5, -2, -0.9, -0.6, -0.3, 0,
+            0.3, 0.6, 0.9, 2, 5, 10, 20, 50)
+contour(x, y, z, levels = levels, asp = 1, xlab = "x", ylab = "y",
+        col = ifelse(levels < 0, "blue", ifelse(levels > 0, "red", "black")),
+        lwd = ifelse(levels == 0, 2, 1), labcex = 0.6,
+        main = "Contour plot of f")
+points(critical, pch = c(17, 19, 17, 19),
+       col = c("darkgreen", "red", "darkgreen", "blue"), cex = 1.5)
+legend("topright", c("local minimum (1, 0)", "local maximum (-1, -1)",
+                     "saddle points (0, 0), (0, -1)"),
+       pch = c(19, 19, 17), col = c("blue", "red", "darkgreen"), bg = "white")
+```
+
+The plot confirms the analysis. Factoring the function gives $$f(x,y)=x\cdot q(x,y),\qquad q(x,y)=2x^2-3x-6xy+6y^2+6y.$$ Thus the zero set of $f$ is the line $x=0$ together with the curve $q=0$, which is an ellipse (the quadratic part $2x^2-6xy+6y^2$ is positive definite). The line and the ellipse meet where $x=0$ and $6y^2+6y=0$, i.e. at the saddle points $(0,0)$ and $(0,-1)$: around these points the function is positive in two opposite directions and negative in the other two. Since $q<0$ inside and $q>0$ outside of the ellipse, $f$ has the sign of $-x$ inside the ellipse and the sign of $x$ outside. So inside the ellipse, to the right of the line, the function is negative, and the closed contour lines around $(1, 0)$ (levels $-0.3$, $-0.6$, $-0.9$) shrink to the minimum with $f = -1$. To the left of the line, inside the ellipse, the function is positive, and the closed lines around $(-1, -1)$ (levels $0.3$, $0.6$, $0.9$) shrink to the maximum with $f = 1$. Outside the ellipse, the function grows without bound for $x>0$ (e.g. in the lower right corner) and falls without bound for $x<0$ (e.g. in the upper left corner).
+
+**(d) Numerical search.** We use `optim()` with the BFGS method, and we give it the gradient. Minimization is the default, and for a maximization we set `control = list(fnscale = -1)`. The helper `describe` labels the final point of each run. A small gradient norm, together with the Hessian classification, is a more reliable indication of a stationary point than the optimizer's convergence code alone. Because the function is unbounded above and below, some runs can escape far from the local extrema. We distinguish these numerical escapes from other failures to approach a known critical point.
+
+```{r}
+find_optimum <- function(start, maximize = FALSE, method = "BFGS") {
+  control <- if (maximize) list(fnscale = -1) else list()
+  if (method == "BFGS") {
+    optim(start, f_xy, grad, method = "BFGS", control = control)
+  } else {
+    optim(start, f_xy, method = method, control = control)
+  }
+}
+
+describe <- function(r) {
+  if (is.null(r) || any(!is.finite(r$par)) || !is.finite(r$value)) {
+    return("numerical failure / non-finite output")
+  }
+  near <- function(point) all(abs(r$par - point) < 1e-3)
+  # Check proximity and gradient
+  if (near(c(1, 0)) && max(abs(grad(r$par))) < 1e-3)
+    return("local minimum (1, 0)")
+  if (near(c(-1, -1)) && max(abs(grad(r$par))) < 1e-3)
+    return("local maximum (-1, -1)")
+  if (near(c(0, 0)) && max(abs(grad(r$par))) < 1e-3)
+    return("saddle point (0, 0)")
+  if (near(c(0, -1)) && max(abs(grad(r$par))) < 1e-3)
+    return("saddle point (0, -1)")
+  if (abs(r$value) > 1e8 || max(abs(r$par)) > 1e4)
+    return("numerical escape (large values)")
+  "did not reach a known critical point"
+}
+
+run_table <- function(starts, maximize = FALSE, method = "BFGS") {
+  rows <- lapply(seq_len(nrow(starts)), function(i) {
+    r <- tryCatch(find_optimum(starts[i, ], maximize, method),
+                  error = function(e) NULL)
+    data.frame(start = paste0("(", starts[i, 1], ", ", starts[i, 2], ")"),
+               ends_at = describe(r),
+               f = if (is.null(r)) NA_character_ else format(r$value, digits = 3),
+               code = if (is.null(r)) NA_integer_ else r$convergence)
+  })
+  do.call(rbind, rows)
+}
+
+starts_min <- rbind(c(1.5, 0.5), c(0.1, -0.1), c(0.1, -0.9), c(-0.9, -0.9),
+                    c(-1, 1), c(0, 0), c(0, -1))
+starts_max <- rbind(c(-0.5, -0.5), c(-0.9, -0.8), c(0.1, -0.9), c(0.9, 0.1),
+                    c(1, 1), c(0, 0), c(-1, -1))
+
+# minimization
+run_table(starts_min)
+
+# maximization
+run_table(starts_max, maximize = TRUE)
+```
+
+The runs show how the algorithm behaves:
+
+- Starting close to a saddle point, e.g. at $(0.1, -0.1)$ or $(0.1, -0.9)$, BFGS minimization moves away from the saddle point and converges to the local minimum $(1, 0)$ with $f = -1$. A saddle point has both increasing and decreasing directions, so a descent method can move away from it along a direction of decreasing function values. However, this behavior depends on the starting point. Similarly, maximization from $(-0.5, -0.5)$ or $(-0.9, -0.8)$ converges to the local maximum $(-1, -1)$ with $f = 1$.
+- If we start exactly in a critical point, the exact gradient we supplied is zero, and `optim()` stops immediately. For the saddle points $(0, 0)$ and $(0, -1)$ the run therefore ends in the saddle point, although the convergence code is 0 ("success"). A gradient method only finds points with zero gradient, and it cannot tell if such a point is a minimum, a maximum or a saddle point, so the type has to be checked afterwards (e.g. with the Hessian).
+- Since $f$ is unbounded above and below, some starting points lead to very large parameter and objective values rather than a finite local extremum. The convergence code is 0, so the code alone is no proof that a minimum was found. The minimization from $(-0.9, -0.9)$ (next to the maximum) runs away in the downhill direction, and the maximization from $(0.9, 0.1)$ (next to the minimum) in the uphill direction.
+
+Optimization methods that do not use the gradient behave differently at the saddle points. With the Nelder–Mead method the starting point is only the corner of a small simplex, so starting exactly in a saddle point the simplex gets away from it:
+
+```{r}
+# minimization with Nelder-Mead: also starting exactly in the saddle points
+run_table(starts_min, method = "Nelder-Mead")
+```
+
+Here, Nelder-Mead moved away from the two saddle points and reached the local minimum $(1,0)$. It does not use gradient information at all: it evaluates $f$ at the corners of a small simplex around the starting point, so it does not stop just because the gradient is zero there. For the runs with very large objective values, convergence code 1 means that Nelder-Mead reached its iteration limit without finding a finite local optimum. Although these runs show numerical escape, the convergence code alone does not prove that the algorithm would diverge indefinitely.
+
+Finally, we see how large the regions of starting points are which lead to the minimum and to the maximum. We start BFGS from $31 \times 31$ points on a grid of $[-2, 2]^2$ and mark the points where the minimization (left) and the maximization (right) ends in the local minimum and maximum, respectively.
+
+```{r}
+grid <- as.matrix(expand.grid(x = seq(-2, 2, length.out = 31),
+                              y = seq(-2, 2, length.out = 31)))
+
+reaches <- function(maximize, target) {
+  apply(grid, 1, function(s) {
+    r <- tryCatch(find_optimum(s, maximize), error = function(e) NULL)
+    if (is.null(r) || any(!is.finite(r$par))) return(FALSE)
+    all(abs(r$par - target) < 1e-3) && max(abs(grad(r$par))) < 1e-3
+  })
+}
+to_min <- reaches(FALSE, c(1, 0))
+to_max <- reaches(TRUE, c(-1, -1))
+
+c(minimum = sum(to_min), maximum = sum(to_max), starting_points = nrow(grid))
+
+old_par <- par(mfrow = c(1, 2))
+contour(x, y, z, nlevels = 30, col = "grey75", asp = 1, xlab = "x", ylab = "y",
+        main = "Minimization", drawlabels = FALSE)
+points(grid, pch = 16, cex = 0.5, col = ifelse(to_min, "blue", "grey50"))
+points(critical, pch = c(17, 19, 17, 19), cex = 1.2)
+contour(x, y, z, nlevels = 30, col = "grey75", asp = 1, xlab = "x", ylab = "y",
+        main = "Maximization", drawlabels = FALSE)
+points(grid, pch = 16, cex = 0.5, col = ifelse(to_max, "red", "grey50"))
+points(critical, pch = c(17, 19, 17, 19), cex = 1.2)
+par(old_par)
+```
+
+Of the `r nrow(grid)` starting points, `r sum(to_min)` (`r round(100 * mean(to_min), 1)`%) lead to the local minimum and `r sum(to_max)` (`r round(100 * mean(to_max), 1)`%) lead to the local maximum. The colored points indicate starting positions for which BFGS reached the respective known local extremum. Grey points are all other outcomes (including numerical escapes and stationary saddle points). So for a function like this, which has several types of critical points and no global extrema, a good starting point is needed, and the contour plot from (c) is a good guide for choosing it.
