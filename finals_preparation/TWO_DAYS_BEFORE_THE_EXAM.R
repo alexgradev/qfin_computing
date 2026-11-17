@@ -173,3 +173,31 @@ denom(make_rat(19, -95))
 make_rat(2, 4)
 numer(make_rat(2, 4))
 denom(make_rat(2, 4))
+
+
+
+# 2020 Task 1 -------------------------------------------------------------
+
+# Write a function which computes the hexadecimal representation (as a sequence of digits 0 to f) of
+# a given natural number.
+library(dplyr)
+
+hexa <- function(n) {
+  hex <- character(0)
+  while(n > 0){
+    remainder <- n %% 16
+    remainder <- case_when(remainder == 10 ~ "a",
+                           remainder == 11 ~ "b",
+                           remainder == 12 ~ "c",
+                           remainder == 13 ~ "d",
+                           remainder == 14 ~ "e",
+                           remainder == 15 ~ "f",
+                           TRUE ~ as.character(remainder))
+    hex <- c(remainder, hex)
+    n <- n %/% 16
+  }
+  hex  
+}
+
+hexa(31)
+hexa(32)
