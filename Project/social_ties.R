@@ -4,28 +4,30 @@
 ## Social ties: Social Connectedness Index (SCI) from Facebook friendships,
 ## January 2026 (Johnston, Kuchler, Kulkarni & Stroebel 2026). For countries
 ## A and B it measures how likely a user in A is to be friends with a user in
-## B (relative scale, symmetric: SCI[A,B] = SCI[B,A]).
-## Favouritism: excess points as in Act 1,
+## B (relative scale, symmetric: SCI[A,B] = SCI[B,A])
+## Favouritism: excess points as in bloc_favoritism.R,
 ##   e[A->B,t] = p[A->B,t] - mean points B got from all other voters in show t
-## averaged per directed pair (A -> B).
+## averaged per directed pair (A -> B)
 ## Test: Spearman correlation between pair excess and SCI, with a QAP
 ## permutation test (the country labels of the SCI matrix are shuffled, which
-## keeps the dependence between pairs that share a country).
+## keeps the dependence between pairs that share a country)
 ##
-## Samples
-##   main:        1975-2026, points that counted ("total"; 2016+ halved to the
-##                12-point scale), pairs with >= 5 meetings
-##   recent:      2016-2026 only (closer to the 2026 SCI snapshot), >= 3
-## Russia and Belarus are excluded in both: Facebook is little used there and
-## is blocked in Russia since 2022, so their SCI is unreliable. A version
-## that keeps them is reported as a check. Monaco and San Marino have no SCI.
+## Samples:
+##   1975-2026:  points that counted ("total"; 2016+ halved to the 12-point
+##               scale), pairs with >= 5 meetings (main sample, slides 13-15)
+##   2016-2026:  closer to the 2026 SCI snapshot, pairs with >= 3 meetings
+##   1975-2026 incl. RU/BY:  main sample with Russia and Belarus kept (check)
+## Russia and Belarus are excluded otherwise: Facebook is little used there and
+## is blocked in Russia since 2022, so their SCI is unreliable
+## Monaco and San Marino have no SCI
 ##
 ## Data: data/votes.csv (build_data.R) and data/sci/country.csv from
 ## https://data.humdata.org/dataset/social-connectedness-index
 ##
 ## Run from the project folder:  Rscript social_ties.R
 ## Output: results/social_ties_tests.csv, results/social_ties_pairs.csv,
-##         figures/social_ties.pdf (+ .png)
+##         figures/social_ties.pdf (+ .png),
+##         figures/sci_quintiles_boxplot.pdf (+ .png)
 
 ## ---- settings ----------------------------------------------------------
 
@@ -136,7 +138,7 @@ write.csv(tests, file.path("results", "social_ties_tests.csv"),
 write.csv(pairs, file.path("results", "social_ties_pairs.csv"),
           row.names = FALSE)
 
-## ---- plot: pair excess vs SCI ------------------------------------------
+## ---- plot: pair excess vs SCI (slide 13) ------------------------------
 
 plot_ties <- function(pairs, rho,
                       label = c("GR CY", "RO MD", "RS ME", "SI BA",
@@ -177,10 +179,10 @@ png(file.path("figures", "social_ties.png"), width = 1800, height = 1080,
     res = 300)
 plot_ties(pairs, rho_main); dev.off()
 
-## ---- plot: boxplot of pair excess by SCI quintile ----------------------
+## ---- plot: boxplot of pair excess by SCI quintile (slide 14) ----------
 ## Same pairs as above (1975-2026, >= 5 meetings, without RU/BY), split into
 ## five equal groups by Facebook connectedness. Boxes show the spread of the
-## pairs' mean excess points; pink dots and labels are the quintile means.
+## pairs' mean excess points; pink dots and labels are the quintile means
 
 plot_quintiles <- function(pairs) {
   blue <- "#2a78d6"; pink <- "#FF3FC0"; ink2 <- "#52514e"; muted <- "#898781"

@@ -1,18 +1,20 @@
 ## build_data.R
-## Convert the EurovisionAPI dataset (JSON, one file per show) into flat CSVs
+## Convert the EurovisionAPI dataset (JSON files per year) into flat CSVs
 ##
-## Source: https://github.com/EurovisionAPI/dataset  
+## Source: https://github.com/EurovisionAPI/dataset, cloned into
+## data/eurovision-api
 ##
+## Run from the project folder:  Rscript build_data.R
 ## Output (in data/):
 ##   votes.csv    one row per year x round x vote_type x voter x recipient
 ##                (zero-point votes included; self-votes never appear)
 ##   entries.csv  one row per performance: running order, place, points
-##   contests.csv one row per year: host city / country
+##   contests.csv one row per year: host city, host country, arena
 ##
-## vote_type: "total"  = points that counted (all years)
-##            "jury", "public" = separate components, finals and semis 2016 onward
-##            From 2023 semi-finals are public-only, so there only "total" exists
-## from_code "WLD" = "Rest of the World" online televote (2023 onward), not a country
+## vote_type: "total" = points that counted (all years)
+##            "jury", "public" = the two parts, finals and semi-finals from 2016
+##            2023-2025 semi-finals were public-only, so only "total" exists there
+## from_code "WLD" = "Rest of the World" online televote (from 2023), not a country
 
 library(jsonlite)
 
@@ -51,7 +53,7 @@ for (yr in years) {
                song   = if (is.null(x$song)) NA else x$song)
   }))
 
-  ## rounds
+  ## rounds (final, semi-finals): points per performance and every vote
   for (rf in list.files(file.path(ydir, "rounds"), pattern = "\\.json$",
                         full.names = TRUE)) {
     round <- sub("\\.json$", "", basename(rf))

@@ -1,29 +1,29 @@
 ## bloc_favoritism.R
-## Act 1, question 1: do countries in the same bloc give each other more
-## points than the song's quality explains?
+## Do countries in the same bloc give each other more points than the
+## song's quality explains? (slides 8, 10, 12 and 15)
 ##
 ## Excess points for voter A, recipient B, show t:
 ##   e[A->B,t] = p[A->B,t] - mean points B got in show t from all voters except A
-## Test statistic per bloc: T = mean of e over all within-bloc votes (A != B).
-## Null: within each voter and show, the voter's points are assigned to the
-## entries at random (the voter keeps the same set of points).
-## p-value = (1 + #{T* >= T_obs}) / (B + 1), then Holm across blocs.
+## Test statistic per bloc: T = mean of e over all within-bloc votes (A != B)
+## Null: within each voter and show, the voter's points are given to the songs
+## at random (the voter keeps the same set of points)
+## p-value = (1 + #{T* >= T_obs}) / (B + 1), then Holm across blocs
 ##
 ## Data: data/votes.csv from build_data.R; vote_type "total" (the points that
-## counted), finals and semi-finals 1975-2026, "Rest of the World" dropped.
+## counted), finals and semi-finals 1975-2026, "Rest of the World" dropped
 ## Points from 2016 on are halved (jury + public), so all excess points are on
-## the 12-point scale.
+## the 12-point scale
 ##
-## Output: results/act1_blocs.csv, 
-##         results/act1_top_pairs.csv,
-##         results/act1_null.rds, 
+## Run from the project folder:  Rscript bloc_favoritism.R
+## Output: results/act1_blocs.csv, results/act1_top_pairs.csv,
+##         results/act1_null.rds (read by the slides),
 ##         figures/act1_blocs.pdf (+ .png)
 
 ## ---- settings ----------------------------------------------------------
 
 B    <- 10000      # number of permutations
 seed <- 2026
-from_year <- 1975  # 12-point system
+from_year <- 1975  # first year of the current 12-point system
 
 blocs <- list(
   "Greece & Cyprus"   = c("GR", "CY"),
@@ -44,18 +44,18 @@ v <- v[v$vote_type == "total" & v$year >= from_year & v$from_code != "WLD", ]
 ## year is on the same 12-point scale and recent years don't count double
 v$points <- ifelse(v$year >= 2016, v$points / 2, v$points)
 
-## sort by voter-show so the within-group shuffle below works
+## sort by voter and show: the shuffle below needs each voter's rows together
 v <- v[order(v$edition, v$from_code, v$to_code), ]
 rownames(v) <- NULL
 
-voter_grp <- as.integer(factor(paste(v$edition, v$from_code)))   # shuffle unit
-recip_grp <- as.integer(factor(paste(v$edition, v$to_code)))     # recipient
+voter_grp <- as.integer(factor(paste(v$edition, v$from_code)))   # voter in a show (shuffle unit)
+recip_grp <- as.integer(factor(paste(v$edition, v$to_code)))     # song in a show
 n_recip   <- tabulate(recip_grp)          # voters per recipient and show
 stopifnot(all(n_recip >= 2))
 
 ## within-bloc votes: for each bloc, the rows where voter AND recipient belong
-## to it. Blocs may overlap (a country can be in several), so a vote can count
-## for more than one bloc. We stack the row indices of all blocs:
+## to it. Blocs may overlap (Moldova is in two), so a vote can count for
+## more than one bloc. The row indices of all blocs are stacked:
 ##   bloc_rows = row numbers, bloc_idx = which bloc each entry belongs to
 rows_per_bloc <- lapply(blocs, function(b)
   which(v$from_code %in% b & v$to_code %in% b))
@@ -76,7 +76,7 @@ cat(sprintf("Votes used: %d (%d-%d), within-bloc votes: %d (%d unique)\n",
 
 ## excess points for every vote, given a vector of points
 excess <- function(p) {
-  s <- tabulate_sum(p, recip_grp)[recip_grp]   # total points of recipient
+  s <- tabulate_sum(p, recip_grp)[recip_grp]   # total points the song got in the show
   p - (s - p) / (n_recip[recip_grp] - 1)       # minus mean of other voters
 }
 tabulate_sum <- function(x, g) as.vector(rowsum(x, g, reorder = TRUE))
@@ -94,8 +94,8 @@ T_obs <- bloc_stat(p_obs)
 
 ## ---- permutation test --------------------------------------------------
 
-## shuffle points within each voter-show: rows are sorted by voter_grp, so
-## ordering by (voter_grp, random key) permutes values inside each group
+## shuffle points within each voter and show: rows are sorted by voter_grp,
+## so ordering by (voter_grp, random key) permutes values inside each group
 shuffle <- function(p) p[order(voter_grp, runif(length(p)))]
 
 set.seed(seed)
@@ -123,7 +123,7 @@ res <- data.frame(
 )
 res <- res[order(-res$T_obs), ]
 
-## ---- top pairs (for the slides) ----------------------------------------
+## ---- top pairs (slide 8) ----------------------------------------
 
 ## mean excess per directed pair, pairs that met at least 10 times
 e_obs <- excess(p_obs)
@@ -152,6 +152,7 @@ print(top, row.names = FALSE)
 }
 
 ## ---- plot: observed T vs permutation null ------------------------------
+## Not used in the slides: slide 12 draws its own version from act1_null.rds
 
 plot_blocs <- function(res, T_null) {
   blue <- "#2a78d6"; gray <- "#d3d1ca"

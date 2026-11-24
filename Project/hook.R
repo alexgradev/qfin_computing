@@ -1,17 +1,17 @@
 ## hook.R
-## Hook slide: "Signle 12 points vote can change history".
-## How close were Eurovision finals, measured in one country's top vote?
+## Slide 5 "Does one country's vote matter?"
+## How close were the finals (1975 on), measured in one country's top vote?
 ##
 ## Scale change: up to 2015 a country could give one entry at most 12 points;
-## since 2016 jury and public each award 12, so the maximum is 24. We divide
-## the winning margin by that maximum ("top votes"), so the threshold
-## "smaller than one country's top vote" is 1 in every year.
+## since 2016 jury and public each award 12, so the maximum is 24. The winning
+## margin is divided by that maximum ("top votes"), so the threshold
+## "smaller than one country's top vote" is 1 in every year
 ##
-## Output: figures/hook_margins.pdf, 
-##         figures/hook_table.tex,
-##         data/margins.csv
+## Run from the project folder:  Rscript hook.R
+## Output: data/margins.csv (read by the slides),
+##         figures/hook_margins.pdf (+ .png), figures/hook_table.tex
 
-## ---- Functions ---------------------------------------------------------
+## ---- functions ---------------------------------------------------------
 
 ## One row per final: winner, runner-up, margin in points and in top votes
 final_margins <- function(entries, from = 1975) {
@@ -32,6 +32,7 @@ final_margins <- function(entries, from = 1975) {
 }
 
 ## Bar chart: margin in top votes per year, close finals highlighted
+## (not used in the slides)
 plot_margins <- function(m) {
   blue <- "#2a78d6"; gray <- "#d3d1ca"
   ink  <- "#0b0b0b"; ink2 <- "#52514e"; muted <- "#898781"
@@ -80,6 +81,7 @@ plot_margins <- function(m) {
 }
 
 ## LaTeX (booktabs) table of the finals decided by less than one top vote
+## (not used in the slides)
 margin_table_tex <- function(m, max_tv = 1) {   # strictly below max_tv
   esc <- function(s) gsub("&", "\\\\&", s)
   t <- m[m$margin_tv < max_tv, ]
@@ -96,7 +98,7 @@ margin_table_tex <- function(m, max_tv = 1) {   # strictly below max_tv
     "\\end{tabular}")
 }
 
-## ---- main --------------------------------------------------------------
+## ---- main (only when run as a script, not when sourced) --------------------------------------------------------------
 
 if (sys.nframe() == 0) {
   entries <- read.csv(file.path("data", "entries.csv"))
