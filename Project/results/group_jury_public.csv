@@ -1,0 +1,4 @@
+"group","votes","public_excess","jury_excess","gap","gap_null_q95","p_public","p_jury","p_gap","p_public_holm","p_jury_holm","p_gap_holm"
+"Greece & Cyprus",23,9.69,7.73,1.96,1.26,1e-04,1e-04,0.0024,3e-04,3e-04,0.0048
+"Romania & Moldova",13,8.3,6.09,2.21,2.73,1e-04,1e-04,0.0993,3e-04,3e-04,0.0993
+"ex-Yugoslavia",113,7.24,2.69,4.55,1.14,1e-04,1e-04,1e-04,3e-04,3e-04,3e-04
