@@ -6,6 +6,35 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,shadows}
 \usepackage{booktabs}
+\usepackage{listings}
+% Syntax highlighting for the R code on slide 11 ("The test in R")
+\definecolor{rcomment}{HTML}{357A68}
+\definecolor{rstring}{HTML}{B3237F}
+\definecolor{rkeyword}{HTML}{5539A8}
+\lstdefinestyle{escR}{
+  language=R,
+  basicstyle=\ttfamily\fontsize{8.0}{9.6}\selectfont,
+  keywordstyle=\color{rkeyword}\bfseries,
+  commentstyle=\color{rcomment}\itshape,
+  stringstyle=\color{rstring},
+  emph={T_obs,T_null,bloc,excess},
+  emphstyle=\color{escpink}\bfseries,
+  backgroundcolor=\color{escblue!4},
+  frame=single,
+  rulecolor=\color{escblue!20},
+  framerule=0.45pt,
+  xleftmargin=0.08cm,
+  xrightmargin=0.06cm,
+  framesep=0.12cm,
+  aboveskip=2pt,
+  belowskip=2pt,
+  showstringspaces=false,
+  keepspaces=true,
+  columns=fullflexible,
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=2
+}
 \usepackage{array}
 \usepackage{pifont}
 \usepackage{textcomp}
@@ -20,14 +49,21 @@
 \title{United by Music? Or by Politics?}
 
 \begin{document}
+
 % ---------- document setup ----------
 \SweaveOpts{concordance=TRUE, echo=FALSE}
 \fvset{fontsize=\scriptsize}
 
-% ---------- R setup: every number on the slides comes from here ----------
-% The analysis scripts in the project folder (build_data.R, hook.R,
-% bloc_favoritism.R, group_jury_public.R, social_ties.R) write results/ and
-% figures/; the slides read those files, so nothing is typed in by hand.
+% ---------- R setup ----------
+% The analysis scripts in the project folder write data/, results/ and
+% figures/; the slides read those files, so no number is typed in by hand
+%   build_data.R      -> data/votes.csv, data/entries.csv
+%   hook.R            -> data/margins.csv
+%   bloc_favoritism.R -> results/act1_blocs.csv, act1_top_pairs.csv, act1_null.rds
+%   network.R         -> results/network_edges.csv, figures/voting_network.pdf
+%   social_ties.R     -> results/social_ties_*.csv, figures/social_ties.pdf,
+%                        figures/sci_quintiles_boxplot.pdf
+% Only the Greece & Cyprus test on slide 11 is computed here, live
 <<setup>>=
 proj <- ".."                                   # project folder (slides/..)
 res  <- function(f) read.csv(file.path(proj, "results", f))
@@ -38,14 +74,13 @@ votes   <- read.csv(file.path(proj, "data", "votes.csv"))
 entries <- read.csv(file.path(proj, "data", "entries.csv"))
 margins <- read.csv(file.path(proj, "data", "margins.csv"))
 
-## data overview
-n_votes     <- format(nrow(votes), big.mark = ",")
+## data overview (slide 4)
+n_votes    <- format(nrow(votes), big.mark = ",")
 n_shows     <- length(unique(votes$edition))
 n_countries <- length(setdiff(unique(c(votes$from_code, votes$to_code)), "WLD"))
 yr_votes    <- range(votes$year)
-n_split     <- length(unique(votes$edition[votes$vote_type == "jury"]))
 
-## Cyprus -> Greece stories (1998, 2005 finals)
+## Cyprus -> Greece stories (1998, 2005 finals; slides 6-7)
 story <- function(yr) {
   f <- votes[votes$year == yr & votes$round == "final" &
              votes$vote_type == "total" & votes$to_code == "GR" &
@@ -60,12 +95,12 @@ story <- function(yr) {
 }
 s98 <- story(1998); s05 <- story(2005)
 
-## hook
+## winning margins (slide 5): finals won by less than one country's top vote
 n_finals <- nrow(margins)
 n_close  <- sum(margins$margin_tv < 1)
 
-## Act 1: blocs
-blocs   <- res("act1_blocs.csv")
+## blocs and permutation test results (slides 10, 12, 15)
+blocs  <- res("act1_blocs.csv")
 nullobj <- readRDS(file.path(proj, "results", "act1_null.rds"))
 real    <- blocs[blocs$bloc != "Control", ]
 ctrl    <- blocs[blocs$bloc == "Control", ]
@@ -73,28 +108,24 @@ bname   <- blocs$bloc
 ## "&" -> "\&" for LaTeX. Sweave inserts \Sexpr results with sub(), which
 ## removes one level of backslashes, so the string needs "\\&" here
 bname   <- gsub("&", "\\\\\\\\&", bname)
-lo <- apply(nullobj$T_null[, blocs$bloc], 2, quantile, 0.005)
+## grey bars on slide 12: 99% range of the shuffled T* per bloc
+lo <-apply(nullobj$T_null[, blocs$bloc], 2, quantile, 0.005)
 hi <- apply(nullobj$T_null[, blocs$bloc], 2, quantile, 0.995)
+## one "row/name/lo/hi/observed/colour" entry per bloc for the TikZ \foreach
 bloc_tikz <- paste(sprintf("%d/%s/%.2f/%.2f/%.1f/%s", seq_along(bname) - 1,
                            bname, lo, hi, blocs$T_obs,
                            ifelse(blocs$bloc == "Control", "escblue",
                                   "escpink")), collapse = ",")
 
-## jury vs public
-grp <- res("group_jury_public.csv")
-g   <- function(name, col) grp[grp$group == name, col]
-pairs16 <- read.csv(file.path(proj, "results", "diaspora_pairs.csv"))
-si_rs   <- pairs16[pairs16$from_code == "SI" & pairs16$to_code == "RS", ]
-
-## social ties
-ties   <- res("social_ties_tests.csv")
+## social ties (slides 4, 13-15); q = mean excess per SCI quintile
+ties  <- res("social_ties_tests.csv")
 tp     <- res("social_ties_pairs.csv")
 rho_t  <- ties$rho[ties$sample == "1975-2026"]
 rho_16 <- ties$rho[ties$sample == "2016-2026"]
 q      <- tapply(tp$excess, cut(rank(tp$sci), 5, labels = FALSE), mean)
 @
 
-% ---------- Slide 0: ballot opener ----------
+% ---------- Slide 1: ballot opener ----------
 \begin{frame}[plain]
 \definecolor{escpurple}{HTML}{4B1A8C}
 \begin{tikzpicture}[remember picture,overlay,x=\paperwidth,y=\paperheight,shift={(current page.south west)}]
@@ -141,16 +172,18 @@ q      <- tapply(tp$excess, cut(rank(tp$sci), 5, labels = FALSE), mean)
           0/0/Politics/{\textbf{1969} Franco boycott\\ \textbf{2022} Russia banned\\ \textbf{2026} 5-country boycott},
           3.95/0/Public attitudes/{solidarity voting:\\ \textbf{Ukraine 2022}\\ 439 televote vs 192 jury},
           0/-2.35/Nationalism/{\textbf{Azerbaijan 2009:}\\ police questioned\\ 43 Armenia voters},
-          3.95/-2.35/Business/{\textbf{131M} viewers\\ \textbf{\texteuro150.6M} Vienna hotels\\ (May 2026)}}{
+          3.95/-2.35/Business/{\textbf{131M} viewers\\ \textbf{\texteuro77.2M} value added\\ across Austria}}{
           \node[box]  at (\x,\y) {};
           \node[head] at (\x,\y) {\h};
           \node[txt, text=escblue] at ({\x+1.85},{\y-0.6}) {\t};
         }
       \end{tikzpicture}
+      \vspace{0.06cm}
+      {\tiny\color{escblue!75}Economic impact: \href{https://www.wifo.ac.at/en/news/economic-tourism-and-social-impacts-of-the-eurovision-song-contest-2026/}{WIFO, November 2026}; direct, indirect and induced gross value added.}
   \end{columns}
 \end{frame}
 
-% ---------- Slide 4: how voting works ----------
+% ---------- Slide 3: how voting works ----------
 \begin{frame}{How voting works}
 \centering
 \begin{tikzpicture}[
@@ -190,10 +223,10 @@ q      <- tapply(tp$excess, cut(rank(tp$sci), 5, labels = FALSE), mean)
 {\large\color{escblue}\ding{55}\ No points for your own country}
 
 \vfill
-{\tiny Source: \citet{ebu2026}.}
+{\tiny Source: European Broadcasting Union (2026).}
 \end{frame}
 
-% ---------- Slide 4b: our data (short version; full version at the back) ----------
+% ---------- Slide 4: data used ----------
 \begin{frame}{Data used}
 \centering
 \vspace{0.3cm}
@@ -217,12 +250,11 @@ q      <- tapply(tp$excess, cut(rank(tp$sci), 5, labels = FALSE), mean)
 \end{tikzpicture}
 
 \vfill
-{\tiny Sources: EurovisionAPI dataset \citep{eurovisionapi};\\
-Social Connectedness Index \citep{johnston2026}, Humanitarian Data Exchange.}
+{\tiny Sources: EurovisionAPI dataset (EurovisionAPI, 2026);\\
+Social Connectedness Index (Johnston et al., 2026), Humanitarian Data Exchange.}
 \end{frame}
 
-
-% ---------- Slide 5: hook - does one vote matter? ----------
+% ---------- Slide 5: does one country's vote matter? (data/margins.csv) ----------
 \begin{frame}{Does one country's vote matter?}
 \centering
 {\small\color{escblue}\textbf{Winning margin} = winner's points $-$ runner-up's points.\\
@@ -273,7 +305,7 @@ If it is \textbf{smaller than one country's top vote}, a single country could ha
 \vspace{0.3cm}
 \end{frame}
 
-% ---------- Slide 6 NEW (a): story 1 - 1998 ----------
+% ---------- Slide 6: Cyprus -> Greece, 1998 (pure favouritism) ----------
 \begin{frame}{Favouritism or just a good song?}
 \centering
 {\large\color{escblue}\textbf{1998 final:} Cyprus gives Greece \textbf{\color{escpink}12 points}.}\\[0.4cm]
@@ -309,7 +341,7 @@ If it is \textbf{smaller than one country's top vote}, a single country could ha
 \vspace{0.2cm}
 \end{frame}
 
-% ---------- Slide 6 NEW (b): story 2 - 2005 ----------
+% ---------- Slide 7: Cyprus -> Greece, 2005 (good song + favouritism) ----------
 \begin{frame}{Favouritism or just a good song?}
 \centering
 {\large\color{escblue}\textbf{2005 final:} Cyprus gives Greece \textbf{\color{escpink}12 points} again.}\\[0.4cm]
@@ -347,7 +379,7 @@ If it is \textbf{smaller than one country's top vote}, a single country could ha
 \vspace{0.2cm}
 \end{frame}
 
-% ---------- Slide 6 NEW (c): excess points - how and who ----------
+% ---------- Slide 8: excess points - formula and top 10 pairs ----------
 \begin{frame}{Excess points: who favours whom the most?}
 \begin{columns}[T]
   \column{0.44\textwidth}
@@ -383,7 +415,8 @@ cat("\\bottomrule\n\\end{tabular}\n")
 \end{columns}
 \end{frame}
 
-% ---------- Slide 6 NEW (d): network of strong ties (network.R) ----------
+% ---------- Slide 9: network of strong ties (network.R) ----------
+% The figure is generated externally by network.R; the slide only includes it
 \begin{frame}{The map of friendships}
 <<network_data>>=
 net <- res("network_edges.csv")
@@ -402,11 +435,11 @@ net <- res("network_edges.csv")
     \pause
     {\small\color{escblue}
     The countries form \textbf{clusters}: Nordics, Baltics, ex-USSR, the Balkans, Greece \& Cyprus.\\[0.15cm]
-    The layout algorithm \citep{fruchterman1991}, run with igraph \citep{csardi2006}, only sees the votes, \textbf{not the map}, and still draws Europe's neighbourhoods.}
+    The layout algorithm (Fruchterman and Reingold, 1991), run with igraph (Cs\'ardi and Nepusz, 2006), only sees the votes, \textbf{not the map}, and still draws Europe's neighbourhoods.}
 \end{columns}
 \end{frame}
 
-% ---------- Slide 6d: the trial - blocs and permutation test ----------
+% ---------- Slide 10: hypothetical blocs and the permutation test ----------
 \begin{frame}{Hypothetical blocs}
 \begin{columns}[T]
   \column{0.46\textwidth}
@@ -440,14 +473,15 @@ cat("\\bottomrule\n\\end{tabular}\n")
   \textbf{\color{escpink}3. Repeat} $B = 10{,}000$ times: this is what the bloc looks like \textbf{by chance}\\[0.2cm]
   \textbf{\color{escpink}4. Significance:}
   \quad $p = \frac{1 + \#\{b \,:\, T^*_b \ge T\}}{B + 1}$,\\[0.1cm]
-  \citep{phipson2010}, then \textbf{Holm correction} \citep{holm1979} for testing \Sexpr{nrow(blocs)} blocs at once.}
+  (Phipson and Smyth, 2010), then \textbf{Holm correction} (Holm, 1979) for testing \Sexpr{nrow(blocs)} blocs at once.}
 \end{columns}
 \end{frame}
 
-% ---------- Slide 6b: the test in R (runs live when the slides compile) ----------
-\begin{frame}[fragile]{The test in R: Greece \& Cyprus on trial}
-\vspace{-0.2cm}
-<<perm, echo=TRUE>>=
+% ---------- Slide 11: the test for Greece & Cyprus, run live in R ----------
+\begin{frame}[fragile]{The test in R: Greece \& Cyprus}
+% The hidden chunk runs the test; the listings below show the same code
+% (re-wrapped to fit) and the boxes print the chunk's results
+<<perm, echo=FALSE, results=hide>>=
 v <- subset(votes, year >= 1975 & vote_type == "total" & from_code != "WLD")
 v$points <- ifelse(v$year >= 2016, v$points / 2, v$points)  # 12-point scale
 v <- v[order(v$edition, v$from_code), ]
@@ -467,12 +501,72 @@ T_null <- replicate(10000, {            # shuffle points within each voter
 })
 c(T_obs = T_obs, max_null = max(T_null), p = (1 + sum(T_null >= T_obs)) / 10001)
 @
-\vspace{-0.15cm}
+\vspace{-0.23cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.535\textwidth}
+  {\footnotesize\bfseries\color{escblue}01 \quad Data and the excess-points statistic}\vspace{-0.05cm}
+\begin{lstlisting}[style=escR]
+v <- subset(votes, year >= 1975 &
+  vote_type == "total" & from_code != "WLD")
+v$points <- ifelse(v$year >= 2016,
+  v$points / 2, v$points) # 12-point scale
+v <- v[order(v$edition, v$from_code), ]
+to <- as.integer(factor(
+  paste(v$edition, v$to_code))) # song in show
+from <- as.integer(factor(
+  paste(v$edition, v$from_code))) # voter
+n_to <- tabulate(to)[to]
+excess <- function(p) {
+  s <- rowsum(p, to)[to]
+  p - (s - p) / (n_to - 1)
+}
+\end{lstlisting}
+\end{column}
+\begin{column}{0.445\textwidth}
+  {\footnotesize\bfseries\color{escblue}02 \quad Permutation test (10,000 shuffles)}\vspace{-0.05cm}
+\begin{lstlisting}[style=escR]
+bloc <- v$from_code %in% c("GR", "CY") &
+  v$to_code %in% c("GR", "CY")
+T_obs <- mean(excess(v$points)[bloc])
+set.seed(2026)
+T_null <- replicate(10000, {
+  # shuffle points within each voter
+  p <- v$points[
+    order(from, runif(nrow(v)))]
+  mean(excess(p)[bloc])
+})
+c(T_obs = T_obs,
+  max_null = max(T_null),
+  p = (1 + sum(T_null >= T_obs)) / 10001)
+\end{lstlisting}
+\end{column}
+\end{columns}
+\vfill
 \pause
-{\small\color{escblue}Best of 10{,}000 random shuffles: \Sexpr{fmt(max(T_null), 2)}. Observed value: \textbf{\color{escpink}\Sexpr{fmt(T_obs, 2)}}.}
+\centering
+\begin{tikzpicture}
+  \node[draw=escpink!55,fill=escpink!7,rounded corners=5pt,
+    text width=0.278\textwidth,minimum height=1.14cm,align=center,inner sep=4pt]
+    at (-0.342\textwidth,0)
+    {{\scriptsize\bfseries\color{escblue}OBSERVED EXCESS}\\[-1pt]
+     {\LARGE\bfseries\color{escpink}\Sexpr{fmt(T_obs, 2)}}};
+  \node[draw=escblue!28,fill=escblue!5,rounded corners=5pt,
+    text width=0.278\textwidth,minimum height=1.14cm,align=center,inner sep=4pt]
+    at (0,0)
+    {{\scriptsize\bfseries\color{escblue}LARGEST SHUFFLED}\\[-1pt]
+     {\LARGE\bfseries\color{escblue}\Sexpr{fmt(max(T_null), 2)}}};
+  \node[draw=rcomment!50,fill=rcomment!7,rounded corners=5pt,
+    text width=0.278\textwidth,minimum height=1.14cm,align=center,inner sep=4pt]
+    at (0.342\textwidth,0)
+    {{\scriptsize\bfseries\color{escblue}PERMUTATION $p$-VALUE}\\[-1pt]
+     {\LARGE\bfseries\color{rcomment}\Sexpr{sprintf("%.4f", (1 + sum(T_null >= T_obs)) / 10001)}}};
+\end{tikzpicture}
+\vspace{0.04cm}
+{\scriptsize\color{escblue}Observed GR--CY excess is far beyond every one of the 10,000 shuffled outcomes.}
+\vspace{0.02cm}
 \end{frame}
 
-% ---------- Slide 7: the evidence - blocs are guilty ----------
+% ---------- Slide 12: blocs exist - observed vs. shuffled, all blocs ----------
 \begin{frame}{Blocs exist}
 \begin{columns}[c]
   \column{0.60\textwidth}\centering
@@ -508,62 +602,11 @@ c(T_obs = T_obs, max_null = max(T_null), p = (1 + sum(T_null >= T_obs)) / 10001)
 \vfill
 \pause
 \centering
-\colorbox{escpink}{\color{white}\bfseries\ But was it the juries or the people at home?\ }
+\colorbox{escpink}{\color{white}\bfseries\ But why these countries?\ }
 \vspace{0.2cm}
 \end{frame}
 
-% ---------- Slide 8: who did it? jury or public ----------
-\begin{frame}{2 types of ``friendship'' voting}
-\centering
-\begin{tikzpicture}[
-  file/.style={draw=escblue, line width=1pt, fill=escblue!4, rounded corners=4pt,
-               minimum width=6.1cm, minimum height=5.0cm, anchor=north},
-  tab/.style={fill=escblue, text=white, font=\scriptsize\bfseries, rounded corners=3pt,
-              inner xsep=8pt, inner ysep=3pt, anchor=south west},
-  stamp/.style={draw, double, line width=1.2pt, rounded corners=3pt, font=\bfseries,
-                inner xsep=8pt, inner ysep=4pt, opacity=0.9, text opacity=0.9},
-  sus/.style={circle, minimum size=0.9cm, font=\bfseries\small, text=white}]
-  % ---------- CASE 1: FAMILY
-  \node[file] (f1) at (-3.2,0) {};
-  \node[font=\bfseries, text=escblue] at (-3.2,-0.45) {``Identity'' voting};
-  \node[font=\scriptsize, text=escblue!80] at (-3.2,-0.9) {Greece $\leftrightarrow$ Cyprus \quad Romania $\leftrightarrow$ Moldova};
-  % note: shift is in scope units (x = 0.38cm), so -15.5 = about -5.9cm
-  \begin{scope}[x=0.38cm, shift={(-15.5,-1.35)}]
-    \foreach \y/\lab/\pub/\jur in {
-        0/Greece \& Cyprus {\mdseries (gap \Sexpr{fmt(g("Greece & Cyprus", "gap"))}, $p \Sexpr{pfmt(g("Greece & Cyprus", "p_gap_holm"))}$)}/\Sexpr{sprintf("%.1f", g("Greece & Cyprus", "public_excess"))}/\Sexpr{sprintf("%.1f", g("Greece & Cyprus", "jury_excess"))},
-        -1.15/Romania \& Moldova {\mdseries (gap \Sexpr{fmt(g("Romania & Moldova", "gap"))}, $p \Sexpr{pfmt(g("Romania & Moldova", "p_gap_holm"))}$)}/\Sexpr{sprintf("%.1f", g("Romania & Moldova", "public_excess"))}/\Sexpr{sprintf("%.1f", g("Romania & Moldova", "jury_excess"))}}{
-      \node[anchor=west, font=\tiny\bfseries, text=escblue] at (0,\y) {\lab};
-      \fill[escpink, rounded corners=2pt] (0,\y-0.22) rectangle (\pub,\y-0.48);
-      \node[anchor=west, font=\tiny\bfseries, text=escpink] at (\pub+0.15,\y-0.35) {public +\pub};
-      \fill[escblue!45, rounded corners=2pt] (0,\y-0.54) rectangle (\jur,\y-0.80);
-      \node[anchor=west, font=\tiny\bfseries, text=escblue] at (\jur+0.15,\y-0.67) {jury +\jur};
-    }
-  \end{scope}
-  \node[font=\scriptsize, text=escblue, align=center] at (-3.2,-3.75)
-       {same language, same identity:\\ \textbf{even the experts} love the song};
-  % ---------- CASE 2: DIASPORA
-  \node[file] (f2) at (3.2,0) {};
-  \node[font=\bfseries, text=escpink] at (3.2,-0.45) {``Diaspora'' voting};
-  \node[font=\scriptsize, text=escblue!80] at (3.2,-0.9) {ex-Yugoslavia};
-  % same inset from the box edge as the left chart (1.35 x 0.38cm = 0.51cm from x = 0)
-  \begin{scope}[x=0.38cm, shift={(1.35,-1.35)}]
-    \foreach \y/\lab/\pub/\jur in {
-        0/bloc average {\mdseries (gap \Sexpr{fmt(g("ex-Yugoslavia", "gap"))}, $p \Sexpr{pfmt(g("ex-Yugoslavia", "p_gap_holm"))}$)}/\Sexpr{sprintf("%.1f", g("ex-Yugoslavia", "public_excess"))}/\Sexpr{sprintf("%.1f", g("ex-Yugoslavia", "jury_excess"))},
-        -1.15/Slovenia $\rightarrow$ Serbia/\Sexpr{sprintf("%.1f", si_rs$e_public)}/\Sexpr{sprintf("%.1f", si_rs$e_jury)}}{
-      \node[anchor=west, font=\tiny\bfseries, text=escblue] at (0,\y) {\lab};
-      \fill[escpink, rounded corners=2pt] (0,\y-0.22) rectangle (\pub,\y-0.48);
-      \node[anchor=west, font=\tiny\bfseries, text=escpink] at (\pub+0.15,\y-0.35) {public +\pub};
-      \fill[escblue!45, rounded corners=2pt] (0,\y-0.54) rectangle (\jur,\y-0.80);
-      \node[anchor=west, font=\tiny\bfseries, text=escblue] at (\jur+0.15,\y-0.67) {jury +\jur};
-    }
-  \end{scope}
-  \node[font=\scriptsize, text=escblue, align=center] at (3.2,-3.75)
-       {migrants vote \textbf{by phone} for home};
-  % gap = public minus jury excess; p from the paired jury/public swap test (Holm)
-\end{tikzpicture}
-\end{frame}
-
-% ---------- Slide 9: the motive - social ties ----------
+% ---------- Slide 13: friendship measured - excess vs. SCI (social_ties.R) ----------
 \begin{frame}{Friendship measured}
 \begin{columns}[c]
   \column{0.60\textwidth}\centering
@@ -571,7 +614,7 @@ c(T_obs = T_obs, max_null = max(T_null), p = (1 + sum(T_null >= T_obs)) / 10001)
     {\tiny each dot = one pair of countries (A $\rightarrow$ B), 1975--2026}
   \column{0.38\textwidth}
     {\small\color{escblue}
-    \textbf{Facebook friendships} between countries (Social Connectedness Index, \citealp{johnston2026}) vs.\ excess points}\\[0.3cm]
+    \textbf{Facebook friendships} between countries (Social Connectedness Index, Johnston et al., 2026) vs.\ excess points}\\[0.3cm]
     \pause
     \colorbox{escpink}{\parbox{0.92\linewidth}{\centering\color{white}\bfseries
       Spearman $\rho = \Sexpr{sprintf("%.2f", rho_t)}$\\[0.02cm]
@@ -596,7 +639,7 @@ c(T_obs = T_obs, max_null = max(T_null), p = (1 + sum(T_null >= T_obs)) / 10001)
 \vspace{0.15cm}
 \end{frame}
 
-% ---------- Slide 9b: excess points by friendship quintile (social_ties.R) ----------
+% ---------- Slide 14: excess points by friendship quintile (social_ties.R) ----------
 \begin{frame}{Excess points by friendship level}
 \begin{columns}[c]
   \column{0.62\textwidth}\centering
@@ -615,48 +658,37 @@ c(T_obs = T_obs, max_null = max(T_null), p = (1 + sum(T_null >= T_obs)) / 10001)
 \end{columns}
 \end{frame}
 
-% ---------- Slide 10: the verdict ----------
+% ---------- Slide 15: the verdict (back to the ballot) ----------
 \begin{frame}{The verdict}
 \centering
-{\scriptsize\color{escblue}
-\begin{tabular}{@{}llll@{}}
+{\small\color{escblue}
+\begin{tabular}{@{}lll@{}}
   \toprule
-  Charge & Test & Result & $p$ \\
+  Charge & Result & $p$ \\
   \midrule
-  Blocs favour each other & permutation (shuffle points)
+  Blocs favour each other
     & \Sexpr{nrow(real)} of \Sexpr{nrow(real)} blocs, \Sexpr{fmt(min(real$T_obs))} to \Sexpr{fmt(max(real$T_obs))}
-    & $\Sexpr{pfmt(max(real$p_holm))}$ (Holm) \\
-  Control group & same & \Sexpr{fmt(ctrl$T_obs)} & \Sexpr{round(ctrl$p_value, 2)} \\
-  ``Family'': juries biased too & permutation (jury points)
-    & GR/CY \Sexpr{fmt(g("Greece & Cyprus", "jury_excess"))}, RO/MD \Sexpr{fmt(g("Romania & Moldova", "jury_excess"))}
-    & $\Sexpr{pfmt(max(grp$p_jury_holm))}$ \\
-  ``Diaspora'': public $>$ jury & swap jury/public
-    & ex-YU gap \Sexpr{fmt(g("ex-Yugoslavia", "gap"))}
-    & $\Sexpr{pfmt(g("ex-Yugoslavia", "p_gap_holm"))}$ \\
-  Social ties explain it & QAP (shuffle countries)
-    & $\rho = \Sexpr{sprintf("%.2f", rho_t)}$
+    & $\Sexpr{pfmt(max(real$p_holm))}$ \\
+  Control group & \Sexpr{fmt(ctrl$T_obs)} & \Sexpr{round(ctrl$p_value, 2)} \\
+  More friends, more points & $\rho = \Sexpr{sprintf("%.2f", rho_t)}$
     & $\Sexpr{pfmt(ties$p_value[ties$sample == "1975-2026"])}$ \\
   \bottomrule
 \end{tabular}}
 
-\vspace{0.35cm}
-\pause
-\colorbox{escpink}{\parbox{0.8\textwidth}{\centering\color{white}\bfseries
-  Guilty of favouritism, but it is family, friendship and diaspora, not a conspiracy.}}
-
-\vspace{0.3cm}
-\pause
-{\small\color{escblue}\textbf{United by politics?} \citet{ginsburgh2008} tested exactly this:
-Eurovision votes follow \textbf{culture and language}, not political alliances.}
+\vspace{0.45cm}
+{\color{escblue}\large\textbf{Is Eurovision united by music?}\quad
+ \colorbox{escpink}{\color{white}\bfseries\ \ding{51}\ It's complicated\ }}
 
 \vspace{0.25cm}
-{\tiny\color{escblue!80}Caveats: correlation is not causation; distance not controlled; case-study groups chosen after seeing the data; only \Sexpr{n_split} shows since the 2016 jury/public split.}
+{\color{escblue}Good songs still win, but family, friendship and diaspora give a head start.\\
+Politics? No evidence \citep{ginsburgh2008}.}
+
+\vfill
+{\scriptsize\color{escblue!80}Caveats: correlation is not causation; groups chosen after seeing the data.}
+\vspace{0.2cm}
 \end{frame}
 
-
-
-
-% ---------- Last slide: final results ----------
+% ---------- Slide 16: scoreboard (scoreboard.jpeg) ----------
 {\setbeamertemplate{background}{\includegraphics[width=\paperwidth,height=\paperheight]{scoreboard.jpeg}}
 \begin{frame}[plain]
 \begin{tikzpicture}[remember picture,overlay,x=\paperwidth,y=\paperheight,shift={(current page.south west)}]
@@ -678,229 +710,15 @@ Eurovision votes follow \textbf{culture and language}, not political alliances.}
 \end{tikzpicture}
 \end{frame}}
 
-% ---------- References (generated by BibTeX from references.bib) ----------
-% Lists every source cited with \cite / \citet / \citep anywhere in the slides.
+% ---------- Slide 17: references (BibTeX, references.bib) ----------
+% Most sources are cited in plain text on the slides, so \nocite lists them
+% here explicitly; ginsburgh2008 is also cited with \citep on slide 15
 \begin{frame}{References}
 \scriptsize
+\nocite{ebu2026,eurovisionapi,johnston2026,fruchterman1991,csardi2006,phipson2010,holm1979,ginsburgh2008}
 \bibliographystyle{plainnat}
 \bibliography{references}
 \end{frame}
 
-% ========== Moved to the back ==========
-
-% ---------- Slide 6: the charge - excess points + permutation test ----------
-\begin{frame}{The charge: favouritism or just a good song?}
-\centering
-{\small Cyprus gave Greece \textbf{12 points} twice. Same score, different story:}\\[0.25cm]
-\begin{tikzpicture}[y=0.14cm]
-  \foreach \x/\yr/\oth/\exc/\lab/\col in {
-      0/1998/0/+12/pure favouritism/escpink,
-      6.4/2005/5.9/+6.1/Greece won: good song!/escblue}{
-    \node[font=\large\bfseries, text=escblue] at (\x+1.6,15.5) {\yr};
-    \fill[escpink] (\x+0.3,0) rectangle (\x+1.3,12);
-    \fill[escblue!45] (\x+1.9,0) rectangle (\x+2.9,\oth);
-    \draw[escblue, thick] (\x,0) -- (\x+3.2,0);
-    \node[font=\scriptsize\bfseries, text=escpink] at (\x+0.8,13.3) {12};
-    \node[font=\scriptsize\bfseries, text=escblue] at (\x+2.4,\oth+1.3) {\oth};
-    \node[font=\scriptsize] at (\x+0.8,-2) {Cyprus};
-    \node[font=\scriptsize, align=center] at (\x+2.4,-2.4) {everyone\\[-2pt] else (avg.)};
-    \node[draw=\col, line width=1pt, rounded corners=4pt, fill=white, font=\small\bfseries,
-          text=\col, align=center] at (\x+4.6,7) {excess\\ \exc};
-    \node[font=\scriptsize\itshape, text=\col] at (\x+4.6,2.8) {\lab};
-  }
-\end{tikzpicture}
-
-\vspace{0.2cm}
-\pause
-\begin{columns}[T]
-  \column{0.48\textwidth}\centering
-  \colorbox{escblue!8}{\parbox{0.95\linewidth}{\centering
-    \textbf{\color{escblue}1. Excess points}\\[0.05cm]
-    $e_{A\to B,t} = p_{A\to B,t} - \bar{p}^{\,(-A)}_{B,t}$\\[0.02cm]
-    {\scriptsize what A gave B, minus what everyone else gave B}}}
-  \column{0.48\textwidth}\centering
-  \colorbox{escblue!8}{\parbox{0.95\linewidth}{\centering
-    \textbf{\color{escblue}2. Permutation test}\\[0.05cm]
-    {\footnotesize shuffle each country's points\\ \textbf{10{,}000 times}: does chance ever do this?}}}
-\end{columns}
-
-\vfill
-\pause
-\colorbox{escpink}{\color{white}\bfseries\ Let's put the blocs on trial.\ }
-\vspace{0.2cm}
-\end{frame}
-
-% ---------- Slide 4b (full copy, moved to the back): our data ----------
-\begin{frame}{Our data: every vote since 1957}
-\centering
-\begin{tikzpicture}[
-  box/.style={draw=escblue, line width=1pt, rounded corners=6pt, fill=escblue!5,
-              minimum width=4.1cm, minimum height=3.6cm, anchor=north},
-  ttl/.style={fill=escblue, text=white, font=\small\bfseries, rounded corners=6pt,
-              minimum width=4.1cm, minimum height=0.6cm, anchor=north},
-  num/.style={font=\fontsize{20}{20}\selectfont\bfseries, text=escpink},
-  sub/.style={font=\scriptsize, text=escblue, align=center, text width=3.8cm}]
-  % votes
-  \node[box] at (0,0) {};  \node[ttl] at (0,0) {Eurovision votes};
-  \node[num] at (0,-1.15) {\Sexpr{n_votes}};
-  \node[sub] at (0,-2.2) {votes, \Sexpr{yr_votes[1]}--\Sexpr{yr_votes[2]}\\
-        \Sexpr{n_shows} shows, \Sexpr{n_countries} countries\\
-        who gave how many points to whom};
-  % jury vs public
-  \node[box] at (4.5,0) {};  \node[ttl] at (4.5,0) {Jury vs.\ public};
-  \node[num] at (4.5,-1.15) {\Sexpr{n_split}};
-  \node[sub] at (4.5,-2.2) {shows since 2016 with\\ \textbf{separate} jury and\\ public points};
-  % social ties
-  \node[box] at (9,0) {};  \node[ttl] at (9,0) {Social ties};
-  \node[num] at (9,-1.15) {\Sexpr{ties$countries[ties$sample == "1975-2026"]}};
-  \node[sub] at (9,-2.2) {countries with Facebook\\ \textbf{friendship links}\\ between every pair (2026)};
-\end{tikzpicture}
-
-\vspace{0.4cm}
-\pause
-{\small\color{escblue}Each analysis is one R script; the slides read its results with \textbf{Sweave}, so every number here is computed, not typed.}
-
-\vfill
-{\tiny Sources: EurovisionAPI dataset \citep{eurovisionapi};
-Social Connectedness Index \citep{johnston2026}, Humanitarian Data Exchange.}
-\end{frame}
-
-
-% ---------- Slide 5 NEW: hook - does one vote matter? ----------
-\begin{frame}{Does one country's vote matter?}
-\centering
-{\small\color{escblue}\textbf{Winning margin} = winner's points $-$ runner-up's points.\\
-If it is \textbf{smaller than one country's top vote}, a single country could have changed the winner.}\\[0.25cm]
-\begin{columns}[T]
-  \column{0.44\textwidth}\centering
-    % one dot per final, close ones in pink (counts from data/margins.csv)
-    \begin{tikzpicture}[scale=0.85]
-      \foreach \i in {0,...,\Sexpr{n_finals - 1}}{
-        \pgfmathtruncatemacro{\r}{\i/10}
-        \pgfmathtruncatemacro{\c}{mod(\i,10)}
-        \ifnum\i<\Sexpr{n_close}
-          \fill[escpink] (\c*0.42,-\r*0.42) circle (0.15);
-        \else
-          \fill[escblue!20] (\c*0.42,-\r*0.42) circle (0.15);
-        \fi
-      }
-    \end{tikzpicture}\\[0.1cm]
-    {\tiny\color{escblue!70}each dot = one final \quad {\color{escpink}$\bullet$} = close final}\\[0.15cm]
-    {\fontsize{30}{30}\selectfont\bfseries\color{escpink}\Sexpr{n_close}}%
-    {\Large\bfseries\color{escblue}\ of \Sexpr{n_finals} finals}\\[0.15cm]
-    {\small were this close}\\[0.05cm]
-    {\scriptsize\color{escblue!70}(top vote: 12 points; 24 since 2016)}
-  \pause
-  \column{0.52\textwidth}
-    {\bfseries\color{escblue}Photo finishes}\\[0.3cm]
-    \begin{tikzpicture}[x=0.026cm,
-        gap/.style={fill=escpink, text=white, rounded corners=6pt, font=\footnotesize\bfseries,
-                    inner xsep=6pt, inner ysep=3pt}]
-      \foreach \y/\yr/\w/\wp/\r/\rp/\g in {
-          0/1988/Switzerland/137/United Kingdom/136/{+1 point},
-          -1.7/1991/Sweden/146/France/146/{tie!}}{
-        \node[anchor=west, font=\small\bfseries, text=escblue] at (0,\y) {\yr};
-        \fill[escpink, rounded corners=3pt] (0,\y-0.32) rectangle (\wp,\y-0.66);
-        \node[anchor=west, font=\scriptsize\bfseries, text=white] at (3,\y-0.49) {\w};
-        \node[anchor=east, font=\scriptsize\bfseries, text=white] at (\wp-3,\y-0.49) {\wp};
-        \fill[escblue!45, rounded corners=3pt] (0,\y-0.74) rectangle (\rp,\y-1.08);
-        \node[anchor=west, font=\scriptsize\bfseries, text=white] at (3,\y-0.91) {\r};
-        \node[anchor=east, font=\scriptsize\bfseries, text=white] at (\rp-3,\y-0.91) {\rp};
-        \node[gap, anchor=west] at (180,\y-0.7) {\g};
-      }
-    \end{tikzpicture}
-\end{columns}
-\vfill
-\pause
-\centering
-\colorbox{escpink}{\color{white}\bfseries\ So: do countries hand out their 12s fairly?\ }
-\vspace{0.3cm}
-\end{frame}
-
-% ---------- Slide 3: a meme how to predict the 12 points ----------
-\begin{frame}{How to predict Eurovision in 5 seconds}
-\centering
-\begin{tikzpicture}[
-  q/.style={draw=escblue, fill=escblue!8, rounded corners, align=center,
-            font=\small\bfseries, minimum height=0.55cm, text width=3.2cm},
-  a/.style={draw=escpink, fill=escpink!12, rounded corners, align=center,
-            font=\small, minimum height=0.55cm, text width=3.9cm},
-  arr/.style={-{Stealth}, thick, escblue},
-  lab/.style={font=\scriptsize\bfseries, fill=white, inner sep=1pt},
-  node distance=0.55cm and 0.9cm]
-  \node[q] (q1) {Are you Cyprus?};
-  \node[a, right=of q1] (a1) {12 points $\rightarrow$ Greece};
-  \node[q, below=of q1] (q2) {Are you Greece?};
-  \node[a, right=of q2] (a2) {12 points $\rightarrow$ Cyprus};
-  \node[q, below=of q2] (q3) {Are you Nordic?};
-  \node[a, right=of q3] (a3) {12 points $\rightarrow$ a Nordic};
-  \node[q, below=of q3] (q4) {Ex-Yugoslavia?};
-  \node[a, right=of q4] (a4) {12 points $\rightarrow$ a neighbour};
-  \node[q, below=of q4] (q5) {Big diaspora here?};
-  \node[a, right=of q5] (a5) {12 points $\rightarrow$ the diaspora};
-  \node[a, anchor=north west, fill=escpink!35, text width=7.4cm] (a6)
-       at ([yshift=-0.55cm]q5.south west)
-       {None of the above? Fine\ldots\ 12 points $\rightarrow$ \textbf{the best song}};
-  \foreach \i in {1,2,3,4,5}{\draw[arr] (q\i) -- node[lab,above]{yes} (a\i);}
-  \draw[arr] (q1) -- node[lab,left]{no} (q2);
-  \draw[arr] (q2) -- node[lab,left]{no} (q3);
-  \draw[arr] (q3) -- node[lab,left]{no} (q4);
-  \draw[arr] (q4) -- node[lab,left]{no} (q5);
-  \draw[arr] (q5) -- node[lab,left]{no} (q5|-a6.north);
-  \pause
-  \node[right=0.9cm of a2, align=center, text width=4.6cm] (joke)
-     {\textbf{\color{escblue}The song?}\\[0.15cm]
-      {\Huge\color{escpink}\bfseries Optional.}};
-  \pause
-  \node[below=0.4cm of joke, align=center, text width=4.3cm, draw=escblue, rounded corners,
-        font=\scriptsize, inner sep=4pt]
-     {\textbf{Stereotype} or\\ \textbf{statistically significant fact?}};
-\end{tikzpicture}
-% sticker
-\begin{tikzpicture}[remember picture,overlay]
-  \node[rotate=12, fill=escpink, text=white, font=\large\bfseries, rounded corners=8pt,
-        inner xsep=10pt, inner ysep=7pt, draw=white, line width=2pt, drop shadow]
-        at ([xshift=-2.3cm,yshift=1.6cm]current page.south east)
-        {Neighbour love \ding{170}};
-\end{tikzpicture}
-\end{frame}
-
-% ---------- Slide 1: Vienna title (Or by Politics?) ----------
-{\setbeamertemplate{background}{\includegraphics[width=\paperwidth,height=\paperheight]{vienna2026.jpeg}}
-\begin{frame}[plain]
-\begin{tikzpicture}[remember picture,overlay,x=\paperwidth,y=\paperheight,shift={(current page.south west)}]
-  % strike through "Music"
-  \draw[escpink, line width=2.5pt, rotate around={-4:(0.77,0.355)}]
-        (0.725,0.355) -- (0.82,0.355);
-  % new subtitle
-  \node[anchor=north, rotate=-3, text=white, font=\bfseries\LARGE]
-        at (0.635,0.30) {Or by \textcolor{escpink}{Politics}?};
-  % group info, bottom left
-  \node[anchor=south west, text=white, align=left, font=\footnotesize]
-        at (0.03,0.04)
-        {\textbf{Group 1}: Bachtiary, Gradev, Hartai, Isakova, Pemsel\\
-         Computing, WU Wien \textbar{} 24 November 2026};
-\end{tikzpicture}
-\end{frame}}
-
-% ---------- Slide 1 NEW: our hook logo ----------
-{\setbeamertemplate{background}{\includegraphics[width=\paperwidth,height=\paperheight]{vienna2026.jpeg}}
-\begin{frame}[plain]
-\begin{tikzpicture}[remember picture,overlay,x=\paperwidth,y=\paperheight,shift={(current page.south west)}]
-  % strike through "Music"
-  \draw[escpink, line width=2.5pt, rotate around={-4:(0.77,0.355)}]
-        (0.725,0.355) -- (0.82,0.355);
-  % two questions
-  \node[anchor=north, rotate=-3, text=white, font=\bfseries\LARGE]
-        at (0.635,0.30) {Or by \textcolor{escpink}{Politics}?};
-  \node[anchor=north, rotate=-3, text=white, font=\bfseries\LARGE]
-        at (0.645,0.215) {Or by \textcolor{escpink}{Culture}?};
-  % group info, bottom left
-  \node[anchor=south west, text=white, align=left, font=\footnotesize]
-        at (0.03,0.04)
-        {\textbf{Group 1}: Bachtiary, Gradev, Hartai, Isakova, Pemsel\\
-         Computing, WU Wien \textbar{} 24 November 2026};
-\end{tikzpicture}
-\end{frame}}
 
 \end{document}
