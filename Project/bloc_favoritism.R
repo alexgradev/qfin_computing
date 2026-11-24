@@ -26,15 +26,12 @@ seed <- 2026
 from_year <- 1975  # 12-point system
 
 blocs <- list(
-  "Nordics"           = c("SE", "NO", "DK", "FI", "IS"),
-  "ex-Yugoslavia"     = c("RS", "HR", "SI", "BA", "MK", "ME", "YU", "CS"),
-  "ex-USSR"           = c("RU", "UA", "BY", "MD", "AM", "AZ", "GE"),
-  "Baltics"           = c("EE", "LV", "LT"),
-  "Iberia"            = c("ES", "PT", "AD"),
   "Greece & Cyprus"   = c("GR", "CY"),
   "Romania & Moldova" = c("RO", "MD"),
-  "Western Balkans"   = c("RS", "HR", "SI", "BA", "MK", "ME", "YU", "CS", "AL"),
-  "Central & Eastern Balkans" = c("BG", "HR", "RS", "BA", "MK", "ME", "YU", "CS", "RO", "GR"),
+  "ex-Yugoslavia"     = c("RS", "HR", "SI", "BA", "MK", "ME", "YU", "CS"),
+  "Baltics"           = c("EE", "LV", "LT"),
+  "ex-USSR"           = c("RU", "UA", "BY", "MD", "AM", "AZ", "GE"),
+  "Nordics"           = c("SE", "NO", "DK", "FI", "IS"),
   "Control"           = c("IE", "IL", "MT", "CH")
 )
 
