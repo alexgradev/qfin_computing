@@ -2,10 +2,10 @@
 ## Convert the EurovisionAPI dataset (JSON files per year) into flat CSVs
 ##
 ## Source: https://github.com/EurovisionAPI/dataset, cloned into
-## data/eurovision-api
+## 01_data/eurovision-api
 ##
-## Run from the project folder:  Rscript build_data.R
-## Output (in data/):
+## Run from the project folder:  Rscript 02_scripts/build_data.R
+## Output (in 01_data/):
 ##   votes.csv    one row per year x round x vote_type x voter x recipient
 ##                (zero-point votes included; self-votes never appear)
 ##   entries.csv  one row per performance: running order, place, points
@@ -18,7 +18,7 @@
 
 library(jsonlite)
 
-src  <- file.path("data", "eurovision-api", "data")
+src  <- file.path("01_data", "eurovision-api", "data")
 root <- file.path(src, "senior")
 stopifnot(dir.exists(root))
 
@@ -109,9 +109,9 @@ entries <- entries[order(entries$year, entries$round, entries$running),
                      "place", "points_total", "points_jury", "points_public",
                      "disqualified")]
 
-write.csv(votes,    file.path("data", "votes.csv"),    row.names = FALSE)
-write.csv(entries,  file.path("data", "entries.csv"),  row.names = FALSE)
-write.csv(contests, file.path("data", "contests.csv"), row.names = FALSE)
+write.csv(votes,    file.path("01_data", "votes.csv"),    row.names = FALSE)
+write.csv(entries,  file.path("01_data", "entries.csv"),  row.names = FALSE)
+write.csv(contests, file.path("01_data", "contests.csv"), row.names = FALSE)
 
 cat("votes:", nrow(votes), "rows,", paste(range(votes$year), collapse = "-"), "\n")
 cat("entries:", nrow(entries), "rows\n")

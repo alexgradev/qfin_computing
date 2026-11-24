@@ -4,8 +4,8 @@
 .RData
 .Ruserdata
 finals_preparation/
-Project/data/eurovision-api
-Project/archive
+Project/01_data/eurovision-api
+Project/09_archive
 
 # LaTeX / Sweave by-products 
 *.aux
@@ -23,7 +23,7 @@ Project/archive
 *-concordance.tex
 
 # eurovision.tex is generated from eurovision.Rnw by Sweave
-Project/slides/eurovision.tex
+Project/05_slides/eurovision.tex
 
 # Sweave figure chunks (if any are added later)
-Project/slides/eurovision-*.pdf
+Project/05_slides/eurovision-*.pdf

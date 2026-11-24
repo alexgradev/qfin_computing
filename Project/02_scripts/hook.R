@@ -7,9 +7,9 @@
 ## margin is divided by that maximum ("top votes"), so the threshold
 ## "smaller than one country's top vote" is 1 in every year
 ##
-## Run from the project folder:  Rscript hook.R
-## Output: data/margins.csv (read by the slides),
-##         figures/hook_margins.pdf (+ .png), figures/hook_table.tex
+## Run from the project folder:  Rscript 02_scripts/hook.R
+## Output: 01_data/margins.csv (read by the slides),
+##         04_figures/hook_margins.pdf (+ .png), 04_figures/hook_table.tex
 
 ## ---- functions ---------------------------------------------------------
 
@@ -101,20 +101,20 @@ margin_table_tex <- function(m, max_tv = 1) {   # strictly below max_tv
 ## ---- main (only when run as a script, not when sourced) --------------------------------------------------------------
 
 if (sys.nframe() == 0) {
-  entries <- read.csv(file.path("data", "entries.csv"))
+  entries <- read.csv(file.path("01_data", "entries.csv"))
   m <- final_margins(entries)
-  dir.create("figures", showWarnings = FALSE)
+  dir.create("04_figures", showWarnings = FALSE)
 
-  write.csv(m, file.path("data", "margins.csv"), row.names = FALSE)
+  write.csv(m, file.path("01_data", "margins.csv"), row.names = FALSE)
 
-  pdf(file.path("figures", "hook_margins.pdf"), width = 6, height = 3.4)
+  pdf(file.path("04_figures", "hook_margins.pdf"), width = 6, height = 3.4)
   plot_margins(m); dev.off()
-  png(file.path("figures", "hook_margins.png"), width = 1800, height = 1020,
+  png(file.path("04_figures", "hook_margins.png"), width = 1800, height = 1020,
       res = 300)
   plot_margins(m); dev.off()
 
   tex <- margin_table_tex(m)
-  writeLines(tex, file.path("figures", "hook_table.tex"))
+  writeLines(tex, file.path("04_figures", "hook_table.tex"))
 
   close <- m[m$margin_tv < 1, ]
   cat(sprintf("Finals 1975-%d: %d; decided by < one top vote: %d\n",

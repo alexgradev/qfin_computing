@@ -55,24 +55,24 @@
 \fvset{fontsize=\scriptsize}
 
 % ---------- R setup ----------
-% The analysis scripts in the project folder write data/, results/ and
-% figures/; the slides read those files, so no number is typed in by hand
-%   build_data.R      -> data/votes.csv, data/entries.csv
-%   hook.R            -> data/margins.csv
-%   bloc_favoritism.R -> results/act1_blocs.csv, act1_top_pairs.csv, act1_null.rds
-%   network.R         -> results/network_edges.csv, figures/voting_network.pdf
-%   social_ties.R     -> results/social_ties_*.csv, figures/social_ties.pdf,
-%                        figures/sci_quintiles_boxplot.pdf
+% The analysis scripts in 02_scripts/ write 01_data/, 03_results/ and
+% 04_figures/; the slides read those files, so no number is typed in by hand
+%   build_data.R      -> 01_data/votes.csv, 01_data/entries.csv
+%   hook.R            -> 01_data/margins.csv
+%   bloc_favoritism.R -> 03_results/act1_blocs.csv, act1_top_pairs.csv, act1_null.rds
+%   network.R         -> 03_results/network_edges.csv, 04_figures/voting_network.pdf
+%   social_ties.R     -> 03_results/social_ties_*.csv, 04_figures/social_ties.pdf,
+%                        04_figures/sci_quintiles_boxplot.pdf
 % Only the Greece & Cyprus test on slide 11 is computed here, live
 <<setup>>=
-proj <- ".."                                   # project folder (slides/..)
-res  <- function(f) read.csv(file.path(proj, "results", f))
+proj <- ".."                                   # project folder (05_slides/..)
+res  <- function(f) read.csv(file.path(proj, "03_results", f))
 fmt  <- function(x, d = 1) formatC(x, format = "f", digits = d, flag = "+")
 pfmt <- function(p) if (p < 0.001) "< 0.001" else sprintf("= %.3f", p)  # $p \Sexpr{pfmt(.)}$
 
-votes   <- read.csv(file.path(proj, "data", "votes.csv"))
-entries <- read.csv(file.path(proj, "data", "entries.csv"))
-margins <- read.csv(file.path(proj, "data", "margins.csv"))
+votes   <- read.csv(file.path(proj, "01_data", "votes.csv"))
+entries <- read.csv(file.path(proj, "01_data", "entries.csv"))
+margins <- read.csv(file.path(proj, "01_data", "margins.csv"))
 
 ## data overview (slide 4)
 n_votes    <- format(nrow(votes), big.mark = ",")
@@ -101,7 +101,7 @@ n_close  <- sum(margins$margin_tv < 1)
 
 ## blocs and permutation test results (slides 10, 12, 15)
 blocs  <- res("act1_blocs.csv")
-nullobj <- readRDS(file.path(proj, "results", "act1_null.rds"))
+nullobj <- readRDS(file.path(proj, "03_results", "act1_null.rds"))
 real    <- blocs[blocs$bloc != "Control", ]
 ctrl    <- blocs[blocs$bloc == "Control", ]
 bname   <- blocs$bloc
@@ -254,14 +254,14 @@ q      <- tapply(tp$excess, cut(rank(tp$sci), 5, labels = FALSE), mean)
 Social Connectedness Index (Johnston et al., 2026), Humanitarian Data Exchange.}
 \end{frame}
 
-% ---------- Slide 5: does one country's vote matter? (data/margins.csv) ----------
+% ---------- Slide 5: does one country's vote matter? (01_data/margins.csv) ----------
 \begin{frame}{Does one country's vote matter?}
 \centering
 {\small\color{escblue}\textbf{Winning margin} = winner's points $-$ runner-up's points.\\
 If it is \textbf{smaller than one country's top vote}, a single country could have changed the winner.}\\[0.25cm]
 \begin{columns}[T]
   \column{0.44\textwidth}\centering
-    % one dot per final, close ones in pink (counts from data/margins.csv)
+    % one dot per final, close ones in pink (counts from 01_data/margins.csv)
     \begin{tikzpicture}[scale=0.85]
       \foreach \i in {0,...,\Sexpr{n_finals - 1}}{
         \pgfmathtruncatemacro{\r}{\i/10}
@@ -423,7 +423,7 @@ net <- res("network_edges.csv")
 @
 \begin{columns}[c]
   \column{0.55\textwidth}\centering
-    \includegraphics[height=0.80\textheight]{../figures/voting_network.pdf}
+    \includegraphics[height=0.80\textheight]{../04_figures/voting_network.pdf}
   \column{0.43\textwidth}
     {\small\color{escblue}
     \textbf{Arrow A $\rightarrow$ B:} A gives B on average \textbf{more than 3 excess points}
@@ -576,7 +576,7 @@ c(T_obs = T_obs,
         \draw[escblue!15] (\t,0.4) -- (\t,\Sexpr{-(nrow(blocs) - 1) - 0.6});
         \node[font=\tiny, text=escblue!70] at (\t,\Sexpr{-(nrow(blocs) - 1) - 1.0}) {\t};
       }
-      % rows built in R from results/act1_blocs.csv and act1_null.rds
+      % rows built in R from 03_results/act1_blocs.csv and act1_null.rds
       \foreach \i/\name/\lo/\hi/\obs/\c in {\Sexpr{bloc_tikz}}{
         \node[anchor=east, font=\scriptsize, text=escblue] at (-1.5,-\i) {\name};
         \fill[gray!35] (\lo,-\i-0.15) rectangle (\hi,-\i+0.15);
@@ -610,7 +610,7 @@ c(T_obs = T_obs,
 \begin{frame}{Friendship measured}
 \begin{columns}[c]
   \column{0.60\textwidth}\centering
-    \includegraphics[width=\linewidth]{../figures/social_ties.pdf}\\[-0.1cm]
+    \includegraphics[width=\linewidth]{../04_figures/social_ties.pdf}\\[-0.1cm]
     {\tiny each dot = one pair of countries (A $\rightarrow$ B), 1975--2026}
   \column{0.38\textwidth}
     {\small\color{escblue}
@@ -643,7 +643,7 @@ c(T_obs = T_obs,
 \begin{frame}{Excess points by friendship level}
 \begin{columns}[c]
   \column{0.62\textwidth}\centering
-    \includegraphics[width=\linewidth]{../figures/sci_quintiles_boxplot.pdf}
+    \includegraphics[width=\linewidth]{../04_figures/sci_quintiles_boxplot.pdf}
   \column{0.36\textwidth}
     {\small\color{escblue}
     All country pairs split into \textbf{five equal groups} by Facebook connectedness\\[0.15cm]

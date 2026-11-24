@@ -6,8 +6,8 @@
 ## finals and semi-finals 1975-2026, "total" points (2016+ halved to the
 ## 12-point scale), pairs that met at least 10 times
 ##
-## Run from the project folder:  Rscript network.R
-## Output: figures/voting_network.pdf (+ .png), results/network_edges.csv
+## Run from the project folder:  Rscript 02_scripts/network.R
+## Output: 04_figures/voting_network.pdf (+ .png), 03_results/network_edges.csv
 
 library(igraph)
 
@@ -16,7 +16,7 @@ min_meetings <- 10
 
 ## ---- mean excess points per directed pair ------------------------------------------------
 
-v <- read.csv(file.path("data", "votes.csv"))
+v <- read.csv(file.path("01_data", "votes.csv"))
 v <- v[v$vote_type == "total" & v$year >= 1975 & v$from_code != "WLD", ]
 v$points <- ifelse(v$year >= 2016, v$points / 2, v$points)
 
@@ -77,15 +77,15 @@ plot_network <- function(g) {
        edge.curved = 0.15)
 }
 
-dir.create("figures", showWarnings = FALSE)
-dir.create("results", showWarnings = FALSE)
-pdf(file.path("figures", "voting_network.pdf"), width = 7, height = 7)
+dir.create("04_figures", showWarnings = FALSE)
+dir.create("03_results", showWarnings = FALSE)
+pdf(file.path("04_figures", "voting_network.pdf"), width = 7, height = 7)
 plot_network(g); dev.off()
-png(file.path("figures", "voting_network.png"), width = 1800, height = 1800,
+png(file.path("04_figures", "voting_network.png"), width = 1800, height = 1800,
     res = 300)
 plot_network(g); dev.off()
 
-write.csv(strong_ties, file.path("results", "network_edges.csv"),
+write.csv(strong_ties, file.path("03_results", "network_edges.csv"),
           row.names = FALSE)
 
 ## clusters (connected groups of countries, ignoring arrow direction)

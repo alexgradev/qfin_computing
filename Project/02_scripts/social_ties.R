@@ -21,13 +21,13 @@
 ## is blocked in Russia since 2022, so their SCI is unreliable
 ## Monaco and San Marino have no SCI
 ##
-## Data: data/votes.csv (build_data.R) and data/sci/country.csv from
+## Data: 01_data/votes.csv (build_data.R) and 01_data/sci/country.csv from
 ## https://data.humdata.org/dataset/social-connectedness-index
 ##
-## Run from the project folder:  Rscript social_ties.R
-## Output: results/social_ties_tests.csv, results/social_ties_pairs.csv,
-##         figures/social_ties.pdf (+ .png),
-##         figures/sci_quintiles_boxplot.pdf (+ .png)
+## Run from the project folder:  Rscript 02_scripts/social_ties.R
+## Output: 03_results/social_ties_tests.csv, 03_results/social_ties_pairs.csv,
+##         04_figures/social_ties.pdf (+ .png),
+##         04_figures/sci_quintiles_boxplot.pdf (+ .png)
 
 ## ---- settings ----------------------------------------------------------
 
@@ -37,10 +37,10 @@ unreliable_sci <- c("RU", "BY")
 
 ## ---- data --------------------------------------------------------------
 
-sci <- read.csv(file.path("data", "sci", "country.csv"))
+sci <- read.csv(file.path("01_data", "sci", "country.csv"))
 sci <- sci[sci$user_country != sci$friend_country, ]
 
-v <- read.csv(file.path("data", "votes.csv"))
+v <- read.csv(file.path("01_data", "votes.csv"))
 v <- v[v$vote_type == "total" & v$year >= 1975 & v$from_code != "WLD", ]
 v$points <- ifelse(v$year >= 2016, v$points / 2, v$points)  # 12-point scale
 
@@ -131,11 +131,11 @@ print(top[, c("pair", "meetings", "excess", "sci")], row.names = FALSE)
 
 ## ---- output ------------------------------------------------------------
 
-dir.create("results", showWarnings = FALSE)
-dir.create("figures", showWarnings = FALSE)
-write.csv(tests, file.path("results", "social_ties_tests.csv"),
+dir.create("03_results", showWarnings = FALSE)
+dir.create("04_figures", showWarnings = FALSE)
+write.csv(tests, file.path("03_results", "social_ties_tests.csv"),
           row.names = FALSE)
-write.csv(pairs, file.path("results", "social_ties_pairs.csv"),
+write.csv(pairs, file.path("03_results", "social_ties_pairs.csv"),
           row.names = FALSE)
 
 ## ---- plot: pair excess vs SCI (slide 13) ------------------------------
@@ -173,9 +173,9 @@ plot_ties <- function(pairs, rho,
 }
 
 rho_main <- tests$rho[tests$sample == "1975-2026"]
-pdf(file.path("figures", "social_ties.pdf"), width = 6, height = 3.6)
+pdf(file.path("04_figures", "social_ties.pdf"), width = 6, height = 3.6)
 plot_ties(pairs, rho_main); dev.off()
-png(file.path("figures", "social_ties.png"), width = 1800, height = 1080,
+png(file.path("04_figures", "social_ties.png"), width = 1800, height = 1080,
     res = 300)
 plot_ties(pairs, rho_main); dev.off()
 
@@ -214,8 +214,8 @@ plot_quintiles <- function(pairs) {
   text(1:5, yl[2] - 0.3, paste("mean", lab), cex = 0.72, col = pink, font = 2)
 }
 
-pdf(file.path("figures", "sci_quintiles_boxplot.pdf"), width = 6, height = 3.6)
+pdf(file.path("04_figures", "sci_quintiles_boxplot.pdf"), width = 6, height = 3.6)
 plot_quintiles(pairs); dev.off()
-png(file.path("figures", "sci_quintiles_boxplot.png"), width = 1800,
+png(file.path("04_figures", "sci_quintiles_boxplot.png"), width = 1800,
     height = 1080, res = 300)
 plot_quintiles(pairs); dev.off()

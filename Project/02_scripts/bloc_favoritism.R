@@ -9,15 +9,15 @@
 ## at random (the voter keeps the same set of points)
 ## p-value = (1 + #{T* >= T_obs}) / (B + 1), then Holm across blocs
 ##
-## Data: data/votes.csv from build_data.R; vote_type "total" (the points that
+## Data: 01_data/votes.csv from build_data.R; vote_type "total" (the points that
 ## counted), finals and semi-finals 1975-2026, "Rest of the World" dropped
 ## Points from 2016 on are halved (jury + public), so all excess points are on
 ## the 12-point scale
 ##
-## Run from the project folder:  Rscript bloc_favoritism.R
-## Output: results/act1_blocs.csv, results/act1_top_pairs.csv,
-##         results/act1_null.rds (read by the slides),
-##         figures/act1_blocs.pdf (+ .png)
+## Run from the project folder:  Rscript 02_scripts/bloc_favoritism.R
+## Output: 03_results/act1_blocs.csv, 03_results/act1_top_pairs.csv,
+##         03_results/act1_null.rds (read by the slides),
+##         04_figures/act1_blocs.pdf (+ .png)
 
 ## ---- settings ----------------------------------------------------------
 
@@ -37,7 +37,7 @@ blocs <- list(
 
 ## ---- data --------------------------------------------------------------
 
-v <- read.csv(file.path("data", "votes.csv"))
+v <- read.csv(file.path("01_data", "votes.csv"))
 v <- v[v$vote_type == "total" & v$year >= from_year & v$from_code != "WLD", ]
 
 ## since 2016 "total" = jury + public (max 24 per country): halve it so every
@@ -138,12 +138,12 @@ rownames(top) <- NULL
 
 ## ---- output ------------------------------------------------------------
 
-dir.create("results", showWarnings = FALSE)
-dir.create("figures", showWarnings = FALSE)
-write.csv(res, file.path("results", "act1_blocs.csv"), row.names = FALSE)
-write.csv(top, file.path("results", "act1_top_pairs.csv"), row.names = FALSE)
+dir.create("03_results", showWarnings = FALSE)
+dir.create("04_figures", showWarnings = FALSE)
+write.csv(res, file.path("03_results", "act1_blocs.csv"), row.names = FALSE)
+write.csv(top, file.path("03_results", "act1_top_pairs.csv"), row.names = FALSE)
 saveRDS(list(T_obs = T_obs, T_null = T_null, B = B, seed = seed),
-        file.path("results", "act1_null.rds"))
+        file.path("03_results", "act1_null.rds"))
 
 print(res[, -2], row.names = FALSE)
 {
@@ -185,8 +185,8 @@ plot_blocs <- function(res, T_null) {
          pch = c(19, 15), col = c(blue, gray), pt.cex = c(1.2, 1.8))
 }
 
-pdf(file.path("figures", "act1_blocs.pdf"), width = 6, height = 3.4)
+pdf(file.path("04_figures", "act1_blocs.pdf"), width = 6, height = 3.4)
 plot_blocs(res, T_null); dev.off()
-png(file.path("figures", "act1_blocs.png"), width = 1800, height = 1020,
+png(file.path("04_figures", "act1_blocs.png"), width = 1800, height = 1020,
     res = 300)
 plot_blocs(res, T_null); dev.off()
