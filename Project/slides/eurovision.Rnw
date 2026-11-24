@@ -69,7 +69,7 @@ blocs   <- res("act1_blocs.csv")
 nullobj <- readRDS(file.path(proj, "results", "act1_null.rds"))
 real    <- blocs[blocs$bloc != "Control", ]
 ctrl    <- blocs[blocs$bloc == "Control", ]
-bname   <- ifelse(blocs$bloc %in% names(short), short[blocs$bloc], blocs$bloc)
+bname   <- blocs$bloc
 ## "&" -> "\&" for LaTeX. Sweave inserts \Sexpr results with sub(), which
 ## removes one level of backslashes, so the string needs "\\&" here
 bname   <- gsub("&", "\\\\\\\\&", bname)
